@@ -33,7 +33,8 @@ var IGRA = IGRA || {};
         });
       }
       this.fog = [];
-      for (var j = 0; j < 18; j++) {
+      var fogN = (G.Quality && G.Quality.fog) || 16;
+      for (var j = 0; j < fogN; j++) {
         this.fog.push({
           x: rng.range(-800, 800),
           y: rng.range(-800, 800),

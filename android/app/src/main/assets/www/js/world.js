@@ -274,6 +274,7 @@ var IGRA = IGRA || {};
       this.tide = 0.01;
       this.tideT = 42 + this.rng.range(0, 28);
       G.Audio.tide();
+      if (G.Haptic) G.Haptic.play("tide");
       G.Voice.say("tide");
     }
     if (this.tide > 0) {

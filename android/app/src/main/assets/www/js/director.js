@@ -158,7 +158,7 @@ var IGRA = IGRA || {};
       fx.ring(p.x, p.y, 22, c, 18, 0.7);
       fx.burst(p.x, p.y, 16, c, 90, 0.5);
       G.Shake.add(5);
-      if (navigator.vibrate) navigator.vibrate(18);
+      if (G.Haptic) G.Haptic.play("pulse");
 
       if (d === "aggression" || this.organs.combat > 0.45) {
         world.hitWound(p.x, p.y, 90 + this.organs.combat * 50, 1.4 + game.dna.get("aggression"), fx);

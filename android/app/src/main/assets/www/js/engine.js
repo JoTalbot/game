@@ -3,6 +3,7 @@ var IGRA = IGRA || {};
   "use strict";
 
   G.Game = function () {
+    if (G.Quality && !G.Quality.ready) G.Quality.init();
     this.canvas = document.getElementById("stage");
     this.ctx = this.canvas.getContext("2d", { alpha: false });
     this.w = 0;
@@ -15,7 +16,7 @@ var IGRA = IGRA || {};
     this.dna = new G.Dna();
     this.player = new G.Player();
     this.world = new G.World((Math.random() * 1e9) | 0);
-    this.fx = new G.Particles(460);
+    this.fx = new G.Particles((G.Quality && G.Quality.particles) || 420);
     this.floaters = new G.Floaters();
     this.cam = { x: 0, y: 0, z: 1, w: 0, h: 0, tx: 0, ty: 0 };
     this.input = {
@@ -45,7 +46,7 @@ var IGRA = IGRA || {};
   };
 
   G.Game.prototype.resize = function () {
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var dpr = G.Quality ? G.Quality.dpr : Math.min(window.devicePixelRatio || 1, 2);
     var w = window.innerWidth;
     var h = window.innerHeight;
     this.dpr = dpr;
@@ -287,6 +288,7 @@ var IGRA = IGRA || {};
     this.dna.pulses++;
     this.dna.feed(this.dna.dominant(), 0.015);
     G.Director.pulseEffect(this);
+    if (G.Haptic) G.Haptic.play("pulse");
     G.Voice.say("pulse");
   };
 
@@ -310,8 +312,8 @@ var IGRA = IGRA || {};
     G.Memory.sessions = 1;
     G.Memory.setFromDna(this.dna, true);
     G.UI.paintSeason();
-    G.UI.hint("коснись. задержись. или просто стой.");
-    if (navigator.vibrate) navigator.vibrate([40, 80, 40]);
+    G.UI.hint(G.Lang.t("hintBirth"));
+    if (G.Haptic) G.Haptic.play("meta");
   };
 
   G.Game.prototype.enterPlay = function () {
@@ -375,6 +377,17 @@ var IGRA = IGRA || {};
       return;
     }
 
+    if (this.state === "release") {
+      this.releaseT = (this.releaseT || 0) + dt;
+      this.cam.z = G.lerp(this.cam.z, 0.38, 1 - Math.pow(0.06, dt));
+      this.metaFlash = Math.max(this.metaFlash, 0.08);
+      if (this.releaseT > 14) {
+        G.UI.toggleSigil(this, true);
+      }
+      G.Audio.update(dt, this.dna, this.state, 0);
+      return;
+    }
+
     if (this.sky) {
       this.cam.z = G.lerp(this.cam.z, 0.42, 1 - Math.pow(0.06, dt));
       G.Audio.update(dt, this.dna, this.state, 0);
@@ -395,6 +408,9 @@ var IGRA = IGRA || {};
 
     this.world.update(dt, this.player, this.dna, this.fx);
     G.Director.observe(dt, this);
+    if (G.Fate.ready(this) && this.state === "play" && this.dna.age > 8) {
+      G.Fate.offer(this);
+    }
 
     if (this.state === "birth") {
       this.birthT += dt;
@@ -576,7 +592,7 @@ var IGRA = IGRA || {};
         this.fx.ring(n.x, n.y, 20, n.color(), n.r, 0.8);
         this.floaters.add(n.x, n.y - 20, G.KIND_RU[kind] || kind, n.color());
         G.Director.onCrystal(this, kind);
-        if (navigator.vibrate) navigator.vibrate(12);
+        if (G.Haptic) G.Haptic.play("crystal");
         if (gest.still > 0.8) this.world.anchor(n);
         this.player.gazeT = 0;
       } else if (gest.still > 0.7) {
@@ -600,6 +616,7 @@ var IGRA = IGRA || {};
       organs: G.Director.organs,
       named: G.Director.named,
       lastMeta: G.Director.lastMeta,
+      fate: { offered: G.Fate.offered, chosen: G.Fate.chosen },
       state: this.state === "title" ? "title" : "play",
       v: 2
     });
@@ -654,6 +671,10 @@ var IGRA = IGRA || {};
     if (data.organs) G.Director.organs = data.organs;
     G.Director.named = !!data.named;
     G.Director.lastMeta = data.lastMeta || 0;
+    if (data.fate) {
+      G.Fate.offered = !!data.fate.offered;
+      G.Fate.chosen = data.fate.chosen || "";
+    }
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.time = data.time || 0;
     return true;

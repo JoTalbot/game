@@ -3,10 +3,13 @@ var IGRA = IGRA || {};
   "use strict";
 
   function boot() {
+    G.Lang.init();
+    G.Quality.init();
     var game = new G.Game();
     G.app = game;
     G.UI.bind(game);
     game.start();
+    G.Fate.greetPlus();
 
     // gentle title pulse
     var word = document.getElementById("word");

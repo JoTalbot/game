@@ -31,6 +31,7 @@
         <div id="hint"></div>
         <div id="hud-right">
           <button id="mute-btn" type="button">тишина</button>
+          <button id="lang-btn" type="button">EN</button>
           <button id="sky-btn" type="button">небо</button>
           <button id="sigil-btn" type="button">сигила</button>
         </div>
@@ -49,6 +50,14 @@
         <div id="veil">
           <p id="igra-line"></p>
         </div>
+
+        <section id="fate-screen">
+          <p id="fate-line">я могу отпустить тебя. или ты можешь стать мной.</p>
+          <div id="fate-actions">
+            <button id="btn-release" type="button">отпустить</button>
+            <button id="btn-become" type="button">стать игрой</button>
+          </div>
+        </section>
 
         <section id="sigil-screen">
           <canvas id="sigil-canvas" width="280" height="280"></canvas>
@@ -78,6 +87,7 @@
     <script src="js/igra.js"></script>
     <script src="js/organs.js"></script>
     <script src="js/memory.js"></script>
+    <script src="js/fate.js"></script>
     <script src="js/world.js"></script>
     <script src="js/director.js"></script>
     <script src="js/renderer.js"></script>

@@ -17,6 +17,9 @@ var IGRA = IGRA || {};
       var skyBtn = document.getElementById("sky-btn");
       var shareBtn = document.getElementById("btn-share");
       var mouth = document.getElementById("mouth-url");
+      var langBtn = document.getElementById("lang-btn");
+      var relBtn = document.getElementById("btn-release");
+      var becBtn = document.getElementById("btn-become");
 
       if (sigilBtn) sigilBtn.addEventListener("click", function () {
         G.Audio.unlock();
@@ -35,6 +38,20 @@ var IGRA = IGRA || {};
       });
       if (shareBtn) shareBtn.addEventListener("click", function () {
         self.shareSigil(game);
+      });
+      if (langBtn) {
+        langBtn.textContent = G.Lang.id === "en" ? "RU" : "EN";
+        langBtn.addEventListener("click", function () {
+          G.Lang.set(G.Lang.id === "en" ? "ru" : "en");
+          langBtn.textContent = G.Lang.id === "en" ? "RU" : "EN";
+          G.Audio.ui();
+        });
+      }
+      if (relBtn) relBtn.addEventListener("click", function () {
+        G.Fate.release(game);
+      });
+      if (becBtn) becBtn.addEventListener("click", function () {
+        G.Fate.become(game);
       });
       if (mouth) {
         mouth.value = G.Mouth.get();
@@ -68,7 +85,7 @@ var IGRA = IGRA || {};
         });
       }
       if (forgetBtn) forgetBtn.addEventListener("click", function () {
-        if (confirm("Игра забудет тебя. Берег исчезнет. Это тоже жест.")) {
+        if (confirm(G.Lang.t("forgetAsk"))) {
           game.forgetSelf();
         }
       });
@@ -92,7 +109,7 @@ var IGRA = IGRA || {};
 
     setMute: function (muted) {
       var b = document.getElementById("mute-btn");
-      if (b) b.textContent = muted ? "звук" : "тишина";
+      if (b) b.textContent = muted ? G.Lang.t("sound") : G.Lang.t("mute");
     },
 
     toggleSigil: function (game, force) {
@@ -211,20 +228,47 @@ var IGRA = IGRA || {};
     shareSigil: function (game) {
       var canvas = document.getElementById("sigil-canvas");
       if (!canvas) return;
+      var title = game.dna.name();
+      var text = G.Lang.id === "en" ? title + " — IGRA" : title + " — ИГРА";
       try {
-        var a = document.createElement("a");
-        a.download = "igra-sigil.png";
-        a.href = canvas.toDataURL("image/png");
-        a.click();
-        G.Voice.sayText("унеси. это единственное доказательство, что ты был.", true);
+        if (canvas.toBlob && navigator.share && navigator.canShare) {
+          canvas.toBlob(function (blob) {
+            if (!blob) return;
+            var file = new File([blob], "igra-sigil.png", { type: "image/png" });
+            var data = { title: title, text: text, files: [file] };
+            if (navigator.canShare(data)) navigator.share(data).catch(function () {});
+            else {
+              var a = document.createElement("a");
+              a.download = "igra-sigil.png";
+              a.href = URL.createObjectURL(blob);
+              a.click();
+            }
+          });
+        } else {
+          var a = document.createElement("a");
+          a.download = "igra-sigil.png";
+          a.href = canvas.toDataURL("image/png");
+          a.click();
+        }
+        G.Voice.sayText(
+          G.Lang.id === "en"
+            ? "take it. the only proof you were here."
+            : "унеси. это единственное доказательство, что ты был.",
+          true
+        );
       } catch (e) {
-        G.UI.hint("берег не отдал картинку");
+        G.UI.hint(G.Lang.id === "en" ? "the shore kept the picture" : "берег не отдал картинку");
       }
     }
   };
 
   G.onBack = function () {
     if (!G.app) return;
+    var fate = document.getElementById("fate-screen");
+    if (fate && fate.classList.contains("on")) {
+      fate.classList.remove("on");
+      return;
+    }
     if (G.app.sky) {
       G.Organs.toggleSky(G.app, false);
       return;
