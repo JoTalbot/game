@@ -30,4 +30,8 @@ web/assets/img/_gen/
 ghp_*
 id_rsa
 id_ed25519
+.igra-build/
+dist/debug.keystore
+*.keystore
+android/app/src/main/assets/www/
 .git-credentials
