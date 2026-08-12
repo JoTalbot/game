@@ -46,16 +46,41 @@ var IGRA = IGRA || {};
   };
 
   G.Game.prototype.resize = function () {
-    var dpr = G.Quality ? G.Quality.dpr : Math.min(window.devicePixelRatio || 1, 2);
-    var w = window.innerWidth;
-    var h = window.innerHeight;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (window.__IGRA_DPR) dpr = Math.min(window.__IGRA_DPR, 2);
+    if (G.Quality && G.Quality.dpr) dpr = Math.min(dpr, G.Quality.dpr);
+    var app = document.getElementById("app");
+    var rect = app ? app.getBoundingClientRect() : this.canvas.getBoundingClientRect();
+    var w, h;
+    if (window.__IGRA_VW && window.__IGRA_VH) {
+      w = Math.round(window.__IGRA_VW);
+      h = Math.round(window.__IGRA_VH);
+      if (app) {
+        app.style.width = w + "px";
+        app.style.height = h + "px";
+      }
+    } else {
+      w = Math.round(
+        (rect && rect.width) ||
+          document.documentElement.clientWidth ||
+          window.innerWidth ||
+          360
+      );
+      h = Math.round(
+        (rect && rect.height) ||
+          document.documentElement.clientHeight ||
+          window.innerHeight ||
+          640
+      );
+    }
+    if (w < 2 || h < 2) return;
     this.dpr = dpr;
     this.w = w;
     this.h = h;
-    this.canvas.width = Math.floor(w * dpr);
-    this.canvas.height = Math.floor(h * dpr);
-    this.canvas.style.width = w + "px";
-    this.canvas.style.height = h + "px";
+    this.canvas.width = Math.max(1, Math.floor(w * dpr));
+    this.canvas.height = Math.max(1, Math.floor(h * dpr));
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.cam.w = w;
     this.cam.h = h;
@@ -132,6 +157,11 @@ var IGRA = IGRA || {};
     window.addEventListener("resize", function () {
       self.resize();
     });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", function () {
+        self.resize();
+      });
+    }
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) {
         self.save();
@@ -293,10 +323,12 @@ var IGRA = IGRA || {};
   };
 
   G.Game.prototype.startBirth = function () {
-    var self = this;
+    if (this.state !== "title") return;
     this.state = "birth";
     this.birthT = 0;
-    document.getElementById("title-screen").classList.add("out");
+    document.body.classList.remove("title-mode");
+    var screen = document.getElementById("title-screen");
+    if (screen) screen.classList.add("out");
     setTimeout(function () {
       var ts = document.getElementById("title-screen");
       if (ts) ts.style.display = "none";
@@ -690,6 +722,13 @@ var IGRA = IGRA || {};
     if (!this.last) this.last = ts;
     var dt = G.clamp((ts - this.last) / 1000, 0, 0.05);
     this.last = ts;
+    if ((ts / 1000 | 0) !== ((ts - dt * 1000) / 1000 | 0)) {
+      var app = document.getElementById("app");
+      if (app) {
+        var r = app.getBoundingClientRect();
+        if (r.width > this.w + 8 || r.height > this.h + 8) this.resize();
+      }
+    }
     this.update(dt);
     G.Renderer.draw(this.ctx, this);
     requestAnimationFrame(this.frame.bind(this));
