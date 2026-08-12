@@ -40,6 +40,8 @@ var IGRA = IGRA || {};
     this.prevDnaSnap = null;
     this.dirtySave = 0;
     this.running = false;
+    this.sky = false;
+    this.gazeTarget = null;
   };
 
   G.Game.prototype.resize = function () {
@@ -117,6 +119,7 @@ var IGRA = IGRA || {};
         self.doPulse();
       }
       if (e.code === "Escape" || e.code === "KeyI") G.UI.toggleSigil(self);
+      if (e.code === "KeyC") G.Organs.toggleSky(self);
       if (e.code === "KeyM") {
         var muted = G.Audio.toggleMute();
         G.UI.setMute(muted);
@@ -167,16 +170,50 @@ var IGRA = IGRA || {};
       this.input.wild = G.clamp(varc / 0.4, 0, 1);
     }
 
+    if (this.sky) {
+      var star = G.Organs.nearestStar(this.world, this.input.x, this.input.y, this.cam, 48);
+      if (star) {
+        G.Audio.crystallize(G.KIND_TRAIT[star.kind] || this.dna.dominant());
+        this.fx.burst(star.ox || this.player.x, star.oy || this.player.y, 20, star.c, 50, 0.8);
+        if (star.ox != null) {
+          this.player.x = star.ox;
+          this.player.y = star.oy;
+        }
+        G.Voice.sayText(star.verse || ("звезда " + (G.KIND_RU[star.kind] || "") + "."), true);
+        G.Organs.toggleSky(this, false);
+      }
+      return;
+    }
+
     if (this.state === "play" || this.state === "birth") {
+      var crack = G.Organs.nearestCrack(this.world, this.input.wx, this.input.wy, 36);
+      if (crack) {
+        G.Organs.applyLaw(this, crack);
+        this.dna.feed("chaos", 0.03);
+        return;
+      }
+      var being = G.Organs.nearestBeing(this.world, this.input.wx, this.input.wy, 42);
       var node = this.world.nearestNode(this.input.wx, this.input.wy, 48);
-      if (node) {
+      var boss = this.world.boss;
+      var bossNear = boss && G.dist(this.input.wx, this.input.wy, boss.x, boss.y) < boss.r + 18;
+      if (being && (!node || G.dist2(this.input.wx, this.input.wy, being.x, being.y) < G.dist2(this.input.wx, this.input.wy, node.x, node.y))) {
+        this.player.gaze = null;
+        this.gazeTarget = being;
+        this.player.gazeT = 0;
+        this.dna.feed("empathy", 0.012);
+      } else if (bossNear) {
+        this.gazeTarget = boss;
+        this.player.gaze = null;
+        this.player.gazeT = 0;
+      } else if (node) {
+        this.gazeTarget = null;
         this.player.gaze = node;
         this.player.gazeT = 0;
         this.dna.feed("contemplation", 0.01);
         if (this.dna.gazes === 0) G.Voice.say("firstGaze");
       } else {
         this.player.gaze = null;
-        // tap empty — small spark
+        this.gazeTarget = null;
         this.fx.spawn({
           x: this.input.wx,
           y: this.input.wy,
@@ -303,8 +340,15 @@ var IGRA = IGRA || {};
       return;
     }
 
+    if (this.sky) {
+      this.cam.z = G.lerp(this.cam.z, 0.42, 1 - Math.pow(0.06, dt));
+      G.Audio.update(dt, this.dna, this.state, 0);
+      return;
+    }
+
     this._move(dt);
     this._gaze(dt);
+    this._walkTones(dt);
 
     this.player.energy = G.clamp(
       this.player.energy +
@@ -381,6 +425,10 @@ var IGRA = IGRA || {};
       ax /= len;
       ay /= len;
     }
+    if (this.world.invertMove > 0) {
+      ax = -ax;
+      ay = -ay;
+    }
     var acc = 240 + this.dna.get("curiosity") * 60 + this.dna.get("chaos") * 40;
     this.player.vx += ax * acc * dt;
     this.player.vy += ay * acc * dt;
@@ -395,8 +443,54 @@ var IGRA = IGRA || {};
     if (len > 0.1) this.player.facing = Math.atan2(ay, ax);
   };
 
+  G.Game.prototype._walkTones = function () {
+    if (this.input.rhythm < 0.4 && this.dna.get("harmony") < 0.22) return;
+    for (var i = 0; i < this.world.nodes.length; i++) {
+      var n = this.world.nodes[i];
+      if (n.kind !== "tone" || n.state !== "alive") continue;
+      if (G.dist(this.player.x, this.player.y, n.x, n.y) < n.r + 16) {
+        if (!n._played || this.time - n._played > 0.8) {
+          n._played = this.time;
+          G.Organs.playTone(this, n);
+        }
+      }
+    }
+  };
+
   G.Game.prototype._gaze = function (dt) {
-    if (!this.input.down || !this.player.gaze) return;
+    if (!this.input.down) return;
+    if (this.gazeTarget && this.gazeTarget.temper) {
+      var b = this.gazeTarget;
+      if (b.dead || G.dist(this.input.wx, this.input.wy, b.x, b.y) > 70) {
+        this.gazeTarget = null;
+        return;
+      }
+      this.player.gazeT += dt;
+      b.bond = Math.min(1, b.bond + dt * 0.2);
+      b.fear = Math.max(0, b.fear - dt * 0.2);
+      if (this.player.gazeT >= 1.05) {
+        if (!b.named && b.bond > 0.45) {
+          G.Organs.nameBeing(b);
+          this.floaters.add(b.x, b.y - 18, b.name, G.TRAIT_COLOR.empathy);
+        }
+        G.Voice.sayText(G.Organs.speakBeing(b), true);
+        G.Organs.remember(b, "gazed");
+        this.dna.feed("empathy", 0.03);
+        this.player.gazeT = 0;
+        this.gazeTarget = null;
+      }
+      return;
+    }
+    if (this.gazeTarget && this.gazeTarget.maxHp) {
+      this.player.gazeT += dt;
+      if (this.player.gazeT > 1.2) {
+        G.Voice.sayText(this.gazeTarget.name + " помнит каждый отказ.", true);
+        this.gazeTarget.weak = 2.5;
+        this.player.gazeT = 0;
+      }
+      return;
+    }
+    if (!this.player.gaze) return;
     var n = this.player.gaze;
     if (n.dead) {
       this.player.gaze = null;
@@ -464,7 +558,8 @@ var IGRA = IGRA || {};
       organs: G.Director.organs,
       named: G.Director.named,
       lastMeta: G.Director.lastMeta,
-      state: this.state === "title" ? "title" : "play"
+      state: this.state === "title" ? "title" : "play",
+      v: 2
     });
   };
 

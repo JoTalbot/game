@@ -14,6 +14,7 @@ var IGRA = IGRA || {};
       var forgetBtn = document.getElementById("btn-forget");
       var closeSigil = document.getElementById("sigil-close");
       var muteBtn = document.getElementById("mute-btn");
+      var skyBtn = document.getElementById("sky-btn");
 
       if (sigilBtn) sigilBtn.addEventListener("click", function () {
         G.Audio.unlock();
@@ -25,6 +26,10 @@ var IGRA = IGRA || {};
       if (muteBtn) muteBtn.addEventListener("click", function () {
         G.Audio.unlock();
         self.setMute(G.Audio.toggleMute());
+      });
+      if (skyBtn) skyBtn.addEventListener("click", function () {
+        G.Audio.unlock();
+        G.Organs.toggleSky(game);
       });
       if (bornBtn) bornBtn.addEventListener("click", function (e) {
         e.stopPropagation();
@@ -154,13 +159,28 @@ var IGRA = IGRA || {};
           game.world.lost +
           "</span><span>удержано " +
           game.world.saved +
+          "</span><span>существ " +
+          game.world.beings.length +
           "</span>";
+      }
+      var verses = document.getElementById("sigil-verses");
+      if (verses) {
+        var last = (game.world.verses || []).slice(-3);
+        verses.innerHTML = last
+          .map(function (v) {
+            return v;
+          })
+          .join("<br>");
       }
     }
   };
 
   G.onBack = function () {
     if (!G.app) return;
+    if (G.app.sky) {
+      G.Organs.toggleSky(G.app, false);
+      return;
+    }
     var scr = document.getElementById("sigil-screen");
     if (scr && scr.classList.contains("on")) {
       G.UI.toggleSigil(G.app, false);

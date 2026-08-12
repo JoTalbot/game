@@ -114,6 +114,16 @@ var IGRA = IGRA || {};
           }
         }
       }
+
+      G.Organs.maybeGarden(game, dt);
+      G.Organs.maybeBoss(game);
+      G.Organs.updateBoss(game, dt);
+      G.Organs.maybeCracks(game, dt);
+
+      if (this.organs.map > 0.28 || game.world.stars.length >= 2) {
+        var skyBtn = document.getElementById("sky-btn");
+        if (skyBtn) skyBtn.classList.add("show");
+      }
     },
 
     _shift: function (game) {
@@ -146,19 +156,21 @@ var IGRA = IGRA || {};
 
       if (d === "aggression" || this.organs.combat > 0.45) {
         world.hitWound(p.x, p.y, 90 + this.organs.combat * 50, 1.4 + game.dna.get("aggression"), fx);
+        G.Organs.hitBoss(game, 1.6 + game.dna.get("aggression"), "aggression");
       }
       if (d === "empathy" || this.organs.social > 0.4) {
         world.charmNear(p.x, p.y, 110);
+        G.Organs.hitBoss(game, 1.1, "empathy");
         G.Voice.say("kind");
       }
       if (d === "curiosity") {
         p.vx *= 2.2;
         p.vy *= 2.2;
-        // reveal nearby unformed
         for (var i = 0; i < world.nodes.length; i++) {
           var n = world.nodes[i];
           if (G.dist(p.x, p.y, n.x, n.y) < 260) n.care = Math.max(n.care, 0.5);
         }
+        G.Organs.hitBoss(game, 0.4, "curiosity");
       }
       if (d === "contemplation") {
         game.slowMo = 2.4;
@@ -167,6 +179,7 @@ var IGRA = IGRA || {};
             world.nodes[j].care = 1;
           }
         }
+        G.Organs.hitBoss(game, 0.3, "contemplation");
       }
       if (d === "chaos" || this.organs.glitch > 0.4) {
         var ang = Math.random() * G.TAU;
@@ -174,11 +187,18 @@ var IGRA = IGRA || {};
         p.x += Math.cos(ang) * dist;
         p.y += Math.sin(ang) * dist;
         game.glitch = 0.8;
+        G.Organs.hitBoss(game, 1.0, "chaos");
+        if (this.organs.glitch > 0.45) {
+          G.Organs.spawnCrack(world, p.x + G.rand(-80, 80), p.y + G.rand(-80, 80));
+        }
         G.Voice.say("glitch");
       }
       if (d === "harmony" || this.organs.music > 0.35) {
         var n = world.resonate(p.x, p.y, fx);
         if (n > 1) G.Voice.say("music");
+        G.Organs.hitBoss(game, 0.8, "harmony");
+        var nearTone = world.nearestNode(p.x, p.y, 90);
+        if (nearTone && nearTone.kind === "tone") G.Organs.playTone(game, nearTone);
       }
     },
 

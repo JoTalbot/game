@@ -231,6 +231,47 @@ button:active {
   color: rgba(232, 230, 242, 0.55);
 }
 
+#sky-btn {
+  display: none;
+}
+#sky-btn.show {
+  display: inline-flex;
+}
+#sky-btn.lit {
+  border-color: rgba(78, 224, 255, 0.45);
+  color: #9be7ff;
+}
+
+#law {
+  position: absolute;
+  top: 48px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: rgba(198, 255, 58, 0.75);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+#law.on {
+  opacity: 1;
+}
+
+#sigil-verses {
+  margin-top: 16px;
+  max-width: 360px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  line-height: 1.45;
+  color: rgba(210, 200, 255, 0.7);
+  text-align: center;
+}
+
 #sigil-screen {
   position: absolute;
   inset: 0;

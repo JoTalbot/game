@@ -93,16 +93,36 @@ var IGRA = IGRA || {};
 
       // memory stars from forgotten nodes
       var stars = game.world.stars;
+      var sky = game.sky;
       for (var m = 0; m < stars.length; m++) {
         var st = stars[m];
-        var sx = w * 0.5 + st.x * 0.35 + Math.sin(t * 0.2 + st.tw) * 8;
-        var sy = h * 0.22 + st.y * 0.2 + Math.cos(t * 0.15 + st.tw) * 6;
+        var scale = sky ? 0.9 : 0.35;
+        var sx = w * 0.5 + st.x * scale + Math.sin(t * 0.2 + st.tw) * (sky ? 14 : 8);
+        var sy = (sky ? h * 0.42 : h * 0.22) + st.y * (sky ? 0.7 : 0.2) + Math.cos(t * 0.15 + st.tw) * (sky ? 12 : 6);
         var ta = 0.4 + 0.4 * Math.sin(t * 2 + st.tw);
-        glow(ctx, sx, sy, 10, st.c, 0.18 * ta);
-        ctx.fillStyle = G.rgb(st.c[0], st.c[1], st.c[2], 0.75 * ta);
+        glow(ctx, sx, sy, sky ? 22 : 10, st.c, 0.22 * ta);
+        ctx.fillStyle = G.rgb(st.c[0], st.c[1], st.c[2], 0.8 * ta);
         ctx.beginPath();
-        ctx.arc(sx, sy, 1.4, 0, G.TAU);
+        ctx.arc(sx, sy, sky ? 3.2 : 1.4, 0, G.TAU);
         ctx.fill();
+        if (sky && m < stars.length - 1) {
+          var st2 = stars[m + 1];
+          if (st.kind === st2.kind) {
+            var sx2 = w * 0.5 + st2.x * scale;
+            var sy2 = h * 0.42 + st2.y * 0.7;
+            ctx.strokeStyle = G.rgb(st.c[0], st.c[1], st.c[2], 0.22);
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(sx2, sy2);
+            ctx.stroke();
+          }
+        }
+      }
+      if (sky) {
+        ctx.fillStyle = "rgba(232,230,242,0.45)";
+        ctx.font = "italic 18px 'Cormorant Garamond', serif";
+        ctx.textAlign = "center";
+        ctx.fillText("небо из того, что ты отпустил", w / 2, 48);
       }
 
       // fog banks in world space
@@ -164,6 +184,11 @@ var IGRA = IGRA || {};
         }
       }
 
+      // garden
+      for (var gi = 0; gi < game.world.blooms.length; gi++) {
+        this.drawBloom(ctx, cam, game.world.blooms[gi], t);
+      }
+
       // nodes
       for (var i2 = 0; i2 < nodes.length; i2++) this.drawNode(ctx, cam, nodes[i2], t, game);
 
@@ -177,9 +202,16 @@ var IGRA = IGRA || {};
         this.drawWound(ctx, cam, game.world.wounds[wi], t);
       }
 
+      // cracks
+      for (var ci = 0; ci < game.world.cracks.length; ci++) {
+        this.drawCrack(ctx, cam, game.world.cracks[ci], t);
+      }
+
+      if (game.world.boss) this.drawBoss(ctx, cam, game.world.boss, t);
+
       // gaze thread
-      if (game.player.gaze) {
-        var gz = game.player.gaze;
+      if (game.player.gaze || game.gazeTarget) {
+        var gz = game.player.gaze || game.gazeTarget;
         var ps = this.worldToScreen(cam, game.player.x, game.player.y);
         var ns = this.worldToScreen(cam, gz.x, gz.y);
         ctx.strokeStyle = G.rgb(col[0], col[1], col[2], 0.35 + 0.35 * Math.sin(t * 8));

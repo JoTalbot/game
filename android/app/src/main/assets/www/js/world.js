@@ -139,6 +139,16 @@ var IGRA = IGRA || {};
     this.killed = 0;
     this.saved = 0;
     this.verses = [];
+    this.blooms = [];
+    this.cracks = [];
+    this.laws = [];
+    this.forgotten = [];
+    this.boss = null;
+    this.bossSaid = false;
+    this.anchorCap = 3;
+    this.tideFrozen = 0;
+    this.invertMove = 0;
+    this.toneChain = [];
   };
 
   G.World.prototype.spawnNode = function (x, y, kind) {
@@ -217,7 +227,7 @@ var IGRA = IGRA || {};
       this.verses.push(node.verse);
     }
     if (kind === "echo") {
-      var b = new G.Being(node.x + 20, node.y - 12, "empathy");
+      var b = G.Organs.birthBeing(node.x + 20, node.y - 12, "empathy", this.rng);
       this.beings.push(b);
       node.name = b.name;
     }
@@ -234,13 +244,19 @@ var IGRA = IGRA || {};
     node.dead = true;
     node.state = "gone";
     this.lost++;
-    this.stars.push({
+    var star = {
       x: node.x * 0.15,
       y: node.y * 0.15,
       c: node.color(),
       kind: node.kind,
-      tw: Math.random() * G.TAU
-    });
+      tw: Math.random() * G.TAU,
+      ox: node.x,
+      oy: node.y,
+      verse: node.verse || ""
+    };
+    this.stars.push(star);
+    this.forgotten.push({ kind: node.kind, x: node.x, y: node.y, c: node.color() });
+    if (this.forgotten.length > 24) this.forgotten.shift();
     if (asWound) {
       this.wounds.push(new G.Wound(node.x, node.y, node.kind));
       return "wound";
@@ -250,8 +266,10 @@ var IGRA = IGRA || {};
 
   G.World.prototype.update = function (dt, player, dna, fx) {
     this.age += dt;
-    this.tideT -= dt;
-    if (this.tideT <= 0 && this.tide <= 0) {
+    if (this.tideFrozen > 0) this.tideFrozen -= dt;
+    if (this.invertMove > 0) this.invertMove -= dt;
+    this.tideT -= this.tideFrozen > 0 ? 0 : dt;
+    if (this.tideT <= 0 && this.tide <= 0 && this.tideFrozen <= 0) {
       this.tide = 0.01;
       this.tideT = 42 + this.rng.range(0, 28);
       G.Audio.tide();
@@ -395,8 +413,11 @@ var IGRA = IGRA || {};
         u.hp -= 0.6;
         if (u.hp <= 0) {
           u.dead = true;
-          var b2 = new G.Being(u.x, u.y, "empathy");
+          var b2 = G.Organs.birthBeing(u.x, u.y, "empathy", this.rng);
+          b2.temper = "singer";
           b2.name = "исцелённое";
+          b2.trueName = "исцелённое";
+          b2.named = true;
           b2.bond = 0.4;
           this.beings.push(b2);
         }
@@ -421,7 +442,8 @@ var IGRA = IGRA || {};
 
   G.World.prototype.anchor = function (node) {
     if (this.anchors.indexOf(node.id) >= 0) return false;
-    if (this.anchors.length >= 3) this.anchors.shift();
+    var cap = this.anchorCap || 3;
+    if (this.anchors.length >= cap) this.anchors.shift();
     this.anchors.push(node.id);
     node.care = 1;
     this.saved++;
@@ -444,14 +466,26 @@ var IGRA = IGRA || {};
         });
       }
     }
+    var loyal = [];
+    for (var bi = 0; bi < this.beings.length; bi++) {
+      if (this.beings[bi].bond > 0.55) loyal.push(this.beings[bi]);
+    }
     this.nodes = keep;
     this.wounds = [];
+    this.cracks = [];
+    this.boss = null;
+    this.bossSaid = false;
     player.x *= 0.15;
     player.y *= 0.15;
     player.vx = 0;
     player.vy = 0;
     this.scatter(player.x, player.y, 10 + this.meta * 2, 360);
     this.birthShore(player, dna);
+    for (var li = 0; li < loyal.length; li++) {
+      loyal[li].x = player.x + G.rand(-40, 40);
+      loyal[li].y = player.y + G.rand(-40, 40);
+      this.beings.push(loyal[li]);
+    }
     this.tide = 0;
     this.tideT = 36;
   };
