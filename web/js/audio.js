@@ -24,6 +24,12 @@ var IGRA = IGRA || {};
     _lastPluck: 0,
 
     unlock: function () {
+      try {
+        this._unlock();
+      } catch (e) {}
+    },
+
+    _unlock: function () {
       if (this.ready) {
         if (this.ctx && this.ctx.state === "suspended") this.ctx.resume();
         return;

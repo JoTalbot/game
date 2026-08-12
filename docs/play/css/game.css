@@ -19,16 +19,22 @@ html,
 body {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
-  background: var(--void);
+  background: #05060a;
   color: var(--ink);
   font-family: var(--sans);
-  touch-action: none;
+  touch-action: manipulation;
 }
 
 #app {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: #05060a;
 }
 
 #stage {
@@ -37,6 +43,14 @@ body {
   width: 100%;
   height: 100%;
   display: block;
+  touch-action: none;
+}
+
+body.title-mode #hud-right,
+body.title-mode #brand,
+body.title-mode #season {
+  opacity: 0;
+  pointer-events: none;
 }
 
 #grain {
@@ -124,13 +138,21 @@ body {
 }
 
 #title-actions {
-  margin-top: 48px;
+  margin-top: 40px;
   display: flex;
   gap: 14px;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 1s ease, transform 1s ease;
   pointer-events: auto;
+}
+
+#btn-born {
+  padding: 16px 36px;
+  font-size: 13px;
+  letter-spacing: 0.28em;
+  border-color: rgba(232, 230, 242, 0.35);
+  min-width: 180px;
 }
 
 #title-actions.on {

@@ -65,7 +65,13 @@ Android — нативный WebView (`world.igra.app`), оффлайн, пол�
 
 ## Играть сейчас
 
-Живая ссылка: [jotalbot.github.io/game](https://jotalbot.github.io/game/) → кнопка «родиться».
+**Так задумано: с телефона.**  
+Скачай APK: [igra.apk](https://jotalbot.github.io/game/igra.apk)  
+или из релиза на GitHub.
+
+Разреши установку из неизвестного источника → открой файл → родись.
+
+Браузер (запасной берег): [jotalbot.github.io/game](https://jotalbot.github.io/game/)
 
 Локально:
 

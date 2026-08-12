@@ -63,18 +63,34 @@ var IGRA = IGRA || {};
           }, 2800);
         });
       }
-      if (bornBtn) bornBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        G.Audio.unlock();
+      function birthNow(e) {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        try {
+          G.Audio.unlock();
+        } catch (err) {}
         if (game.state === "title") game.startBirth();
-      });
+      }
+      if (bornBtn) {
+        bornBtn.addEventListener("click", birthNow);
+        bornBtn.addEventListener("touchend", birthNow, { passive: false });
+        bornBtn.addEventListener("pointerup", birthNow);
+      }
       if (continueBtn) {
         if (G.Save.exists()) continueBtn.classList.add("show");
-        continueBtn.addEventListener("click", function (e) {
-          e.stopPropagation();
-          G.Audio.unlock();
+        function goBack(e) {
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          try {
+            G.Audio.unlock();
+          } catch (err) {}
           if (game.load()) {
             game.state = "play";
+            document.body.classList.remove("title-mode");
             document.getElementById("title-screen").style.display = "none";
             G.UI.hint("я помню тебя, " + game.dna.name());
             G.UI.paintSeason();
@@ -82,7 +98,9 @@ var IGRA = IGRA || {};
               G.UI.hint("");
             }, 5000);
           }
-        });
+        }
+        continueBtn.addEventListener("click", goBack);
+        continueBtn.addEventListener("touchend", goBack, { passive: false });
       }
       if (forgetBtn) forgetBtn.addEventListener("click", function () {
         if (confirm(G.Lang.t("forgetAsk"))) {
@@ -92,11 +110,13 @@ var IGRA = IGRA || {};
 
       var title = document.getElementById("title-screen");
       if (title) {
-        title.addEventListener("click", function (e) {
-          if (e.target.closest("button")) return;
-          G.Audio.unlock();
-          if (game.state === "title") game.startBirth();
-        });
+        function tapTitle(e) {
+          if (e.target && e.target.closest && e.target.closest("button")) return;
+          birthNow(e);
+        }
+        title.addEventListener("click", tapTitle);
+        title.addEventListener("touchend", tapTitle, { passive: false });
+        title.addEventListener("pointerup", tapTitle);
       }
     },
 
