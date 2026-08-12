@@ -268,7 +268,8 @@ var IGRA = IGRA || {};
     this.age += dt;
     if (this.tideFrozen > 0) this.tideFrozen -= dt;
     if (this.invertMove > 0) this.invertMove -= dt;
-    this.tideT -= this.tideFrozen > 0 ? 0 : dt;
+    var tideMul = (G.Memory && G.Memory.climate) ? G.Memory.climate().tide : 1;
+    this.tideT -= this.tideFrozen > 0 ? 0 : dt * tideMul;
     if (this.tideT <= 0 && this.tide <= 0 && this.tideFrozen <= 0) {
       this.tide = 0.01;
       this.tideT = 42 + this.rng.range(0, 28);
@@ -319,16 +320,36 @@ var IGRA = IGRA || {};
       var dx = player.x - b.x;
       var dy = player.y - b.y;
       var d = Math.sqrt(dx * dx + dy * dy) || 1;
-      var want = b.bond > 0.35 ? 1 : b.fear > 0.55 ? -1 : 0.15;
-      if (d < 40 && want > 0) want = 0;
-      var spd = 28 + b.bond * 20;
+      var temper = b.temper || "shy";
+      var want = 0.15;
+      var spd = 26 + b.bond * 22;
+      if (b.isYesterday) {
+        want = 0.55;
+        if (d < 42) want = 0;
+      } else if (temper === "clingy") {
+        want = d < 34 ? 0 : 1;
+        spd += 10;
+      } else if (temper === "shy") {
+        want = d < 90 && Math.sqrt(player.vx * player.vx + player.vy * player.vy) > 60 ? -1 : b.bond > 0.4 ? 0.35 : -0.15;
+        if (player.stillT > 3) want = 0.55;
+      } else if (temper === "curious") {
+        want = 0.35;
+      } else if (temper === "wounded") {
+        want = d < 70 ? -0.4 : 0.2;
+      } else if (temper === "singer") {
+        want = d < 50 ? 0 : 0.45;
+      }
+      if (b.fear > 0.6) want = -1;
       b.vx = G.lerp(b.vx, (dx / d) * spd * want, 1 - Math.pow(0.08, dt));
       b.vy = G.lerp(b.vy, (dy / d) * spd * want, 1 - Math.pow(0.08, dt));
       b.x += b.vx * dt;
       b.y += b.vy * dt;
-      if (d < 52) {
-        b.bond = Math.min(1, b.bond + dt * 0.12);
+      if (d < 56) {
+        b.bond = Math.min(1, b.bond + dt * 0.1);
         b.fear = Math.max(0, b.fear - dt * 0.1);
+        b.debt = Math.max(0, (b.debt || 0) - dt * 0.08);
+      } else if (b.bond > 0.3) {
+        b.debt = (b.debt || 0) + dt * 0.015;
       }
     }
 
@@ -362,9 +383,14 @@ var IGRA = IGRA || {};
       }
     }
 
-    // soft world breath: curiosity grows the map
-    if (this.nodes.length < 8 + dna.get("curiosity") * 18 + this.meta * 3) {
-      if (G.chance(dt * (0.15 + dna.get("curiosity") * 0.35))) {
+    for (var bi = 0; bi < this.blooms.length; bi++) {
+      this.blooms[bi].age += dt;
+      this.blooms[bi].phase += dt * 0.8;
+    }
+
+    var spawnMul = G.Memory && G.Memory.climate ? G.Memory.climate().spawn : 1;
+    if (this.nodes.length < 8 + dna.get("curiosity") * 18 * spawnMul + this.meta * 3) {
+      if (G.chance(dt * (0.15 + dna.get("curiosity") * 0.35) * spawnMul)) {
         var ang = this.rng.range(0, G.TAU);
         var dist = 340 + this.rng.range(0, 520 + dna.get("curiosity") * 400);
         this.spawnNode(player.x + Math.cos(ang) * dist, player.y + Math.sin(ang) * dist, "spark");
@@ -522,9 +548,18 @@ var IGRA = IGRA || {};
           bond: b.bond,
           fear: b.fear,
           name: b.name,
-          hue: b.hue
+          hue: b.hue,
+          temper: b.temper,
+          trueName: b.trueName,
+          named: b.named,
+          debt: b.debt,
+          isYesterday: !!b.isYesterday
         };
-      })
+      }),
+      blooms: this.blooms,
+      forgotten: this.forgotten,
+      anchorCap: this.anchorCap,
+      laws: this.laws
     };
   };
 })(IGRA);

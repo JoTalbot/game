@@ -27,6 +27,7 @@
       <div id="grain"></div>
       <div id="overlay">
         <div id="brand">ИГРА</div>
+        <div id="season"></div>
         <div id="hint"></div>
         <div id="hud-right">
           <button id="mute-btn" type="button">тишина</button>
@@ -55,10 +56,16 @@
           <p id="sigil-sub"></p>
           <div id="sigil-stats"></div>
           <p id="sigil-verses"></p>
+          <p id="sigil-season"></p>
           <div id="sigil-actions">
             <button id="sigil-close" type="button">назад в берег</button>
+            <button id="btn-share" type="button">унести сигилу</button>
             <button id="btn-forget" type="button">забыть меня</button>
           </div>
+          <label id="mouth-wrap">
+            рот (необязательно)
+            <input id="mouth-url" type="url" placeholder="https://… webhook Игры" autocomplete="off" />
+          </label>
         </section>
       </div>
     </div>
@@ -70,6 +77,7 @@
     <script src="js/fx.js"></script>
     <script src="js/igra.js"></script>
     <script src="js/organs.js"></script>
+    <script src="js/memory.js"></script>
     <script src="js/world.js"></script>
     <script src="js/director.js"></script>
     <script src="js/renderer.js"></script>

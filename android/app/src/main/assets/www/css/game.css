@@ -348,6 +348,50 @@ button:active {
   pointer-events: none;
 }
 
+#season {
+  position: absolute;
+  top: 38px;
+  left: 20px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: rgba(232, 230, 242, 0.32);
+  pointer-events: none;
+}
+
+#sigil-season {
+  margin-top: 10px;
+  font-family: var(--serif);
+  font-style: italic;
+  color: rgba(232, 230, 242, 0.55);
+  text-align: center;
+  max-width: 340px;
+}
+
+#mouth-wrap {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: rgba(232, 230, 242, 0.35);
+  width: min(320px, 86vw);
+}
+
+#mouth-url {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  border-radius: 999px;
+  outline: none;
+}
+
 @media (max-height: 560px) {
   #word {
     font-size: 56px;

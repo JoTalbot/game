@@ -59,6 +59,12 @@ var IGRA = IGRA || {};
       if (game.input.rhythm > 0.55) dna.feed("harmony", 0.03, dt);
       if (game.input.wild > 0.5) dna.feed("chaos", 0.025, dt);
 
+      if (G.Memory.setFromDna(dna) && dna.age > 40) {
+        G.Voice.sayText("сезон сменился. теперь — " + G.Memory.climate().id + ".", true);
+        G.Memory.note("сезон: " + G.Memory.climate().id);
+        G.UI.paintSeason();
+      }
+
       this.growOrgans(dna);
       dna.age += dt;
 
@@ -96,8 +102,8 @@ var IGRA = IGRA || {};
       // spawn wounds if combat organ is growing and world is too peaceful
       if (
         this.organs.combat > 0.35 &&
-        game.world.wounds.length < 1 + this.organs.combat * 3 &&
-        G.chance(dt * 0.06 * this.organs.combat)
+        game.world.wounds.length < 1 + this.organs.combat * 3 * G.Memory.climate().wounds &&
+        G.chance(dt * 0.06 * this.organs.combat * G.Memory.climate().wounds)
       ) {
         var a = Math.random() * G.TAU;
         var d2 = 260 + Math.random() * 200;

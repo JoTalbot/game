@@ -15,6 +15,8 @@ var IGRA = IGRA || {};
       var closeSigil = document.getElementById("sigil-close");
       var muteBtn = document.getElementById("mute-btn");
       var skyBtn = document.getElementById("sky-btn");
+      var shareBtn = document.getElementById("btn-share");
+      var mouth = document.getElementById("mouth-url");
 
       if (sigilBtn) sigilBtn.addEventListener("click", function () {
         G.Audio.unlock();
@@ -31,6 +33,19 @@ var IGRA = IGRA || {};
         G.Audio.unlock();
         G.Organs.toggleSky(game);
       });
+      if (shareBtn) shareBtn.addEventListener("click", function () {
+        self.shareSigil(game);
+      });
+      if (mouth) {
+        mouth.value = G.Mouth.get();
+        mouth.addEventListener("change", function () {
+          G.Mouth.set(mouth.value);
+          G.UI.hint(mouth.value ? "рот открыт. Игра сможет говорить чужим языком." : "рот закрыт. говорю сама.");
+          setTimeout(function () {
+            G.UI.hint("");
+          }, 2800);
+        });
+      }
       if (bornBtn) bornBtn.addEventListener("click", function (e) {
         e.stopPropagation();
         G.Audio.unlock();
@@ -44,8 +59,8 @@ var IGRA = IGRA || {};
           if (game.load()) {
             game.state = "play";
             document.getElementById("title-screen").style.display = "none";
-            G.Voice.say("returner", true);
             G.UI.hint("я помню тебя, " + game.dna.name());
+            G.UI.paintSeason();
             setTimeout(function () {
               G.UI.hint("");
             }, 5000);
@@ -166,11 +181,44 @@ var IGRA = IGRA || {};
       var verses = document.getElementById("sigil-verses");
       if (verses) {
         var last = (game.world.verses || []).slice(-3);
-        verses.innerHTML = last
-          .map(function (v) {
-            return v;
-          })
-          .join("<br>");
+        verses.innerHTML = last.join("<br>");
+      }
+      var seasonEl = document.getElementById("sigil-season");
+      if (seasonEl) {
+        seasonEl.textContent =
+          "сезон «" + G.Memory.climate().id + "». день " + G.Memory.days + ". " + G.Memory.climate().hint;
+      }
+      this.paintSeason();
+    },
+
+    law: function (text) {
+      var el = document.getElementById("law");
+      if (!el) return;
+      el.textContent = text || "";
+      el.classList.add("on");
+      clearTimeout(this._lawT);
+      this._lawT = setTimeout(function () {
+        el.classList.remove("on");
+      }, 4200);
+    },
+
+    paintSeason: function () {
+      var el = document.getElementById("season");
+      if (!el) return;
+      el.textContent = G.Memory.climate().id;
+    },
+
+    shareSigil: function (game) {
+      var canvas = document.getElementById("sigil-canvas");
+      if (!canvas) return;
+      try {
+        var a = document.createElement("a");
+        a.download = "igra-sigil.png";
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+        G.Voice.sayText("унеси. это единственное доказательство, что ты был.", true);
+      } catch (e) {
+        G.UI.hint("берег не отдал картинку");
       }
     }
   };

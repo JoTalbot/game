@@ -73,8 +73,11 @@ var IGRA = IGRA || {};
         h * 0.5,
         Math.max(w, h) * 0.72
       );
-      bg.addColorStop(0, G.rgb(col[0] * 0.12, col[1] * 0.12, col[2] * 0.16, 1));
-      bg.addColorStop(0.45, "#07080d");
+      var hour = new Date().getHours();
+      var night = hour < 6 || hour > 21 ? 0.72 : hour < 8 || hour > 18 ? 0.88 : 1;
+      var seasonTint = G.Memory && G.Memory.seasonTrait === "aggression" ? 1.15 : 1;
+      bg.addColorStop(0, G.rgb(col[0] * 0.12 * seasonTint, col[1] * 0.12 * night, col[2] * 0.16 * night, 1));
+      bg.addColorStop(0.45, night < 0.8 ? "#05040a" : "#07080d");
       bg.addColorStop(1, "#030308");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
@@ -332,6 +335,13 @@ var IGRA = IGRA || {};
       var p = this.worldToScreen(cam, b.x, b.y);
       var c = G.TRAIT_COLOR[b.hue] || G.TRAIT_COLOR.empathy;
       var r = (b.r + Math.sin(t * 2 + b.phase) * 1.5) * cam.z;
+      if (b.isYesterday) {
+        glow(ctx, p.x, p.y, r * 5, [255, 230, 180], 0.16);
+        ctx.strokeStyle = "rgba(255,230,180,0.35)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, r * 1.4, 0, G.TAU);
+        ctx.stroke();
+      }
       glow(ctx, p.x, p.y, r * 3, c, 0.14 + b.bond * 0.15);
       ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.75);
       ctx.beginPath();

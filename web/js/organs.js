@@ -373,7 +373,8 @@ var IGRA = IGRA || {};
     maybeCracks: function (game, dt) {
       if (G.Director.organs.glitch < 0.28) return;
       var w = game.world;
-      if (w.cracks.length < 1 + G.Director.organs.glitch * 3 && G.chance(dt * 0.08 * G.Director.organs.glitch)) {
+      var cmul = G.Memory && G.Memory.climate ? G.Memory.climate().cracks : 1;
+      if (w.cracks.length < 1 + G.Director.organs.glitch * 3 * cmul && G.chance(dt * 0.08 * G.Director.organs.glitch * cmul)) {
         var a = Math.random() * G.TAU;
         var d = 80 + Math.random() * 260;
         this.spawnCrack(w, game.player.x + Math.cos(a) * d, game.player.y + Math.sin(a) * d);

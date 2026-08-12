@@ -132,7 +132,22 @@ var IGRA = IGRA || {};
       self.resize();
     });
     document.addEventListener("visibilitychange", function () {
-      if (document.hidden) self.save();
+      if (document.hidden) {
+        self.save();
+      } else if (self.state === "play" && G.Memory.leftAt) {
+        var nap = (Date.now() - G.Memory.leftAt) / 3600000;
+        if (nap > 0.04) {
+          var report = G.Memory.sleepWorld(self, Math.min(nap, 8));
+          if (report.lost || report.blooms) {
+            G.Voice.sayText(
+              report.lost
+                ? "пока экран спал, забвение работало."
+                : "сад вырос в темноте.",
+              true
+            );
+          }
+        }
+      }
     });
   };
 
@@ -229,8 +244,22 @@ var IGRA = IGRA || {};
   };
 
   G.Game.prototype.onUp = function () {
-    if (this.player.gaze && this.player.gazeT < 1.35) {
-      // short tap on node = touch / hit
+    if (this.gazeTarget && this.gazeTarget.temper && this.player.gazeT < 1.1) {
+      var b = this.gazeTarget;
+      if (this.dna.dominant() === "aggression") {
+        b.fear = Math.min(1, b.fear + 0.35);
+        b.bond = Math.max(0, b.bond - 0.12);
+        G.Organs.remember(b, "struck");
+        this.dna.feed("aggression", 0.015);
+        this.fx.burst(b.x, b.y, 8, [255, 80, 90], 40, 0.3);
+        if (b.isYesterday) G.Voice.say("yesterdayHit");
+      } else {
+        b.bond = Math.min(1, b.bond + 0.08);
+        G.Organs.remember(b, "touched");
+        this.dna.feed("empathy", 0.012);
+        G.Audio.pluck(G.TRAIT_NOTE.empathy);
+      }
+    } else if (this.player.gaze && this.player.gazeT < 1.35) {
       var n = this.player.gaze;
       n.gesture.hit += 0.35;
       this.dna.feed("aggression", 0.02);
@@ -239,8 +268,10 @@ var IGRA = IGRA || {};
       if (n.kind === "thorn" && n.state === "alive") {
         this.world.hitWound(n.x, n.y, 40, 0.5, this.fx);
       }
+      if (n.kind === "tone" && n.state === "alive") G.Organs.playTone(this, n);
     }
     this.player.gaze = null;
+    this.gazeTarget = null;
     this.player.gazeT = 0;
   };
 
@@ -473,7 +504,14 @@ var IGRA = IGRA || {};
           G.Organs.nameBeing(b);
           this.floaters.add(b.x, b.y - 18, b.name, G.TRAIT_COLOR.empathy);
         }
-        G.Voice.sayText(G.Organs.speakBeing(b), true);
+        if (b.isYesterday) {
+          G.Voice.say("yesterday", true);
+          setTimeout(function () {
+            G.Voice.sayText(G.Organs.speakBeing(b), true);
+          }, 2600);
+        } else {
+          G.Voice.sayText(G.Organs.speakBeing(b), true);
+        }
         G.Organs.remember(b, "gazed");
         this.dna.feed("empathy", 0.03);
         this.player.gazeT = 0;
