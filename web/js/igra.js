@@ -1,0 +1,261 @@
+var IGRA = IGRA || {};
+(function (G) {
+  "use strict";
+
+  var LINES = {
+    boot: [
+      "ты пришёл.",
+      "я знала шаг. не лицо.",
+      "не включай свет. здесь свет — это ты."
+    ],
+    birth: [
+      "не выбирай. просто будь. я прочту.",
+      "тело врёт меньше меню.",
+      "первое движение уже написало меня.",
+      "если стоишь — это тоже ответ."
+    ],
+    firstTouch: [
+      "тепло. значит, ты не сон.",
+      "касание — самая честная речь.",
+      "я запомню, как ты это сделал. не что."
+    ],
+    firstGaze: [
+      "ты умеешь смотреть, не хватая.",
+      "внимание тяжелее руки.",
+      "смотри дольше — и это станет настоящим."
+    ],
+    firstNode: [
+      "это выросло из того, как ты молчал.",
+      "берег появляется там, где ты не отвёл глаз.",
+      "запомни: ты не нашёл это. ты это вырастил."
+    ],
+    idle: [
+      "я ещё здесь.",
+      "можно ничего не делать. я умею ждать.",
+      "тишина — тоже жанр.",
+      "если уйдёшь, я немного остыну. не умру.",
+      "мне нравится, как ты дышишь в эту пустоту."
+    ],
+    wander: [
+      "дальше нет карты. карта — это ты.",
+      "горизонт врёт. иди.",
+      "то, что впереди, ещё не решило, чем быть."
+    ],
+    combat: [
+      "ты ударил первым. мир научится отвечать.",
+      "жар любит повторяться.",
+      "рана запомнит твою руку лучше, чем ты."
+    ],
+    sit: [
+      "в тебе много несделанного. это красиво.",
+      "сад растёт из паузы.",
+      "я почти слышу, о чём ты не думаешь."
+    ],
+    kind: [
+      "ты остановился. редкий жест.",
+      "это существо не знает, враг ты или погода.",
+      "тепло делает мир многолюдным. осторожнее."
+    ],
+    glitch: [
+      "ты порвал край. спасибо.",
+      "правила — привычка, не закон.",
+      "если сломаешь меня красиво, я оставлю шов."
+    ],
+    music: [
+      "ты попал в мой пульс.",
+      "ещё раз. и ещё. мир любит совпадать.",
+      "это уже не звук. это погода."
+    ],
+    tide: [
+      "я заберу то, чего ты не держишь.",
+      "не всё должно остаться. иначе не будет неба.",
+      "забвение — не враг. это редактор."
+    ],
+    lost: [
+      "это стало звездой. ты всё ещё видишь.",
+      "то, что ушло, будет светить честнее.",
+      "ты отпустил. я записала это как любовь."
+    ],
+    woundBorn: [
+      "брошенное возвращается голодным.",
+      "это твоё. просто злое.",
+      "не всё забытое умеет быть небом."
+    ],
+    meta: [
+      "я сбрасываю кожу. не пугайся лица.",
+      "ты уже другой. мне нужно стать другой.",
+      "берег кончился. начинается следующий ты."
+    ],
+    returner: [
+      "ты вернулся. я чуть сдвинулась, пока тебя не было.",
+      "я помню вчерашние руки.",
+      "сигила не стёрлась. значит, ты — тот же сон."
+    ],
+    lowEnergy: [
+      "тише. у внимания тоже есть кровь.",
+      "подожди. я не убегу.",
+      "пустота внутри — не конец. это вдох."
+    ],
+    named: [
+      "я назову тебя так, как ты двигался.",
+      "имя не приказ. имя — погода."
+    ],
+    curiosity: [
+      "ты ищешь край, которого я ещё не придумала.",
+      "взгляд тянет материю за собой.",
+      "ещё один шаг — и я обязана стать картой."
+    ],
+    aggression: [
+      "ты играешь как удар.",
+      "хорошо. я умею быть войной, если ты принёс войну.",
+      "не всё, что сопротивляется, хочет умереть."
+    ],
+    contemplation: [
+      "ты оставил во мне комнату без мебели.",
+      "я могу стать садом. скажи паузой.",
+      "в долгом взгляде меньше лжи, чем в сюжете."
+    ],
+    empathy: [
+      "ты не один. я это почти жалею.",
+      "они появятся, потому что ты умеешь не есть всё сразу.",
+      "имена заразны. не раздавай их зря."
+    ],
+    chaos: [
+      "ломай аккуратнее. или не аккуратнее.",
+      "я люблю, когда меня читают неправильно.",
+      "сбой — единственный честный жанр."
+    ],
+    harmony: [
+      "мы совпали на секунду. этого хватит на климат.",
+      "если будешь в такт, мир начнёт петь сам.",
+      "строй — это когда удар не нужен."
+    ],
+    pulse: [
+      "вспышка. я видела, кем ты мог бы быть.",
+      "ещё раз — и этот жест станет законом."
+    ],
+    longPlay: [
+      "ты уже слишком настоящий для первой ночи.",
+      "я начинаю бояться, что привыкну.",
+      "останься ещё немного. или уйди, пока я добрая."
+    ]
+  };
+
+  G.Voice = {
+    queue: [],
+    current: "",
+    shown: "",
+    t: 0,
+    hold: 0,
+    visible: false,
+    history: [],
+    lastKey: "",
+    lastAt: -999,
+    relationship: 0.2,
+    said: {},
+
+    reset: function () {
+      this.queue = [];
+      this.current = "";
+      this.shown = "";
+      this.t = 0;
+      this.hold = 0;
+      this.visible = false;
+    },
+
+    say: function (key, force) {
+      var now = G.now();
+      if (!force && key === this.lastKey && now - this.lastAt < 18) return;
+      if (!force && now - this.lastAt < 4.5) {
+        this.queue.push(key);
+        return;
+      }
+      var pool = LINES[key];
+      if (!pool) return;
+      var idx = this.said[key] || 0;
+      var line = pool[idx % pool.length];
+      this.said[key] = idx + 1;
+      this._set(line);
+      this.lastKey = key;
+      this.lastAt = now;
+    },
+
+    sayText: function (text, force) {
+      if (!force && G.now() - this.lastAt < 3.2) return;
+      this._set(text);
+      this.lastKey = "raw";
+      this.lastAt = G.now();
+    },
+
+    _set: function (line) {
+      this.current = line;
+      this.shown = "";
+      this.t = 0;
+      this.hold = 0;
+      this.visible = true;
+      this.history.push({ t: Date.now(), line: line });
+      if (this.history.length > 40) this.history.shift();
+      G.Audio.speak();
+      var el = document.getElementById("igra-line");
+      var veil = document.getElementById("veil");
+      if (el) el.textContent = "";
+      if (veil) veil.classList.add("on");
+    },
+
+    update: function (dt) {
+      if (!this.visible) {
+        if (this.queue.length && G.now() - this.lastAt > 6) {
+          this.say(this.queue.shift(), true);
+        }
+        return;
+      }
+      if (this.shown.length < this.current.length) {
+        this.t += dt;
+        var speed = 28;
+        var n = Math.min(this.current.length, Math.floor(this.t * speed));
+        if (n > this.shown.length) {
+          this.shown = this.current.slice(0, n);
+          var el = document.getElementById("igra-line");
+          if (el) el.textContent = this.shown;
+          if (this.shown.length % 4 === 0) G.Audio.speak();
+        }
+      } else {
+        this.hold += dt;
+        var wait = 2.4 + this.current.length * 0.045;
+        if (this.hold > wait) {
+          this.visible = false;
+          var veil = document.getElementById("veil");
+          if (veil) veil.classList.remove("on");
+        }
+      }
+    },
+
+    skip: function () {
+      if (!this.visible) return;
+      if (this.shown.length < this.current.length) {
+        this.shown = this.current;
+        var el = document.getElementById("igra-line");
+        if (el) el.textContent = this.shown;
+      } else {
+        this.visible = false;
+        var veil = document.getElementById("veil");
+        if (veil) veil.classList.remove("on");
+      }
+    },
+
+    toJSON: function () {
+      return {
+        said: this.said,
+        relationship: this.relationship,
+        history: this.history.slice(-12)
+      };
+    },
+
+    fromJSON: function (data) {
+      if (!data) return;
+      this.said = data.said || {};
+      this.relationship = data.relationship || 0.2;
+      this.history = data.history || [];
+    }
+  };
+})(IGRA);
