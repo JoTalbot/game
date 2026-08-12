@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ИГРА — она растёт из тебя</title>
+    <meta name="description" content="Онтогенетическая игра. Без жанра. Мир выращивает механики из твоего внимания." />
+    <meta property="og:title" content="ИГРА" />
+    <meta property="og:description" content="она растёт из тебя" />
+    <meta property="og:image" content="og.jpg" />
+    <meta name="theme-color" content="#05060a" />
+    <link rel="icon" href="play/assets/img/icon.png" />
+    <style>
+      @font-face {
+        font-family: "Cormorant Garamond";
+        font-style: italic;
+        font-weight: 400;
+        src: url("play/assets/fonts/f0.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "Cormorant Garamond";
+        font-style: normal;
+        font-weight: 500;
+        src: url("play/assets/fonts/f3.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: Manrope;
+        font-weight: 500;
+        src: url("play/assets/fonts/f6.ttf") format("truetype");
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        min-height: 100%;
+        background: #05060a;
+        color: #e8e6f2;
+        font-family: Manrope, system-ui, sans-serif;
+      }
+      body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px 64px;
+        background:
+          radial-gradient(ellipse at 50% 38%, rgba(80, 140, 220, 0.12), transparent 52%),
+          #05060a;
+      }
+      img.icon {
+        width: 112px;
+        height: 112px;
+        border-radius: 28px;
+        box-shadow: 0 20px 80px rgba(80, 180, 255, 0.18);
+      }
+      h1 {
+        margin-top: 28px;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-weight: 500;
+        font-size: clamp(56px, 14vw, 104px);
+        letter-spacing: 0.42em;
+        text-indent: 0.42em;
+      }
+      .tag {
+        margin-top: 8px;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-style: italic;
+        letter-spacing: 0.16em;
+        color: rgba(232, 230, 242, 0.55);
+        font-size: 20px;
+      }
+      p.lead {
+        margin-top: 28px;
+        max-width: 440px;
+        text-align: center;
+        line-height: 1.55;
+        color: rgba(232, 230, 242, 0.72);
+        font-size: 15px;
+      }
+      .actions {
+        margin-top: 36px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      a {
+        text-decoration: none;
+        color: #e8e6f2;
+        border: 1px solid rgba(232, 230, 242, 0.18);
+        padding: 12px 22px;
+        border-radius: 999px;
+        font-size: 12px;
+        letter-spacing: 0.2em;
+        text-transform: lowercase;
+      }
+      a.primary { border-color: rgba(232, 230, 242, 0.45); }
+      a:hover { background: rgba(255,255,255,0.04); }
+      footer {
+        margin-top: 48px;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        color: rgba(232, 230, 242, 0.32);
+      }
+    </style>
+  </head>
+  <body>
+    <img class="icon" src="play/assets/img/icon.png" alt="ИГРА" />
+    <h1>ИГРА</h1>
+    <p class="tag">она растёт из тебя</p>
+    <p class="lead">
+      Жанра нет. Есть внимание. Куда смотришь — становится настоящим.
+      Что отпускаешь — уходит в небо или возвращается голодным.
+    </p>
+    <div class="actions">
+      <a class="primary" href="play/">родиться</a>
+      <a href="https://github.com/JoTalbot/game">исходник</a>
+    </div>
+    <footer>рефлектум · оффлайн · без доната</footer>
+  </body>
+</html>

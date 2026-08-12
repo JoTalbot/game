@@ -63,16 +63,16 @@ Android — нативный WebView (`world.igra.app`), оффлайн, пол�
 
 Никакой энергии за деньги. Никакой рекламы. Игра либо твоя, либо её нет.
 
-## Запуск сейчас
+## Играть сейчас
 
-Браузер:
+Живая ссылка: [jotalbot.github.io/game](https://jotalbot.github.io/game/) → кнопка «родиться».
+
+Локально:
 
 ```bash
 cd web
 python3 -m http.server 8080
 ```
-
-Открой `http://localhost:8080`.
 
 Android Studio: папка `android/`. Gradle сам копирует `web/` в `assets/www` перед сборкой.
 

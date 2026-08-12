@@ -130,7 +130,7 @@ var IGRA = IGRA || {};
     this.age = 0;
     this.meta = 0;
     this.tide = 0;
-    this.tideT = 28 + this.rng.range(10, 30);
+    this.tideT = 70 + this.rng.range(16, 36);
     this.bounds = 2200;
     this.biome = "void";
     this.weather = 0;
@@ -269,10 +269,14 @@ var IGRA = IGRA || {};
     if (this.tideFrozen > 0) this.tideFrozen -= dt;
     if (this.invertMove > 0) this.invertMove -= dt;
     var tideMul = (G.Memory && G.Memory.climate) ? G.Memory.climate().tide : 1;
-    this.tideT -= this.tideFrozen > 0 ? 0 : dt * tideMul;
-    if (this.tideT <= 0 && this.tide <= 0 && this.tideFrozen <= 0) {
+    if (this.age < 75) {
+      /* first shore is allowed to exist */
+    } else {
+      this.tideT -= this.tideFrozen > 0 ? 0 : dt * tideMul;
+    }
+    if (this.tideT <= 0 && this.tide <= 0 && this.tideFrozen <= 0 && this.age >= 75) {
       this.tide = 0.01;
-      this.tideT = 42 + this.rng.range(0, 28);
+      this.tideT = 48 + this.rng.range(8, 32);
       G.Audio.tide();
       if (G.Haptic) G.Haptic.play("tide");
       G.Voice.say("tide");
@@ -290,7 +294,7 @@ var IGRA = IGRA || {};
       }
       n.age += dt;
       n.phase += dt * 0.7;
-      n.care = Math.max(0, n.care - dt * 0.015);
+      n.care = Math.max(0, n.care - dt * (this.age < 90 ? 0.007 : 0.012));
       if (n.state === "crystallizing") {
         n.growth += dt * 0.55;
         if (n.growth >= 1) n.growth = 1;
@@ -390,7 +394,8 @@ var IGRA = IGRA || {};
     }
 
     var spawnMul = G.Memory && G.Memory.climate ? G.Memory.climate().spawn : 1;
-    if (this.nodes.length < 8 + dna.get("curiosity") * 18 * spawnMul + this.meta * 3) {
+    var cap = Math.min(28, 8 + dna.get("curiosity") * 16 * spawnMul + this.meta * 2);
+    if (this.nodes.length < cap) {
       if (G.chance(dt * (0.15 + dna.get("curiosity") * 0.35) * spawnMul)) {
         var ang = this.rng.range(0, G.TAU);
         var dist = 340 + this.rng.range(0, 520 + dna.get("curiosity") * 400);
