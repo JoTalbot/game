@@ -96,6 +96,9 @@ public class MainActivity extends Activity {
                 public void run() { applyPhysicalViewport(); }
             });
             webView.loadUrl("https://igra.local/www/index.html");
+            webView.postDelayed(new Runnable() {
+                public void run() { applyPhysicalViewport(); }
+            }, 900);
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -218,15 +221,23 @@ public class MainActivity extends Activity {
                                 if (cssW < 8 || cssH < 8) return;
                                 float cssScaleX = real.widthPixels / cssW;
                                 float cssScaleY = real.heightPixels / cssH;
-                                webView.setPivotX(0f);
-                                webView.setPivotY(0f);
-                                webView.setScaleX(cssScaleX);
-                                webView.setScaleY(cssScaleY);
+                                webView.setScaleX(1f);
+                                webView.setScaleY(1f);
+                                String physicalW = String.valueOf(real.widthPixels);
+                                String physicalH = String.valueOf(real.heightPixels);
                                 String d = "android real=" + real.widthPixels + "x" + real.heightPixels
                                         + " css=" + ((int) cssW) + "x" + ((int) cssH)
-                                        + " scale=" + cssScaleX + "x" + cssScaleY;
+                                        + " scale=1x1 viewport=physical";
                                 String e = d.replace("'", "\\'");
-                                webView.evaluateJavascript("document.body.classList.add('android-compact');var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';", null);
+                                String js = "(function(){"
+                                        + "var m=document.querySelector('meta[name=viewport]');"
+                                        + "if(m)m.setAttribute('content','width=" + physicalW + ",height=" + physicalH + ",initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover');"
+                                        + "document.documentElement.style.width='" + physicalW + "px';"
+                                        + "document.documentElement.style.height='" + physicalH + "px';"
+                                        + "document.body.classList.remove('android-compact');"
+                                        + "if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();"
+                                        + "var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';})()";
+                                webView.evaluateJavascript(js, null);
                             } catch (Throwable ignored) {}
                         }
                     });
