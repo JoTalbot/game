@@ -126,10 +126,14 @@ var IGRA = IGRA || {};
         }
       }
       if (sky) {
-        ctx.fillStyle = "rgba(232,230,242,0.45)";
-        ctx.font = "italic 18px 'Cormorant Garamond', serif";
+        ctx.save();
+        ctx.fillStyle = "rgba(238,236,248,0.92)";
+        ctx.font = "italic 22px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
-        ctx.fillText("небо из того, что ты отпустил", w / 2, 48);
+        ctx.shadowColor = "rgba(0,0,0,0.9)";
+        ctx.shadowBlur = 6;
+        ctx.fillText("небо из того, что ты отпустил", w / 2, 52);
+        ctx.restore();
       }
 
       // fog banks in world space
@@ -297,10 +301,14 @@ var IGRA = IGRA || {};
       }
       ctx.restore();
       if (b.verse) {
-        ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.6);
-        ctx.font = "16px 'Cormorant Garamond', serif";
+        ctx.save();
+        ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.92);
+        ctx.font = "italic 19px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
-        ctx.fillText(b.verse, p.x, p.y + r + 20);
+        ctx.shadowColor = "rgba(0,0,0,0.9)";
+        ctx.shadowBlur = 5;
+        ctx.fillText(b.verse, p.x, p.y + r + 22);
+        ctx.restore();
       }
     },
 
@@ -347,10 +355,14 @@ var IGRA = IGRA || {};
       ctx.stroke();
       ctx.restore();
       if (b.name) {
-        ctx.fillStyle = G.rgb(255, 190, 200, 0.85);
-        ctx.font = "18px 'Cormorant Garamond', serif";
+        ctx.save();
+        ctx.fillStyle = G.rgb(255, 205, 215, 0.95);
+        ctx.font = "italic 21px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,0.9)";
+        ctx.shadowBlur = 5;
         ctx.fillText(b.name, p.x, p.y - r - 16);
+        ctx.restore();
       }
     },
 
@@ -392,10 +404,14 @@ var IGRA = IGRA || {};
           ctx.stroke();
         }
         if (n.kind === "still" && n.verse) {
-          ctx.fillStyle = G.rgb(210, 200, 255, 0.45);
-          ctx.font = "italic 17px 'Cormorant Garamond', serif";
+          ctx.save();
+          ctx.fillStyle = G.rgb(230, 224, 255, 0.9);
+          ctx.font = "italic 20px 'Cormorant Garamond', serif";
           ctx.textAlign = "center";
-          ctx.fillText(n.verse, p.x, p.y + r + 14);
+          ctx.shadowColor = "rgba(0,0,0,0.9)";
+          ctx.shadowBlur = 5;
+          ctx.fillText(n.verse, p.x, p.y + r + 16);
+          ctx.restore();
         }
       }
 
@@ -427,10 +443,14 @@ var IGRA = IGRA || {};
       ctx.arc(p.x, p.y, r * 0.45, 0, G.TAU);
       ctx.fill();
       if (b.bond > 0.4) {
-        ctx.fillStyle = G.rgb(255, 230, 230, 0.45);
-        ctx.font = "17px 'Cormorant Garamond', serif";
+        ctx.save();
+        ctx.fillStyle = G.rgb(255, 236, 236, 0.85);
+        ctx.font = "italic 20px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
-        ctx.fillText(b.name, p.x, p.y + r + 12);
+        ctx.shadowColor = "rgba(0,0,0,0.9)";
+        ctx.shadowBlur = 5;
+        ctx.fillText(b.name, p.x, p.y + r + 14);
+        ctx.restore();
       }
     },
 

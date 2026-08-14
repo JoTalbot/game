@@ -1,7 +1,7 @@
 :root {
   --void: #05060a;
   --ink: #e8e6f2;
-  --mute: rgba(232, 230, 242, 0.55);
+  --mute: rgba(232, 230, 242, 0.7);
   --line: rgba(232, 230, 242, 0.14);
   --serif: "Cormorant Garamond", "Iowan Old Style", Palatino, Georgia, serif;
   --sans: Manrope, ui-sans-serif, system-ui, sans-serif;
@@ -137,7 +137,7 @@ body.title-mode #season {
   text-align: center;
   font-family: var(--serif);
   font-style: italic;
-  font-size: 15px;
+  font-size: 16px;
   letter-spacing: 0.12em;
   color: var(--mute);
   opacity: 0;
@@ -145,7 +145,7 @@ body.title-mode #season {
 }
 
 #whisper.on {
-  opacity: 0.8;
+  opacity: 0.95;
 }
 
 #title-actions {
@@ -223,11 +223,11 @@ button:active {
   font-family: var(--serif);
   font-style: italic;
   font-weight: 400;
-  font-size: clamp(18px, 4.4vw, 28px);
+  font-size: clamp(20px, 5.4vw, 32px);
   line-height: 1.35;
   text-align: center;
-  color: rgba(236, 232, 245, 0.92);
-  text-shadow: 0 8px 30px rgba(0, 0, 0, 0.65);
+  color: rgba(243, 240, 250, 0.98);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.85);
 }
 
 #hint {
@@ -236,9 +236,9 @@ button:active {
   left: 0;
   right: 0;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.18em;
-  color: rgba(232, 230, 242, 0.42);
+  color: rgba(232, 230, 242, 0.62);
   opacity: 0;
   transition: opacity 0.8s ease;
 }
@@ -276,9 +276,9 @@ body.debug #fit-debug {
 #hud-right button {
   padding: 8px 12px;
   letter-spacing: 0.14em;
-  font-size: 10px;
-  border-color: rgba(255, 255, 255, 0.08);
-  color: rgba(232, 230, 242, 0.55);
+  font-size: 11px;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(238, 236, 246, 0.82);
 }
 
 #fate-screen {
@@ -332,9 +332,10 @@ body.debug #fit-debug {
   text-align: center;
   font-family: var(--serif);
   font-style: italic;
-  font-size: 15px;
+  font-size: 17px;
   letter-spacing: 0.08em;
-  color: rgba(198, 255, 58, 0.75);
+  color: rgba(198, 255, 58, 0.92);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
   opacity: 0;
   transition: opacity 0.6s ease;
   pointer-events: none;
@@ -348,9 +349,9 @@ body.debug #fit-debug {
   max-width: 360px;
   font-family: var(--serif);
   font-style: italic;
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.45;
-  color: rgba(210, 200, 255, 0.7);
+  color: rgba(222, 214, 255, 0.9);
   text-align: center;
 }
 
@@ -403,9 +404,9 @@ body.debug #fit-debug {
   flex-wrap: wrap;
   gap: 10px 18px;
   justify-content: center;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.16em;
-  color: rgba(232, 230, 242, 0.5);
+  color: rgba(232, 230, 242, 0.72);
 }
 
 #sigil-actions {
@@ -424,9 +425,9 @@ body.debug #fit-debug {
   top: 20px;
   left: 20px;
   font-family: var(--serif);
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.38em;
-  color: rgba(232, 230, 242, 0.28);
+  color: rgba(232, 230, 242, 0.45);
   pointer-events: none;
 }
 
@@ -436,9 +437,9 @@ body.debug #fit-debug {
   left: 20px;
   font-family: var(--serif);
   font-style: italic;
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.16em;
-  color: rgba(232, 230, 242, 0.32);
+  color: rgba(232, 230, 242, 0.55);
   pointer-events: none;
 }
 
@@ -446,7 +447,7 @@ body.debug #fit-debug {
   margin-top: 10px;
   font-family: var(--serif);
   font-style: italic;
-  color: rgba(232, 230, 242, 0.55);
+  color: rgba(232, 230, 242, 0.78);
   text-align: center;
   max-width: 340px;
 }
@@ -507,8 +508,8 @@ body.debug #fit-debug {
 }
 
 .android-compact #hud-right button {
-  padding: 6px 6px;
-  font-size: 8px;
+  padding: 7px 8px;
+  font-size: 9.5px;
   letter-spacing: 0.08em;
 }
 
@@ -548,7 +549,7 @@ body.debug #fit-debug {
 
   #hud-right button {
     padding: 7px 8px;
-    font-size: 9px;
+    font-size: 10px;
   }
 }
 

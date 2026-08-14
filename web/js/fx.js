@@ -118,8 +118,11 @@ var IGRA = IGRA || {};
   };
 
   G.Floaters.prototype.draw = function (ctx, cam) {
-    ctx.font = "500 " + Math.round(19 * Math.min(cam.z, 1.2)) + "px Manrope, sans-serif";
+    ctx.save();
+    ctx.font = "600 " + Math.round(22 * Math.min(cam.z, 1.15)) + "px Manrope, sans-serif";
     ctx.textAlign = "center";
+    ctx.shadowColor = "rgba(0,0,0,0.9)";
+    ctx.shadowBlur = 6;
     for (var i = 0; i < this.list.length; i++) {
       var f = this.list[i];
       var k = f.life / f.max;
@@ -128,6 +131,7 @@ var IGRA = IGRA || {};
       ctx.fillStyle = G.rgb(f.c[0], f.c[1], f.c[2], G.smooth(k));
       ctx.fillText(f.text, x, y);
     }
+    ctx.restore();
   };
 
   G.Shake = { x: 0, y: 0, mag: 0 };
