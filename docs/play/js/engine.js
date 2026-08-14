@@ -55,14 +55,54 @@ var IGRA = IGRA || {};
     if (G.Quality && G.Quality.dpr) dpr = Math.min(dpr, G.Quality.dpr);
     dpr = Math.min(dpr, 2.5);
 
+    // Сломанная плотность WebView (Oukitel G1 Android 15): краска идёт
+    // 1 CSS px = 1 физ. px, вьюпорт считается с плотностью. Тогда честная
+    // рамка — сам физический экран. Страж: screen/inner ~= dpr на Android.
+    var fit = "css";
+    var sw = (window.screen && screen.width) || 0;
+    var sh = (window.screen && screen.height) || 0;
+    var ua = (navigator && navigator.userAgent) || "";
+    var phys = /Android/.test(ua) && sw > 10 && sh > 10 &&
+      Math.abs(sw / w - rawDpr) < 0.08 && Math.abs(sh / h - rawDpr) < 0.08;
+    if (phys) {
+      w = sw; h = sh; dpr = 1; fit = "phys";
+      var px = w + "px", py = h + "px";
+      try {
+        document.documentElement.style.width = px;
+        document.documentElement.style.height = py;
+        if (document.body) {
+          document.body.style.width = px;
+          document.body.style.height = py;
+        }
+        var appN = document.getElementById("app");
+        if (appN) { appN.style.width = px; appN.style.height = py; }
+      } catch (e) {}
+    } else {
+      try {
+        document.documentElement.style.width = "";
+        document.documentElement.style.height = "";
+        if (document.body) {
+          document.body.style.width = "";
+          document.body.style.height = "";
+        }
+        var appC = document.getElementById("app");
+        if (appC) { appC.style.width = ""; appC.style.height = ""; }
+      } catch (e2) {}
+    }
+
     this.dpr = dpr;
     this.w = w;
     this.h = h;
 
     this.canvas.width = Math.max(1, Math.round(w * dpr));
     this.canvas.height = Math.max(1, Math.round(h * dpr));
-    this.canvas.style.width = "100%";
-    this.canvas.style.height = "100%";
+    if (fit === "phys") {
+      this.canvas.style.width = w + "px";
+      this.canvas.style.height = h + "px";
+    } else {
+      this.canvas.style.width = "100%";
+      this.canvas.style.height = "100%";
+    }
 
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.cam.w = w;
@@ -70,7 +110,15 @@ var IGRA = IGRA || {};
 
     var dbg = document.getElementById("fit-debug");
     if (dbg) {
-      dbg.textContent = w + "×" + h + " dpr" + rawDpr.toFixed(2);
+      var doc = document.documentElement;
+      var line = w + "×" + h + " dpr" + rawDpr.toFixed(2) + " " + fit + "\n" +
+        "inner=" + window.innerWidth + "×" + window.innerHeight +
+        " doc=" + (doc ? doc.clientWidth : 0) + "×" + (doc ? doc.clientHeight : 0) +
+        " scr=" + sw + "×" + sh + "\n" +
+        "body=" + (document.body ? document.body.scrollWidth : 0) + "×" + (document.body ? document.body.scrollHeight : 0) +
+        " vv=" + (window.visualViewport ? (Math.round(visualViewport.width) + "×" + Math.round(visualViewport.height) + "@" + visualViewport.scale.toFixed(2)) : "-") +
+        "\n" + (window.IGRA_ANDROID_METRICS || "");
+      dbg.textContent = line;
     }
     if (!G.Renderer.ready) G.Renderer.init(w, h);
   };

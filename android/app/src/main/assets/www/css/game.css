@@ -257,6 +257,7 @@ button:active {
   color: rgba(232, 230, 242, 0.6);
   background: rgba(0, 0, 0, 0.38);
   pointer-events: none;
+  white-space: pre-line;
 }
 
 #hud-right {

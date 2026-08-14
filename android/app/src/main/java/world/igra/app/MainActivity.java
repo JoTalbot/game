@@ -157,14 +157,26 @@ public class MainActivity extends Activity {
         return guess != null ? guess : "application/octet-stream";
     }
 
-    // One honest call: ask the game to re-measure innerWidth/innerHeight.
-    // No meta rewrites, no element sizing from Java — that path shrank the
-    // shore to the left CSS-width slice on density 1.5 displays.
+    // One honest call: ask the game to re-measure the viewport. Before that,
+    // leave native metrics on the window object — the fit-debug line shows
+    // them, so a screenshot from the phone carries the whole picture.
     private void resizeGame() {
         if (webView == null) return;
         try {
+            android.util.DisplayMetrics real = new android.util.DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getRealMetrics(real);
+            int vw = webView.getWidth();
+            int vh = webView.getHeight();
+            View decor = getWindow().getDecorView();
+            int dw = decor != null ? decor.getWidth() : 0;
+            int dh = decor != null ? decor.getHeight() : 0;
+            String m = "real=" + real.widthPixels + "x" + real.heightPixels
+                    + " view=" + vw + "x" + vh
+                    + " decor=" + dw + "x" + dh;
+            String esc = m.replace("\\", "\\\\").replace("'", "\\'");
             webView.evaluateJavascript(
-                    "(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();})()",
+                    "(function(){window.IGRA_ANDROID_METRICS='" + esc + "';"
+                            + "if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();})()",
                     null);
         } catch (Throwable ignored) {}
     }
