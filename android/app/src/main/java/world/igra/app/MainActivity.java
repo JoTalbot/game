@@ -54,6 +54,15 @@ public class MainActivity extends Activity {
             webView.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT));
+            // Some Android/WebView combinations expose the window in CSS pixels
+            // (384 x 853) but paint the Activity into a 576 x 1280 display.
+            // Scale the view itself from the origin so MATCH_PARENT covers the
+            // physical screen instead of leaving a right/bottom gray remainder.
+            float screenDensity = getResources().getDisplayMetrics().density;
+            webView.setPivotX(0f);
+            webView.setPivotY(0f);
+            webView.setScaleX(screenDensity);
+            webView.setScaleY(screenDensity);
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());
 
