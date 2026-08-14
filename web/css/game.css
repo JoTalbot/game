@@ -469,13 +469,6 @@ button:active {
   outline: none;
 }
 
-.android-compact #overlay {
-  width: 150%;
-  height: 150%;
-  transform: scale(0.6666667);
-  transform-origin: top left;
-}
-
 .android-compact #word {
   font-size: 42px;
   letter-spacing: 0.08em;

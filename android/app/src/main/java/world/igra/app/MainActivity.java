@@ -78,7 +78,10 @@ public class MainActivity extends Activity {
             // left CSS-width slice of the display.
             s.setUseWideViewPort(true);
             s.setLoadWithOverviewMode(false);
-            webView.setInitialScale(100);
+            // Use WebView's native zoom so Android also transforms touch
+            // coordinates. Scaling the View itself makes the picture fit but
+            // sends taps to the wrong CSS positions on Android 15.
+            webView.setInitialScale(150);
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
             s.setDisplayZoomControls(false);
@@ -188,15 +191,8 @@ public class MainActivity extends Activity {
             // Oukitel G1 Android 15 can lay out WebView in CSS pixels while
             // the window is painted in physical pixels. Apply the correction
             // only after layout, otherwise Android resets it during attach.
-            if (sx > 1.05f || sy > 1.05f) {
-                webView.setPivotX(0f);
-                webView.setPivotY(0f);
-                webView.setScaleX(sx);
-                webView.setScaleY(sy);
-            } else {
-                webView.setScaleX(1f);
-                webView.setScaleY(1f);
-            }
+            // View scale stays at 1.0: native WebView zoom owns both pixels
+            // and touch mapping.
             String diagnostic = "android real=" + real.widthPixels + "x" + real.heightPixels
                     + " current=" + currentW + "x" + currentH
                     + " max=" + maximumW + "x" + maximumH
@@ -222,10 +218,8 @@ public class MainActivity extends Activity {
                                 if (cssW < 8 || cssH < 8) return;
                                 float cssScaleX = real.widthPixels / cssW;
                                 float cssScaleY = real.heightPixels / cssH;
-                                webView.setPivotX(0f);
-                                webView.setPivotY(0f);
-                                webView.setScaleX(cssScaleX);
-                                webView.setScaleY(cssScaleY);
+                                // Do not scale the Android View here. Native
+                                // initialScale above keeps touch coordinates aligned.
                                 String d = "android real=" + real.widthPixels + "x" + real.heightPixels
                                         + " css=" + ((int) cssW) + "x" + ((int) cssH)
                                         + " scale=" + cssScaleX + "x" + cssScaleY;
