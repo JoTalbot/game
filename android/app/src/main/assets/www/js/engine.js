@@ -776,6 +776,16 @@ var IGRA = IGRA || {};
       this.update(dt);
       if (G.WebGL && G.WebGL.ready) G.WebGL.draw(this);
       G.Renderer.draw(this.ctx, this);
+      // Метки краёв мира (диагностика саги экрана): зелёная — правый край
+      // вьюпорта, маджента — нижний. Только внутри Android-оболочки.
+      if (window.IGRA_ANDROID_METRICS != null) {
+        var mcx = this.ctx;
+        mcx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+        mcx.fillStyle = "#39ff6a";
+        mcx.fillRect(this.w - 8, 0, 8, 48);
+        mcx.fillStyle = "#ff4de1";
+        mcx.fillRect(0, this.h - 8, 48, 8);
+      }
     } catch (err) {
       // A single malformed organ or renderer branch must not kill the loop.
       // Keep the shore visible and leave a compact trace for the next fix.

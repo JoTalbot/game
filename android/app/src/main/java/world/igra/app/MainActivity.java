@@ -113,7 +113,7 @@ public class MainActivity extends Activity {
             webView.post(new Runnable() {
                 public void run() { resizeGame(); }
             });
-            webView.loadUrl("https://igra.local/www/index.html");
+            webView.loadUrl("https://igra.local/www/index.html?debug");
             webView.postDelayed(new Runnable() {
                 public void run() { resizeGame(); }
             }, 900);
