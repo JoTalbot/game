@@ -442,16 +442,20 @@ var IGRA = IGRA || {};
       ctx.beginPath();
       ctx.arc(p.x, p.y, r * 0.45, 0, G.TAU);
       ctx.fill();
-      if (b.bond > 0.4) {
-        ctx.save();
+      // имя видно всегда: безымянное — призрачно, своё — ярко
+      ctx.save();
+      ctx.shadowColor = "rgba(0,0,0,0.9)";
+      ctx.shadowBlur = 5;
+      ctx.textAlign = "center";
+      if (b.named || b.bond > 0.4) {
         ctx.fillStyle = G.rgb(255, 236, 236, 0.85);
         ctx.font = "italic 20px 'Cormorant Garamond', serif";
-        ctx.textAlign = "center";
-        ctx.shadowColor = "rgba(0,0,0,0.9)";
-        ctx.shadowBlur = 5;
-        ctx.fillText(b.name, p.x, p.y + r + 14);
-        ctx.restore();
+      } else {
+        ctx.fillStyle = G.rgb(220, 216, 236, 0.38);
+        ctx.font = "italic 17px 'Cormorant Garamond', serif";
       }
+      ctx.fillText(b.name, p.x, p.y + r + 14);
+      ctx.restore();
     },
 
     drawWound: function (ctx, cam, u, t) {

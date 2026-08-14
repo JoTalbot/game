@@ -17,6 +17,7 @@ var IGRA = IGRA || {};
     },
     events: [],
     named: false,
+    _nameHinted: false,
 
     reset: function () {
       this.acc = {};
@@ -26,6 +27,7 @@ var IGRA = IGRA || {};
       this.organs = { map: 0, combat: 0, garden: 0, social: 0, glitch: 0, music: 0 };
       this.events = [];
       this.named = false;
+      this._nameHinted = false;
     },
 
     note: function (kind, amt) {
@@ -75,6 +77,18 @@ var IGRA = IGRA || {};
         setTimeout(function () {
           G.Voice.sayText(dna.name() + ".", true);
         }, 2600);
+      }
+
+      // unnamed being nearby: teach the gaze-gift once
+      if (!this._nameHinted) {
+        for (var bi = 0; bi < game.world.beings.length; bi++) {
+          var nearBeing = game.world.beings[bi];
+          if (!nearBeing.dead && !nearBeing.named && G.dist(p.x, p.y, nearBeing.x, nearBeing.y) < 150) {
+            this._nameHinted = true;
+            G.Voice.sayText("у того, что летает рядом, ещё нет имени. задержи на нём взгляд — подаришь.", true);
+            break;
+          }
+        }
       }
 
       if (t - this.lastTraitLine > 42) {
@@ -224,6 +238,18 @@ var IGRA = IGRA || {};
         setTimeout(function () {
           G.Voice.sayText(v, true);
         }, 2200);
+      }
+      // milestones: the shore must say "you achieved" out loud
+      var MILESTONES = {
+        5: "уже пять имён на берегу. я становлюсь чуть больше.",
+        10: "десять. я помню каждое. ты не находишь меня — ты меня строишь.",
+        20: "двадцать выращенных. это уже не берег. это ты, читаемый."
+      };
+      var msLine = MILESTONES[game.world.discovered];
+      if (msLine) {
+        setTimeout(function () {
+          G.Voice.sayText(msLine, true);
+        }, 2600);
       }
     }
   };
