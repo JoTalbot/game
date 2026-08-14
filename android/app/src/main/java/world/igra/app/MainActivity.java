@@ -1,7 +1,6 @@
 package world.igra.app;
 
 import android.app.Activity;
-import android.content.res.AssetManager;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -51,10 +50,12 @@ public class MainActivity extends Activity {
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
-            // WebView may measure MATCH_PARENT in CSS pixels on devices that
-            // expose 384 px CSS width for a 576 px physical display. Give the
-            // view the physical display bounds directly; do not scale the view,
-            // otherwise HTML controls are painted outside the visible screen.
+            // Oukitel G1 (Android 15) measures MATCH_PARENT in CSS pixels and
+            // paints the window in physical pixels. Pin the view to the real
+            // display bounds; never scale the view itself, otherwise HTML and
+            // touches drift apart. The page keeps a normal device-width
+            // viewport: 384 CSS px * dpr 1.5 = 576 painted px. WebView zoom
+            // owns both pixels and touch mapping, so they cannot disagree.
             android.util.DisplayMetrics realMetrics = new android.util.DisplayMetrics();
             getWindowManager().getDefaultDisplay().getRealMetrics(realMetrics);
             webView.setLayoutParams(new ViewGroup.LayoutParams(
@@ -72,16 +73,8 @@ public class MainActivity extends Activity {
             s.setAllowContentAccess(true);
             s.setAllowFileAccessFromFileURLs(true);
             s.setAllowUniversalAccessFromFileURLs(true);
-            // The phone reports a CSS viewport (for example 384 px on a 576 px
-            // screen with density 1.5). Keep the viewport for layout, but render
-            // it at the physical density so the WebView does not occupy only the
-            // left CSS-width slice of the display.
             s.setUseWideViewPort(true);
             s.setLoadWithOverviewMode(false);
-            // Keep WebView zoom at 100%; the post-layout physical scale below
-            // fills the display, while JavaScript maps touch coordinates back
-            // into the CSS viewport.
-            webView.setInitialScale(100);
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
             s.setDisplayZoomControls(false);
@@ -92,12 +85,14 @@ public class MainActivity extends Activity {
             }
 
             setContentView(webView);
+            // No setInitialScale call: 100% default. After layout, nudge the
+            // game so it re-measures against the real viewport.
             webView.post(new Runnable() {
-                public void run() { applyPhysicalViewport(); }
+                public void run() { resizeGame(); }
             });
             webView.loadUrl("https://igra.local/www/index.html");
             webView.postDelayed(new Runnable() {
-                public void run() { applyPhysicalViewport(); }
+                public void run() { resizeGame(); }
             }, 900);
         } catch (Throwable t) {
             t.printStackTrace();
@@ -161,87 +156,15 @@ public class MainActivity extends Activity {
         return guess != null ? guess : "application/octet-stream";
     }
 
-    private void applyPhysicalViewport() {
+    // One honest call: ask the game to re-measure innerWidth/innerHeight.
+    // No meta rewrites, no element sizing from Java — that path shrank the
+    // shore to the left CSS-width slice on density 1.5 displays.
+    private void resizeGame() {
         if (webView == null) return;
         try {
-            android.util.DisplayMetrics real = new android.util.DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getRealMetrics(real);
-            android.util.DisplayMetrics system = getResources().getDisplayMetrics();
-            int currentW = 0;
-            int currentH = 0;
-            int maximumW = 0;
-            int maximumH = 0;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                android.view.WindowMetrics current = getWindowManager().getCurrentWindowMetrics();
-                android.graphics.Rect currentBounds = current.getBounds();
-                currentW = currentBounds.width();
-                currentH = currentBounds.height();
-                android.view.WindowMetrics maximum = getWindowManager().getMaximumWindowMetrics();
-                android.graphics.Rect maximumBounds = maximum.getBounds();
-                maximumW = maximumBounds.width();
-                maximumH = maximumBounds.height();
-            }
-            int vw = webView.getWidth();
-            int vh = webView.getHeight();
-            if (vw < 8 || vh < 8) {
-                webView.postDelayed(new Runnable() {
-                    public void run() { applyPhysicalViewport(); }
-                }, 120);
-                return;
-            }
-            float sx = (float) real.widthPixels / (float) vw;
-            float sy = (float) real.heightPixels / (float) vh;
-            // Oukitel G1 Android 15 can lay out WebView in CSS pixels while
-            // the window is painted in physical pixels. Apply the correction
-            // only after layout, otherwise Android resets it during attach.
-            // View scale stays at 1.0: native WebView zoom owns both pixels
-            // and touch mapping.
-            String diagnostic = "android real=" + real.widthPixels + "x" + real.heightPixels
-                    + " current=" + currentW + "x" + currentH
-                    + " max=" + maximumW + "x" + maximumH
-                    + " system=" + system.widthPixels + "x" + system.heightPixels
-                    + " view=" + vw + "x" + vh
-                    + " scale=" + sx + "x" + sy;
-            String escaped = diagnostic.replace("\\", "\\\\").replace("'", "\\'");
             webView.evaluateJavascript(
-                    "(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();"
-                    + "var e=document.getElementById('fit-debug');if(e)e.textContent='" + escaped + "';})()", null);
-            // The CSS viewport can be narrower than the laid-out Android View.
-            // Measure it after the page exists, then scale the WebView to the
-            // physical display width (384 CSS px -> 576 physical px on G1).
-            webView.evaluateJavascript(
-                    "(window.innerWidth||0)+','+(window.innerHeight||0)",
-                    new android.webkit.ValueCallback<String>() {
-                        @Override public void onReceiveValue(String value) {
-                            try {
-                                String v = value.replace("\"", "");
-                                String[] parts = v.split(",");
-                                float cssW = Float.parseFloat(parts[0]);
-                                float cssH = Float.parseFloat(parts[1]);
-                                if (cssW < 8 || cssH < 8) return;
-                                float cssScaleX = real.widthPixels / cssW;
-                                float cssScaleY = real.heightPixels / cssH;
-                                webView.setScaleX(1f);
-                                webView.setScaleY(1f);
-                                String physicalW = String.valueOf(real.widthPixels);
-                                String physicalH = String.valueOf(real.heightPixels);
-                                String d = "android real=" + real.widthPixels + "x" + real.heightPixels
-                                        + " css=" + ((int) cssW) + "x" + ((int) cssH)
-                                        + " scale=1x1 viewport=physical";
-                                String e = d.replace("'", "\\'");
-                                String js = "(function(){"
-                                        + "var m=document.querySelector('meta[name=viewport]');"
-                                        + "if(m)m.setAttribute('content','width=" + physicalW + ",height=" + physicalH + ",initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover');"
-                                        + "document.documentElement.style.width='" + physicalW + "px';"
-                                        + "document.documentElement.style.height='" + physicalH + "px';"
-                                        + "['body','app','overlay','stage','depth-stage','grain'].forEach(function(id){var n=id==='body'?document.body:document.getElementById(id);if(n){n.style.width='" + physicalW + "px';n.style.height='" + physicalH + "px';}});"
-                                        + "document.body.classList.remove('android-compact');"
-                                        + "setTimeout(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();},120);"
-                                        + "var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';})()";
-                                webView.evaluateJavascript(js, null);
-                            } catch (Throwable ignored) {}
-                        }
-                    });
+                    "(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();})()",
+                    null);
         } catch (Throwable ignored) {}
     }
 
@@ -267,13 +190,7 @@ public class MainActivity extends Activity {
             hideSystemUi();
             if (webView != null) {
                 webView.postDelayed(new Runnable() {
-                    public void run() {
-                        try {
-                            if (webView != null) {
-                                applyPhysicalViewport();
-                            }
-                        } catch (Throwable ignored) {}
-                    }
+                    public void run() { resizeGame(); }
                 }, 100);
             }
         }
@@ -311,13 +228,7 @@ public class MainActivity extends Activity {
                 webView.evaluateJavascript(
                         "window.IGRA && IGRA.resume && IGRA.resume()", null);
                 webView.postDelayed(new Runnable() {
-                    public void run() {
-                        try {
-                            if (webView != null) {
-                                applyPhysicalViewport();
-                            }
-                        } catch (Throwable ignored) {}
-                    }
+                    public void run() { resizeGame(); }
                 }, 100);
             } catch (Throwable ignored) {}
         }

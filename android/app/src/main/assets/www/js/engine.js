@@ -88,15 +88,15 @@ var IGRA = IGRA || {};
     function pos(e) {
       var t = e.touches ? e.touches[0] || e.changedTouches[0] : e;
       var r = el.getBoundingClientRect();
-      // Android 15 can report either CSS or painted coordinates after the
-      // physical WebView scale. Detect the coordinate space per event instead
-      // of applying one blind multiplier to every touch.
+      // One uniform mapping: painted rect -> logical CSS size. Native WebView
+      // touch is already in CSS space, so the ratio is 1 there; if a device
+      // reports another space, the ratio absorbs it — no threshold crutches.
       var cssW = el.offsetWidth || r.width || 1;
       var cssH = el.offsetHeight || r.height || 1;
-      var x = t.clientX - r.left;
-      var y = t.clientY - r.top;
-      if (r.width > cssW * 1.05 && x > cssW) x *= cssW / r.width;
-      if (r.height > cssH * 1.05 && y > cssH) y *= cssH / r.height;
+      var rw = r.width || cssW;
+      var rh = r.height || cssH;
+      var x = (t.clientX - r.left) * (cssW / rw);
+      var y = (t.clientY - r.top) * (cssH / rh);
       return { x: x, y: y };
     }
     function down(e) {
