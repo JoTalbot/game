@@ -18,6 +18,8 @@ var IGRA = IGRA || {};
     events: [],
     named: false,
     _nameHinted: false,
+    _regazeHinted: false,
+    _frontierT: 0,
 
     reset: function () {
       this.acc = {};
@@ -28,6 +30,8 @@ var IGRA = IGRA || {};
       this.events = [];
       this.named = false;
       this._nameHinted = false;
+      this._regazeHinted = false;
+      this._frontierT = 0;
     },
 
     note: function (kind, amt) {
@@ -88,6 +92,21 @@ var IGRA = IGRA || {};
             G.Voice.sayText("у того, что летает рядом, ещё нет имени. задержи на нём взгляд — подаришь.", true);
             break;
           }
+        }
+      }
+
+      // живой фронтир: рядом всегда должно мерцать, иначе берег кончается
+      this._frontierT += dt;
+      if (this._frontierT > 3 && game.state === "play" && !game.sky) {
+        this._frontierT = 0;
+        var nearUnformed = 0;
+        for (var fi = 0; fi < game.world.nodes.length; fi++) {
+          var fn = game.world.nodes[fi];
+          if (!fn.dead && fn.state === "unformed" && G.dist(p.x, p.y, fn.x, fn.y) < 560) nearUnformed++;
+        }
+        if (nearUnformed < 3) {
+          game.world.scatter(p.x, p.y, 3, 430);
+          if (G.chance(0.6)) G.Voice.sayText("дальше опять мерцает. иди.", true);
         }
       }
 

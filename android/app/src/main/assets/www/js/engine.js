@@ -675,6 +675,19 @@ var IGRA = IGRA || {};
           G.Audio.chord([330, 495], 0.8, 0.05);
         }
         this.player.gazeT = 0;
+      } else {
+        // взгляд по живому не пустой жест: берег возвращает тепло
+        n.care = 1;
+        this.player.energy = Math.min(this.player.maxEnergy, this.player.energy + 7);
+        var warmTrait = G.KIND_TRAIT[n.kind];
+        if (warmTrait) this.dna.feed(warmTrait, 0.012);
+        G.Audio.gazeTick(1, this.dna.dominant());
+        this.fx.ring(n.x, n.y, 10, n.color(), n.r, 0.5);
+        if (!G.Director._regazeHinted) {
+          G.Director._regazeHinted = true;
+          G.Voice.sayText("живое тоже слышит взгляд — и возвращает тепло.", true);
+        }
+        this.player.gazeT = 0;
       }
     }
   };

@@ -363,7 +363,8 @@ var IGRA = IGRA || {};
         }
       }
       crack.life = 0;
-      G.Voice.sayText(crack.law.ru + ".", true);
+      game.floaters.add(crack.x, crack.y - 14, "закон: " + crack.law.ru, G.TRAIT_COLOR.chaos);
+      G.Voice.sayText(crack.law.ru + ". " + crack.law.hint + ".", true);
       G.UI.law(crack.law.ru + " — " + crack.law.hint);
       game.glitch = 1;
       game.fx.ring(crack.x, crack.y, 24, G.TRAIT_COLOR.chaos, 20, 0.8);
