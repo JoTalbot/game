@@ -62,7 +62,10 @@ var IGRA = IGRA || {};
       var col = dna.blendRgb();
       var t = game.time;
 
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      // Матрица плотности — закон холста: битмап = w×dpr, мир рисуется
+      // в CSS-координатах через неё. Сброс в identity обрезал кадр до
+      // пикселей w×h — отсюда вся сага двойника (renderer.js, не прошивка).
+      ctx.setTransform(game.dpr || 1, 0, 0, game.dpr || 1, 0, 0);
       ctx.clearRect(0, 0, w, h);
 
       // void

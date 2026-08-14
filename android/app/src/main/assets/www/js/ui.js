@@ -150,7 +150,7 @@ var IGRA = IGRA || {};
       canvas.height = size * dpr;
       canvas.style.width = size + "px";
       canvas.style.height = size + "px";
-      var ctx = canvas.getContext("2d", { willReadFrequently: true });
+      var ctx = canvas.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, size, size);
       var cx = size / 2;

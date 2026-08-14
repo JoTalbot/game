@@ -5,10 +5,7 @@ var IGRA = IGRA || {};
   G.Game = function () {
     if (G.Quality && !G.Quality.ready) G.Quality.init();
     this.canvas = document.getElementById("stage");
-    // willReadFrequently: программный растр холста. На Oukitel G1 аппаратный
-    // оверлей canvas'а опускается на экран без плотности — холодный кадр
-    // 384×853 поверх верного. Программный путь рисует в общий кадр, честно.
-    this.ctx = this.canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+    this.ctx = this.canvas.getContext("2d", { alpha: false });
     this.w = 0;
     this.h = 0;
     this.dpr = 1;
@@ -790,7 +787,7 @@ var IGRA = IGRA || {};
       // A single malformed organ or renderer branch must not kill the loop.
       // Keep the shore visible and leave a compact trace for the next fix.
       try {
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
         this.ctx.fillStyle = "#05060a";
         this.ctx.fillRect(0, 0, this.w, this.h);
         this.ctx.fillStyle = "rgba(232,230,242,0.55)";
