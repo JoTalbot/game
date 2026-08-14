@@ -28,6 +28,7 @@ import java.util.Map;
 
 public class MainActivity extends Activity {
     private WebView webView;
+    private android.widget.FrameLayout root;
 
     @Override
     @android.annotation.SuppressLint("SetJavaScriptEnabled")
@@ -48,22 +49,41 @@ public class MainActivity extends Activity {
             }
             hideSystemUi();
 
+            // Oukitel G1 (Android 15): WebView, рождённый до измерения окна,
+            // получает поверхность в CSS-пикселях (384×853) и потом вечно
+            // рисует её призрак поверх здорового кадра. Поэтому оболочка
+            // рождается поздно: сначала пустой корень, WebView — только когда
+            // decorView измерен. Никаких перепинов размеров после рождения.
+            root = new android.widget.FrameLayout(this);
+            root.setBackgroundColor(0xFF05060A);
+            setContentView(root);
+            final View decor = getWindow().getDecorView();
+            decor.post(new Runnable() {
+                public void run() { attachWebView(); }
+            });
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    private void attachWebView() {
+        if (webView != null || root == null) return;
+        try {
+            View decor = getWindow().getDecorView();
+            if (decor == null || decor.getWidth() < 8 || decor.getHeight() < 8) {
+                if (decor != null) {
+                    decor.postDelayed(new Runnable() {
+                        public void run() { attachWebView(); }
+                    }, 60);
+                }
+                return;
+            }
+
             webView = new WebView(this);
             webView.setBackgroundColor(0xFF05060A);
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
-            // Oukitel G1 (Android 15) measures MATCH_PARENT in CSS pixels and
-            // paints the window in physical pixels. Pin the view to the real
-            // display bounds; never scale the view itself, otherwise HTML and
-            // touches drift apart. The page keeps a normal device-width
-            // viewport: 384 CSS px * dpr 1.5 = 576 painted px. WebView zoom
-            // owns both pixels and touch mapping, so they cannot disagree.
-            android.util.DisplayMetrics realMetrics = new android.util.DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getRealMetrics(realMetrics);
-            webView.setLayoutParams(new ViewGroup.LayoutParams(
-                    realMetrics.widthPixels,
-                    realMetrics.heightPixels));
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());
 
@@ -87,9 +107,9 @@ public class MainActivity extends Activity {
                 s.setSafeBrowsingEnabled(false);
             }
 
-            setContentView(webView);
-            // No setInitialScale call: 100% default. After layout, nudge the
-            // game so it re-measures against the real viewport.
+            root.addView(webView, new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
             webView.post(new Runnable() {
                 public void run() { resizeGame(); }
             });
@@ -97,10 +117,7 @@ public class MainActivity extends Activity {
             webView.postDelayed(new Runnable() {
                 public void run() { resizeGame(); }
             }, 900);
-            // Щуп целостности краски: синтетическое касание в нижний угол.
-            // Если WebView отдаёт его в JS за пределами innerWidth/innerHeight,
-            // слой рисует CSS px 1:1 в физические — тогда растягиваем View
-            // матрицей до окна. Здоровые телефоны проходят мимо.
+            // Щуп остаётся охранником: если слой всё же врёт — матрица.
             webView.postDelayed(new Runnable() {
                 public void run() { probeFitIntegrity(); }
             }, 1400);
