@@ -55,10 +55,11 @@ public class MainActivity extends Activity {
             // expose 384 px CSS width for a 576 px physical display. Give the
             // view the physical display bounds directly; do not scale the view,
             // otherwise HTML controls are painted outside the visible screen.
-            android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
+            android.util.DisplayMetrics realMetrics = new android.util.DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getRealMetrics(realMetrics);
             webView.setLayoutParams(new ViewGroup.LayoutParams(
-                    metrics.widthPixels,
-                    metrics.heightPixels));
+                    realMetrics.widthPixels,
+                    realMetrics.heightPixels));
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());
 
