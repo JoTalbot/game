@@ -731,9 +731,24 @@ var IGRA = IGRA || {};
       this.resize();
     }
 
-    this.update(dt);
-    if (G.WebGL && G.WebGL.ready) G.WebGL.draw(this);
-    G.Renderer.draw(this.ctx, this);
+    try {
+      this.update(dt);
+      if (G.WebGL && G.WebGL.ready) G.WebGL.draw(this);
+      G.Renderer.draw(this.ctx, this);
+    } catch (err) {
+      // A single malformed organ or renderer branch must not kill the loop.
+      // Keep the shore visible and leave a compact trace for the next fix.
+      try {
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.fillStyle = "#05060a";
+        this.ctx.fillRect(0, 0, this.w, this.h);
+        this.ctx.fillStyle = "rgba(232,230,242,0.55)";
+        this.ctx.font = "12px monospace";
+        this.ctx.fillText("берег продолжает дышать", 16, this.h - 36);
+        var dbg = document.getElementById("fit-debug");
+        if (dbg) dbg.textContent = "render: " + (err && err.message ? err.message : String(err)).slice(0, 120);
+      } catch (fallbackErr) {}
+    }
     requestAnimationFrame(this.frame.bind(this));
   };
 
