@@ -723,6 +723,7 @@ var IGRA = IGRA || {};
     }
 
     this.update(dt);
+    if (G.WebGL && G.WebGL.ready) G.WebGL.draw(this);
     G.Renderer.draw(this.ctx, this);
     requestAnimationFrame(this.frame.bind(this));
   };
