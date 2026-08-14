@@ -160,6 +160,21 @@ public class MainActivity extends Activity {
         try {
             android.util.DisplayMetrics real = new android.util.DisplayMetrics();
             getWindowManager().getDefaultDisplay().getRealMetrics(real);
+            android.util.DisplayMetrics system = getResources().getDisplayMetrics();
+            int currentW = 0;
+            int currentH = 0;
+            int maximumW = 0;
+            int maximumH = 0;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                android.view.WindowMetrics current = getWindowManager().getCurrentWindowMetrics();
+                android.graphics.Rect currentBounds = current.getBounds();
+                currentW = currentBounds.width();
+                currentH = currentBounds.height();
+                android.view.WindowMetrics maximum = getWindowManager().getMaximumWindowMetrics();
+                android.graphics.Rect maximumBounds = maximum.getBounds();
+                maximumW = maximumBounds.width();
+                maximumH = maximumBounds.height();
+            }
             int vw = webView.getWidth();
             int vh = webView.getHeight();
             if (vw < 8 || vh < 8) {
@@ -182,8 +197,16 @@ public class MainActivity extends Activity {
                 webView.setScaleX(1f);
                 webView.setScaleY(1f);
             }
+            String diagnostic = "android real=" + real.widthPixels + "x" + real.heightPixels
+                    + " current=" + currentW + "x" + currentH
+                    + " max=" + maximumW + "x" + maximumH
+                    + " system=" + system.widthPixels + "x" + system.heightPixels
+                    + " view=" + vw + "x" + vh
+                    + " scale=" + sx + "x" + sy;
+            String escaped = diagnostic.replace("\\", "\\\\").replace("'", "\\'");
             webView.evaluateJavascript(
-                    "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                    "(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();"
+                    + "var e=document.getElementById('fit-debug');if(e)e.textContent='" + escaped + "';})()", null);
         } catch (Throwable ignored) {}
     }
 
