@@ -88,7 +88,16 @@ var IGRA = IGRA || {};
     function pos(e) {
       var t = e.touches ? e.touches[0] || e.changedTouches[0] : e;
       var r = el.getBoundingClientRect();
-      return { x: t.clientX - r.left, y: t.clientY - r.top };
+      // Android 15 can report either CSS or painted coordinates after the
+      // physical WebView scale. Detect the coordinate space per event instead
+      // of applying one blind multiplier to every touch.
+      var cssW = el.offsetWidth || r.width || 1;
+      var cssH = el.offsetHeight || r.height || 1;
+      var x = t.clientX - r.left;
+      var y = t.clientY - r.top;
+      if (r.width > cssW * 1.05 && x > cssW) x *= cssW / r.width;
+      if (r.height > cssH * 1.05 && y > cssH) y *= cssH / r.height;
+      return { x: x, y: y };
     }
     function down(e) {
       e.preventDefault();
@@ -722,8 +731,24 @@ var IGRA = IGRA || {};
       this.resize();
     }
 
-    this.update(dt);
-    G.Renderer.draw(this.ctx, this);
+    try {
+      this.update(dt);
+      if (G.WebGL && G.WebGL.ready) G.WebGL.draw(this);
+      G.Renderer.draw(this.ctx, this);
+    } catch (err) {
+      // A single malformed organ or renderer branch must not kill the loop.
+      // Keep the shore visible and leave a compact trace for the next fix.
+      try {
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.fillStyle = "#05060a";
+        this.ctx.fillRect(0, 0, this.w, this.h);
+        this.ctx.fillStyle = "rgba(232,230,242,0.55)";
+        this.ctx.font = "12px monospace";
+        this.ctx.fillText("берег продолжает дышать", 16, this.h - 36);
+        var dbg = document.getElementById("fit-debug");
+        if (dbg) dbg.textContent = "render: " + (err && err.message ? err.message : String(err)).slice(0, 120);
+      } catch (fallbackErr) {}
+    }
     requestAnimationFrame(this.frame.bind(this));
   };
 

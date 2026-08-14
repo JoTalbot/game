@@ -39,6 +39,15 @@ body {
   background: #05060a;
 }
 
+#depth-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
 #stage {
   position: absolute;
   inset: 0;
@@ -235,13 +244,18 @@ button:active {
 }
 
 #fit-debug {
-  position: absolute;
-  left: 10px;
-  bottom: 28px;
-  z-index: 20;
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  bottom: auto;
+  z-index: 50;
+  max-width: calc(100vw - 16px);
+  padding: 3px 5px;
   font-size: 10px;
-  letter-spacing: 0.08em;
-  color: rgba(232, 230, 242, 0.35);
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  color: rgba(232, 230, 242, 0.6);
+  background: rgba(0, 0, 0, 0.38);
   pointer-events: none;
 }
 
@@ -453,6 +467,84 @@ button:active {
   padding: 8px 12px;
   border-radius: 999px;
   outline: none;
+}
+
+.android-compact #word {
+  font-size: 42px;
+  letter-spacing: 0.08em;
+  text-indent: 0.08em;
+}
+
+.android-compact #tag {
+  font-size: 14px;
+  letter-spacing: 0.05em;
+}
+
+.android-compact #title-actions {
+  width: 100%;
+  max-width: 360px;
+  padding: 0 4px;
+  gap: 6px;
+  justify-content: center;
+}
+
+.android-compact #title-actions button {
+  min-width: 0;
+  padding: 12px 16px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.android-compact #hud-right {
+  left: 8px;
+  right: 8px;
+  gap: 3px;
+}
+
+.android-compact #hud-right button {
+  padding: 6px 6px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 420px) {
+  #word {
+    font-size: 56px;
+    letter-spacing: 0.2em;
+    text-indent: 0.2em;
+  }
+
+  #tag {
+    font-size: 16px;
+    letter-spacing: 0.08em;
+  }
+
+  #title-actions {
+    width: 100%;
+    max-width: 380px;
+    padding: 0 8px;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  #title-actions button {
+    min-width: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  #hud-right {
+    left: 10px;
+    right: 10px;
+    gap: 4px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  #hud-right button {
+    padding: 7px 8px;
+    font-size: 9px;
+  }
 }
 
 @media (max-height: 560px) {

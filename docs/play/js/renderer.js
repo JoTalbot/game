@@ -276,6 +276,81 @@ var IGRA = IGRA || {};
       ctx.restore();
     },
 
+    drawBloom: function (ctx, cam, b, t) {
+      var p = this.worldToScreen(cam, b.x, b.y);
+      var r = (b.r || 8) * cam.z * (0.85 + Math.sin(t * 1.8 + b.phase) * 0.15);
+      var c = b.c || G.TRAIT_COLOR.contemplation;
+      glow(ctx, p.x, p.y, r * 4, c, 0.12);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(b.phase);
+      ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.65);
+      ctx.lineWidth = Math.max(1, 1.4 * cam.z);
+      for (var i = 0; i < 5; i++) {
+        ctx.rotate(G.TAU / 5);
+        ctx.beginPath();
+        ctx.ellipse(0, -r * 0.7, r * 0.32, r * 0.85, 0, 0, G.TAU);
+        ctx.stroke();
+      }
+      ctx.restore();
+      if (b.verse) {
+        ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.6);
+        ctx.font = "16px 'Cormorant Garamond', serif";
+        ctx.textAlign = "center";
+        ctx.fillText(b.verse, p.x, p.y + r + 20);
+      }
+    },
+
+    drawCrack: function (ctx, cam, c, t) {
+      var p = this.worldToScreen(cam, c.x, c.y);
+      var r = (18 + Math.sin(t * 5 + c.phase) * 4) * cam.z;
+      var col = G.TRAIT_COLOR.chaos || [190, 120, 255];
+      glow(ctx, p.x, p.y, r * 3, col, 0.2);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(c.phase);
+      ctx.strokeStyle = G.rgb(col[0], col[1], col[2], 0.8);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-r, 0);
+      ctx.lineTo(-r * 0.35, -r * 0.45);
+      ctx.lineTo(0, r * 0.18);
+      ctx.lineTo(r * 0.35, -r * 0.55);
+      ctx.lineTo(r, 0.1 * r);
+      ctx.stroke();
+      ctx.restore();
+    },
+
+    drawBoss: function (ctx, cam, b, t) {
+      var p = this.worldToScreen(cam, b.x, b.y);
+      var r = (b.r || 28) * cam.z;
+      var col = [255, 75, 95];
+      glow(ctx, p.x, p.y, r * 4, col, 0.22);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(t * 0.35);
+      ctx.strokeStyle = G.rgb(col[0], col[1], col[2], 0.8);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (var i = 0; i < 12; i++) {
+        var a = (i / 12) * G.TAU;
+        var rr = i % 2 ? r * 0.62 : r * 1.15;
+        var x = Math.cos(a) * rr;
+        var y = Math.sin(a) * rr;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+      if (b.name) {
+        ctx.fillStyle = G.rgb(255, 190, 200, 0.85);
+        ctx.font = "18px 'Cormorant Garamond', serif";
+        ctx.textAlign = "center";
+        ctx.fillText(b.name, p.x, p.y - r - 16);
+      }
+    },
+
     drawNode: function (ctx, cam, n, t, game) {
       var p = this.worldToScreen(cam, n.x, n.y);
       if (p.x < -80 || p.y < -80 || p.x > cam.w + 80 || p.y > cam.h + 80) return;
@@ -315,7 +390,7 @@ var IGRA = IGRA || {};
         }
         if (n.kind === "still" && n.verse) {
           ctx.fillStyle = G.rgb(210, 200, 255, 0.45);
-          ctx.font = "italic 12px 'Cormorant Garamond', serif";
+          ctx.font = "italic 17px 'Cormorant Garamond', serif";
           ctx.textAlign = "center";
           ctx.fillText(n.verse, p.x, p.y + r + 14);
         }
@@ -350,7 +425,7 @@ var IGRA = IGRA || {};
       ctx.fill();
       if (b.bond > 0.4) {
         ctx.fillStyle = G.rgb(255, 230, 230, 0.45);
-        ctx.font = "12px 'Cormorant Garamond', serif";
+        ctx.font = "17px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
         ctx.fillText(b.name, p.x, p.y + r + 12);
       }

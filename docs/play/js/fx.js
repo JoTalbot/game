@@ -118,7 +118,7 @@ var IGRA = IGRA || {};
   };
 
   G.Floaters.prototype.draw = function (ctx, cam) {
-    ctx.font = "500 " + Math.round(15 * Math.min(cam.z, 1.2)) + "px Manrope, sans-serif";
+    ctx.font = "500 " + Math.round(19 * Math.min(cam.z, 1.2)) + "px Manrope, sans-serif";
     ctx.textAlign = "center";
     for (var i = 0; i < this.list.length; i++) {
       var f = this.list[i];
