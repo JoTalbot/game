@@ -198,10 +198,32 @@ public class MainActivity extends Activity {
             int dh = decor != null ? decor.getHeight() : 0;
             int appDpi = getResources().getDisplayMetrics().densityDpi;
             int realDpi = real.densityDpi;
+            // Перепись нутра: кто живёт внутри WebView и какой у неё паспорт.
+            StringBuilder kids = new StringBuilder();
+            int nk = webView.getChildCount();
+            for (int i = 0; i < nk && i < 4; i++) {
+                View c = webView.getChildAt(i);
+                if (c != null) {
+                    kids.append(" kid=").append(c.getClass().getSimpleName())
+                            .append(' ').append(c.getWidth()).append('x').append(c.getHeight());
+                }
+            }
+            String wv = "?";
+            try {
+                String ua = webView.getSettings().getUserAgentString();
+                int ci = ua.indexOf("Chrome/");
+                if (ci >= 0) {
+                    int sp = ua.indexOf(' ', ci);
+                    wv = ua.substring(ci, sp > ci ? sp : ua.length());
+                }
+            } catch (Throwable ignored) {}
             String m = "real=" + real.widthPixels + "x" + real.heightPixels
                     + " view=" + vw + "x" + vh
                     + " decor=" + dw + "x" + dh
-                    + " appDpi=" + appDpi + " realDpi=" + realDpi;
+                    + " appDpi=" + appDpi + " realDpi=" + realDpi
+                    + " nkid=" + nk + kids
+                    + " model=" + Build.MODEL
+                    + " wv=" + wv;
             String esc = m.replace("\\", "\\\\").replace("'", "\\'");
             webView.evaluateJavascript(
                     "(function(){window.IGRA_ANDROID_METRICS='" + esc + "';"
