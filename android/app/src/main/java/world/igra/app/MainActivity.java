@@ -66,8 +66,13 @@ public class MainActivity extends Activity {
             s.setAllowContentAccess(true);
             s.setAllowFileAccessFromFileURLs(true);
             s.setAllowUniversalAccessFromFileURLs(true);
+            // The phone reports a CSS viewport (for example 384 px on a 576 px
+            // screen with density 1.5). Keep the viewport for layout, but render
+            // it at the physical density so the WebView does not occupy only the
+            // left CSS-width slice of the display.
             s.setUseWideViewPort(true);
-            s.setLoadWithOverviewMode(true);
+            s.setLoadWithOverviewMode(false);
+            s.setInitialScale(Math.max(100, Math.round(getResources().getDisplayMetrics().density * 100f)));
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
             s.setDisplayZoomControls(false);
