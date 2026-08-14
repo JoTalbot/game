@@ -5,7 +5,10 @@ var IGRA = IGRA || {};
   G.Game = function () {
     if (G.Quality && !G.Quality.ready) G.Quality.init();
     this.canvas = document.getElementById("stage");
-    this.ctx = this.canvas.getContext("2d", { alpha: false });
+    // willReadFrequently: программный растр холста. На Oukitel G1 аппаратный
+    // оверлей canvas'а опускается на экран без плотности — холодный кадр
+    // 384×853 поверх верного. Программный путь рисует в общий кадр, честно.
+    this.ctx = this.canvas.getContext("2d", { alpha: false, willReadFrequently: true });
     this.w = 0;
     this.h = 0;
     this.dpr = 1;

@@ -201,37 +201,12 @@ public class MainActivity extends Activity {
             String m = "real=" + real.widthPixels + "x" + real.heightPixels
                     + " view=" + vw + "x" + vh
                     + " decor=" + dw + "x" + dh
-                    + " appDpi=" + appDpi + " realDpi=" + realDpi
-                    + (hasSwFlag(getAssets()) ? " sw=1" : "");
+                    + " appDpi=" + appDpi + " realDpi=" + realDpi;
             String esc = m.replace("\\", "\\\\").replace("'", "\\'");
             webView.evaluateJavascript(
                     "(function(){window.IGRA_ANDROID_METRICS='" + esc + "';"
                             + "if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();})()",
                     null);
-        } catch (Throwable ignored) {}
-    }
-
-    private boolean hasSwFlag(android.content.res.AssetManager am) {
-        try {
-            java.io.InputStream in = am.open("www/sw.flag");
-            in.close();
-            return true;
-        } catch (Throwable t) {
-            return false;
-        }
-    }
-
-    private void refreshSurface() {
-        if (webView == null) return;
-        try {
-            webView.setVisibility(View.GONE);
-            webView.postDelayed(new Runnable() {
-                public void run() {
-                    try {
-                        if (webView != null) webView.setVisibility(View.VISIBLE);
-                    } catch (Throwable ignored) {}
-                }
-            }, 60);
         } catch (Throwable ignored) {}
     }
 
