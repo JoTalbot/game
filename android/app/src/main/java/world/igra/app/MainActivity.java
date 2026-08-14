@@ -235,7 +235,7 @@ public class MainActivity extends Activity {
                                         + "document.documentElement.style.width='" + physicalW + "px';"
                                         + "document.documentElement.style.height='" + physicalH + "px';"
                                         + "document.body.classList.remove('android-compact');"
-                                        + "if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();"
+                                        + "setTimeout(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();},120);"
                                         + "var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';})()";
                                 webView.evaluateJavascript(js, null);
                             } catch (Throwable ignored) {}
