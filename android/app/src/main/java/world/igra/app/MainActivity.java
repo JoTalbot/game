@@ -393,10 +393,4 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 }
-();
-                webView = null;
-            } catch (Throwable ignored) {}
-        }
-        super.onDestroy();
-    }
-}
+
