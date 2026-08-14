@@ -88,15 +88,16 @@ var IGRA = IGRA || {};
     function pos(e) {
       var t = e.touches ? e.touches[0] || e.changedTouches[0] : e;
       var r = el.getBoundingClientRect();
-      // Android may paint the CSS viewport at physical scale. Pointer
-      // coordinates arrive in the painted rectangle, while the game world
-      // lives in CSS pixels; convert them back before hit-testing.
-      var sx = r.width / (el.offsetWidth || r.width || 1);
-      var sy = r.height / (el.offsetHeight || r.height || 1);
-      return {
-        x: (t.clientX - r.left) / (sx || 1),
-        y: (t.clientY - r.top) / (sy || 1)
-      };
+      // Android 15 can report either CSS or painted coordinates after the
+      // physical WebView scale. Detect the coordinate space per event instead
+      // of applying one blind multiplier to every touch.
+      var cssW = el.offsetWidth || r.width || 1;
+      var cssH = el.offsetHeight || r.height || 1;
+      var x = t.clientX - r.left;
+      var y = t.clientY - r.top;
+      if (r.width > cssW * 1.05 && x > cssW) x *= cssW / r.width;
+      if (r.height > cssH * 1.05 && y > cssH) y *= cssH / r.height;
+      return { x: x, y: y };
     }
     function down(e) {
       e.preventDefault();
