@@ -230,7 +230,7 @@ public class MainActivity extends Activity {
                                         + " css=" + ((int) cssW) + "x" + ((int) cssH)
                                         + " scale=" + cssScaleX + "x" + cssScaleY;
                                 String e = d.replace("'", "\\'");
-                                webView.evaluateJavascript("var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';", null);
+                                webView.evaluateJavascript("document.body.classList.add('android-compact');var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';", null);
                             } catch (Throwable ignored) {}
                         }
                     });

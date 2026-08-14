@@ -464,6 +464,44 @@ button:active {
   outline: none;
 }
 
+.android-compact #word {
+  font-size: 42px;
+  letter-spacing: 0.08em;
+  text-indent: 0.08em;
+}
+
+.android-compact #tag {
+  font-size: 14px;
+  letter-spacing: 0.05em;
+}
+
+.android-compact #title-actions {
+  width: 100%;
+  max-width: 360px;
+  padding: 0 4px;
+  gap: 6px;
+  justify-content: center;
+}
+
+.android-compact #title-actions button {
+  min-width: 0;
+  padding: 12px 16px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+}
+
+.android-compact #hud-right {
+  left: 8px;
+  right: 8px;
+  gap: 3px;
+}
+
+.android-compact #hud-right button {
+  padding: 6px 6px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
 @media (max-width: 420px) {
   #word {
     font-size: 56px;
