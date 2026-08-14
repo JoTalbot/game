@@ -88,7 +88,15 @@ var IGRA = IGRA || {};
     function pos(e) {
       var t = e.touches ? e.touches[0] || e.changedTouches[0] : e;
       var r = el.getBoundingClientRect();
-      return { x: t.clientX - r.left, y: t.clientY - r.top };
+      // Android may paint the CSS viewport at physical scale. Pointer
+      // coordinates arrive in the painted rectangle, while the game world
+      // lives in CSS pixels; convert them back before hit-testing.
+      var sx = r.width / (el.offsetWidth || r.width || 1);
+      var sy = r.height / (el.offsetHeight || r.height || 1);
+      return {
+        x: (t.clientX - r.left) / (sx || 1),
+        y: (t.clientY - r.top) / (sy || 1)
+      };
     }
     function down(e) {
       e.preventDefault();
