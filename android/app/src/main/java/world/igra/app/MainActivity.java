@@ -234,6 +234,7 @@ public class MainActivity extends Activity {
                                         + "if(m)m.setAttribute('content','width=" + physicalW + ",height=" + physicalH + ",initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover');"
                                         + "document.documentElement.style.width='" + physicalW + "px';"
                                         + "document.documentElement.style.height='" + physicalH + "px';"
+                                        + "['body','app','overlay','stage','depth-stage','grain'].forEach(function(id){var n=id==='body'?document.body:document.getElementById(id);if(n){n.style.width='" + physicalW + "px';n.style.height='" + physicalH + "px';}});"
                                         + "document.body.classList.remove('android-compact');"
                                         + "setTimeout(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();},120);"
                                         + "var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';})()";

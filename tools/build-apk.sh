@@ -34,8 +34,8 @@ FLAT=( "$WORK/compiled"/*.flat )
   -A "$APP/assets" \
   --min-sdk-version 26 \
   --target-sdk-version 34 \
-  --version-code 23 \
-  --version-name 0.4.20 \
+  --version-code 24 \
+  --version-name 0.4.21 \
   --auto-add-overlay \
   "${FLAT[@]}"
 
