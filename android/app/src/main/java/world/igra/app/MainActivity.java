@@ -51,18 +51,14 @@ public class MainActivity extends Activity {
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
+            // WebView may measure MATCH_PARENT in CSS pixels on devices that
+            // expose 384 px CSS width for a 576 px physical display. Give the
+            // view the physical display bounds directly; do not scale the view,
+            // otherwise HTML controls are painted outside the visible screen.
+            android.util.DisplayMetrics metrics = getResources().getDisplayMetrics();
             webView.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT));
-            // Some Android/WebView combinations expose the window in CSS pixels
-            // (384 x 853) but paint the Activity into a 576 x 1280 display.
-            // Scale the view itself from the origin so MATCH_PARENT covers the
-            // physical screen instead of leaving a right/bottom gray remainder.
-            float screenDensity = getResources().getDisplayMetrics().density;
-            webView.setPivotX(0f);
-            webView.setPivotY(0f);
-            webView.setScaleX(screenDensity);
-            webView.setScaleY(screenDensity);
+                    metrics.widthPixels,
+                    metrics.heightPixels));
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());
 
@@ -81,7 +77,7 @@ public class MainActivity extends Activity {
             // left CSS-width slice of the display.
             s.setUseWideViewPort(true);
             s.setLoadWithOverviewMode(false);
-            webView.setInitialScale(Math.max(100, Math.round(getResources().getDisplayMetrics().density * 100f)));
+            webView.setInitialScale(100);
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
             s.setDisplayZoomControls(false);
