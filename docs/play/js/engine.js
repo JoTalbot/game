@@ -46,52 +46,31 @@ var IGRA = IGRA || {};
   };
 
   G.Game.prototype.resize = function () {
-    var app = document.getElementById("app");
-    var rect = app ? app.getBoundingClientRect() : this.canvas.getBoundingClientRect();
-    var w;
-    var h;
-    var dpr = 1;
-    if (window.__IGRA_PX_W && window.__IGRA_PX_H) {
-      w = Math.round(window.__IGRA_VW || window.__IGRA_PX_W);
-      h = Math.round(window.__IGRA_VH || window.__IGRA_PX_H);
-      dpr = 1;
-      if (app) {
-        app.style.position = "fixed";
-        app.style.left = "0";
-        app.style.top = "0";
-        app.style.width = w + "px";
-        app.style.height = h + "px";
-      }
-    } else {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
-      if (G.Quality && G.Quality.dpr) dpr = Math.min(dpr, G.Quality.dpr);
-      w = Math.round(
-        (rect && rect.width) ||
-          document.documentElement.clientWidth ||
-          window.innerWidth ||
-          360
-      );
-      h = Math.round(
-        (rect && rect.height) ||
-          document.documentElement.clientHeight ||
-          window.innerHeight ||
-          640
-      );
-    }
-    if (w < 2 || h < 2) return;
+    var w = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || (document.body && document.body.clientWidth) || 360;
+    var h = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || (document.body && document.body.clientHeight) || 640;
+    if (w < 10 || h < 10) return;
+
+    var rawDpr = window.devicePixelRatio || 1;
+    var dpr = rawDpr;
+    if (G.Quality && G.Quality.dpr) dpr = Math.min(dpr, G.Quality.dpr);
+    dpr = Math.min(dpr, 2.5);
+
     this.dpr = dpr;
     this.w = w;
     this.h = h;
-    this.canvas.width = Math.max(1, Math.floor(w * dpr));
-    this.canvas.height = Math.max(1, Math.floor(h * dpr));
+
+    this.canvas.width = Math.max(1, Math.round(w * dpr));
+    this.canvas.height = Math.max(1, Math.round(h * dpr));
     this.canvas.style.width = "100%";
     this.canvas.style.height = "100%";
+
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.cam.w = w;
     this.cam.h = h;
+
     var dbg = document.getElementById("fit-debug");
     if (dbg) {
-      dbg.textContent = w + "×" + h + " dpr" + this.dpr + (window.__IGRA_PX_W ? " px" + window.__IGRA_PX_W : "");
+      dbg.textContent = w + "×" + h + " dpr" + rawDpr.toFixed(2);
     }
     if (!G.Renderer.ready) G.Renderer.init(w, h);
   };
@@ -165,6 +144,11 @@ var IGRA = IGRA || {};
     });
     window.addEventListener("resize", function () {
       self.resize();
+    });
+    window.addEventListener("orientationchange", function () {
+      setTimeout(function () {
+        self.resize();
+      }, 100);
     });
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", function () {
@@ -731,13 +715,13 @@ var IGRA = IGRA || {};
     if (!this.last) this.last = ts;
     var dt = G.clamp((ts - this.last) / 1000, 0, 0.05);
     this.last = ts;
-    if ((ts / 1000 | 0) !== ((ts - dt * 1000) / 1000 | 0)) {
-      var app = document.getElementById("app");
-      if (app) {
-        var r = app.getBoundingClientRect();
-        if (r.width > this.w + 8 || r.height > this.h + 8) this.resize();
-      }
+
+    var curW = window.innerWidth || (document.documentElement && document.documentElement.clientWidth) || 0;
+    var curH = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
+    if (curW > 10 && curH > 10 && (Math.abs(curW - this.w) > 1 || Math.abs(curH - this.h) > 1)) {
+      this.resize();
     }
+
     this.update(dt);
     G.Renderer.draw(this.ctx, this);
     requestAnimationFrame(this.frame.bind(this));

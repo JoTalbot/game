@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 import android.webkit.WebChromeClient;
@@ -60,7 +62,7 @@ public class MainActivity extends Activity {
         webView.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
-        webView.setWebViewClient(new AssetClient(getAssets(), this));
+        webView.setWebViewClient(new AssetClient(getAssets()));
         webView.setWebChromeClient(new WebChromeClient());
 
         WebSettings s = webView.getSettings();
@@ -73,7 +75,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccessFromFileURLs(true);
         s.setAllowUniversalAccessFromFileURLs(true);
         s.setUseWideViewPort(true);
-        s.setLoadWithOverviewMode(false);
+        s.setLoadWithOverviewMode(true);
         s.setSupportZoom(false);
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
@@ -86,52 +88,14 @@ public class MainActivity extends Activity {
         root.addView(webView);
         setContentView(root);
 
-        webView.post(new Runnable() {
-            public void run() {
-                applyPhysicalViewport(true);
-            }
-        });
-    }
-
-    void applyPhysicalViewport(boolean load) {
-        if (webView == null) return;
-        int pw = webView.getWidth();
-        int ph = webView.getHeight();
-        if (pw < 8 || ph < 8) {
-            pw = getResources().getDisplayMetrics().widthPixels;
-            ph = getResources().getDisplayMetrics().heightPixels;
-        }
-        if (pw < 8 || ph < 8) return;
-
-        webView.setInitialScale(100);
-        final String js =
-                "(function(){"
-                + "var w=" + pw + ",h=" + ph + ";"
-                + "var m=document.querySelector('meta[name=viewport]');"
-                + "if(m)m.setAttribute('content','width='+w+',height='+h+',initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no');"
-                + "document.documentElement.style.cssText='width:'+w+'px;height:'+h+'px;margin:0;overflow:hidden;background:#05060a';"
-                + "if(document.body)document.body.style.cssText='width:'+w+'px;height:'+h+'px;margin:0;overflow:hidden;background:#05060a';"
-                + "var a=document.getElementById('app');"
-                + "if(a)a.style.cssText='position:fixed;left:0;top:0;width:'+w+'px;height:'+h+'px;background:#05060a';"
-                + "document.documentElement.style.zoom='1';"
-                + "window.__IGRA_VW=w;window.__IGRA_VH=h;"
-                + "window.__IGRA_PX_W=w;window.__IGRA_PX_H=h;window.__IGRA_ZOOM=1;"
-                + "if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();"
-                + "})()";
-        webView.evaluateJavascript(js, null);
-
-        if (load) {
-            webView.loadUrl("https://igra.local/www/index.html?w=" + pw + "&h=" + ph);
-        }
+        webView.loadUrl("https://igra.local/www/index.html");
     }
 
     private static class AssetClient extends WebViewClient {
         private final AssetManager assets;
-        private final MainActivity host;
 
-        AssetClient(AssetManager assets, MainActivity host) {
+        AssetClient(AssetManager assets) {
             this.assets = assets;
-            this.host = host;
         }
 
         @Override
@@ -153,19 +117,6 @@ public class MainActivity extends Activity {
                         "text/plain", "utf-8", 404, "Not Found",
                         null, new ByteArrayInputStream(new byte[0]));
             }
-        }
-
-        @Override
-        public void onPageFinished(WebView view, String url) {
-            view.postDelayed(new Runnable() {
-                public void run() { host.applyPhysicalViewport(false); }
-            }, 40);
-            view.postDelayed(new Runnable() {
-                public void run() { host.applyPhysicalViewport(false); }
-            }, 250);
-            view.postDelayed(new Runnable() {
-                public void run() { host.applyPhysicalViewport(false); }
-            }, 700);
         }
     }
 
@@ -189,6 +140,12 @@ public class MainActivity extends Activity {
     private void hideSystemUi() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getWindow().setDecorFitsSystemWindows(false);
+            WindowInsetsController controller = getWindow().getInsetsController();
+            if (controller != null) {
+                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
+                controller.setSystemBarsBehavior(
+                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
         } else {
             getWindow().getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -205,9 +162,14 @@ public class MainActivity extends Activity {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             hideSystemUi();
-            if (webView != null) webView.postDelayed(new Runnable() {
-                public void run() { applyPhysicalViewport(false); }
-            }, 30);
+            if (webView != null) {
+                webView.postDelayed(new Runnable() {
+                    public void run() {
+                        webView.evaluateJavascript(
+                                "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                    }
+                }, 100);
+            }
         }
     }
 
@@ -238,8 +200,11 @@ public class MainActivity extends Activity {
             webView.evaluateJavascript(
                     "window.IGRA && IGRA.resume && IGRA.resume()", null);
             webView.postDelayed(new Runnable() {
-                public void run() { applyPhysicalViewport(false); }
-            }, 50);
+                public void run() {
+                    webView.evaluateJavascript(
+                            "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                }
+            }, 100);
         }
     }
 
