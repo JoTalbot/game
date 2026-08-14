@@ -55,40 +55,11 @@ var IGRA = IGRA || {};
     if (G.Quality && G.Quality.dpr) dpr = Math.min(dpr, G.Quality.dpr);
     dpr = Math.min(dpr, 2.5);
 
-    // Сломанная плотность WebView (Oukitel G1 Android 15): краска идёт
-    // 1 CSS px = 1 физ. px, вьюпорт считается с плотностью. Тогда честная
-    // рамка — сам физический экран. Страж: screen/inner ~= dpr на Android.
+    // Краской физического экрана владеет оболочка (зонд в MainActivity);
+    // здесь мира достаточно: вьюпорт × dpr.
     var fit = "css";
     var sw = (window.screen && screen.width) || 0;
     var sh = (window.screen && screen.height) || 0;
-    var ua = (navigator && navigator.userAgent) || "";
-    var phys = /Android/.test(ua) && sw > 10 && sh > 10 &&
-      Math.abs(sw / w - rawDpr) < 0.08 && Math.abs(sh / h - rawDpr) < 0.08;
-    if (phys) {
-      w = sw; h = sh; dpr = 1; fit = "phys";
-      var px = w + "px", py = h + "px";
-      try {
-        document.documentElement.style.width = px;
-        document.documentElement.style.height = py;
-        if (document.body) {
-          document.body.style.width = px;
-          document.body.style.height = py;
-        }
-        var appN = document.getElementById("app");
-        if (appN) { appN.style.width = px; appN.style.height = py; }
-      } catch (e) {}
-    } else {
-      try {
-        document.documentElement.style.width = "";
-        document.documentElement.style.height = "";
-        if (document.body) {
-          document.body.style.width = "";
-          document.body.style.height = "";
-        }
-        var appC = document.getElementById("app");
-        if (appC) { appC.style.width = ""; appC.style.height = ""; }
-      } catch (e2) {}
-    }
 
     this.dpr = dpr;
     this.w = w;
@@ -96,13 +67,8 @@ var IGRA = IGRA || {};
 
     this.canvas.width = Math.max(1, Math.round(w * dpr));
     this.canvas.height = Math.max(1, Math.round(h * dpr));
-    if (fit === "phys") {
-      this.canvas.style.width = w + "px";
-      this.canvas.style.height = h + "px";
-    } else {
-      this.canvas.style.width = "100%";
-      this.canvas.style.height = "100%";
-    }
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
 
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     this.cam.w = w;
@@ -133,6 +99,12 @@ var IGRA = IGRA || {};
   G.Game.prototype.bind = function () {
     var self = this;
     var el = this.canvas;
+    // Зонд оболочки: поймать касание в любой точке, не трогая игру.
+    document.addEventListener("touchstart", function (e) {
+      if (!window.IGRA_TOUCH_EAT) return;
+      var t = e.touches ? e.touches[0] || e.changedTouches[0] : e;
+      if (t) window.IGRA_TOUCH_LAST = t.clientX + "," + t.clientY;
+    }, { capture: true, passive: true });
     function pos(e) {
       var t = e.touches ? e.touches[0] || e.changedTouches[0] : e;
       var r = el.getBoundingClientRect();
@@ -148,6 +120,14 @@ var IGRA = IGRA || {};
       return { x: x, y: y };
     }
     function down(e) {
+      // Зонд целостности экрана (MainActivity): синтетическое касание в углу.
+      // Съедаем его до игры и отвечаем сырыми координатами.
+      if (window.IGRA_TOUCH_EAT) {
+        var pt = e.touches ? e.touches[0] || e.changedTouches[0] : e;
+        if (pt) window.IGRA_TOUCH_LAST = pt.clientX + "," + pt.clientY;
+        if (e.cancelable) e.preventDefault();
+        return;
+      }
       e.preventDefault();
       G.Audio.unlock();
       var p = pos(e);

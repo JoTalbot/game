@@ -6,6 +6,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -95,6 +97,13 @@ public class MainActivity extends Activity {
             webView.postDelayed(new Runnable() {
                 public void run() { resizeGame(); }
             }, 900);
+            // Щуп целостности краски: синтетическое касание в нижний угол.
+            // Если WebView отдаёт его в JS за пределами innerWidth/innerHeight,
+            // слой рисует CSS px 1:1 в физические — тогда растягиваем View
+            // матрицей до окна. Здоровые телефоны проходят мимо.
+            webView.postDelayed(new Runnable() {
+                public void run() { probeFitIntegrity(); }
+            }, 1400);
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -176,6 +185,87 @@ public class MainActivity extends Activity {
             String esc = m.replace("\\", "\\\\").replace("'", "\\'");
             webView.evaluateJavascript(
                     "(function(){window.IGRA_ANDROID_METRICS='" + esc + "';"
+                            + "if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();})()",
+                    null);
+        } catch (Throwable ignored) {}
+    }
+
+    private boolean fitFixed = false;
+
+    private void probeFitIntegrity() {
+        if (webView == null || fitFixed) return;
+        try {
+            final int vw = webView.getWidth();
+            final int vh = webView.getHeight();
+            if (vw < 8 || vh < 8) return;
+            webView.evaluateJavascript(
+                    "(function(){window.IGRA_TOUCH_EAT=1;window.IGRA_TOUCH_LAST='';})()", null);
+            webView.postDelayed(new Runnable() {
+                public void run() {
+                    try {
+                        long now = SystemClock.uptimeMillis();
+                        MotionEvent dn = MotionEvent.obtain(now, now,
+                                MotionEvent.ACTION_DOWN, vw - 6, vh - 6, 0);
+                        webView.dispatchTouchEvent(dn);
+                        MotionEvent up = MotionEvent.obtain(now, now + 30,
+                                MotionEvent.ACTION_UP, vw - 6, vh - 6, 0);
+                        webView.dispatchTouchEvent(up);
+                        dn.recycle();
+                        up.recycle();
+                    } catch (Throwable ignored) {}
+                }
+            }, 250);
+            webView.postDelayed(new Runnable() {
+                public void run() { readProbe(vw, vh); }
+            }, 900);
+        } catch (Throwable ignored) {}
+    }
+
+    private void readProbe(final int vw, final int vh) {
+        if (webView == null) return;
+        try {
+            webView.evaluateJavascript(
+                    "(function(){var r=(window.IGRA_TOUCH_LAST||'');window.IGRA_TOUCH_EAT=0;"
+                            + "return r+'|'+(window.innerWidth||0)+'x'+(window.innerHeight||0);})()",
+                    new android.webkit.ValueCallback<String>() {
+                        @Override public void onReceiveValue(String value) {
+                            try {
+                                String v = value == null ? "" : value.replace("\"", "");
+                                String[] half = v.split("\\|");
+                                if (half.length != 2 || half[0].length() == 0) return;
+                                String[] xy = half[0].split(",");
+                                String[] wh = half[1].split("x");
+                                float x = Float.parseFloat(xy[0]);
+                                float y = Float.parseFloat(xy[1]);
+                                float iw = Float.parseFloat(wh[0]);
+                                float ih = Float.parseFloat(wh[1]);
+                                if (iw < 8 || ih < 8) return;
+                                if (x > iw + 1.5f || y > ih + 1.5f) {
+                                    // Краска 1:1: касание угла окна приземлилось
+                                    // за пределами CSS-вьюпорта. Растягиваем View
+                                    // матрицей — пиксели и касания остаются согласны.
+                                    float sx = vw / iw;
+                                    float sy = vh / ih;
+                                    webView.setPivotX(0);
+                                    webView.setPivotY(0);
+                                    webView.setScaleX(sx);
+                                    webView.setScaleY(sy);
+                                    fitFixed = true;
+                                    markProbe("fix=view-matrix x" + sx + " y" + sy);
+                                } else {
+                                    markProbe("probe=ok");
+                                }
+                            } catch (Throwable ignored) {}
+                        }
+                    });
+        } catch (Throwable ignored) {}
+    }
+
+    private void markProbe(String note) {
+        try {
+            webView.evaluateJavascript(
+                    "(function(){window.IGRA_ANDROID_METRICS=(window.IGRA_ANDROID_METRICS||'')+' "
+                            + note + "';"
                             + "if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();})()",
                     null);
         } catch (Throwable ignored) {}
