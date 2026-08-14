@@ -41,7 +41,7 @@ FLAT=( "$WORK/compiled"/*.flat )
 
 echo "==> javac"
 find "$WORK/gen" -name 'R.java' -print
-javac --release 11 \
+javac --release 11 -encoding UTF-8 \
   -cp "$JAR" \
   -d "$WORK/classes" \
   "$WORK/gen/world/igra/app/R.java" \

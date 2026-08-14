@@ -1,6 +1,7 @@
 package world.igra.app;
 
 import android.app.Activity;
+import android.content.res.AssetManager;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
