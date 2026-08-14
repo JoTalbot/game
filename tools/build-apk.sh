@@ -10,12 +10,22 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-0.4.26"
+NAME="igra-0.4.27"
+VCODE=30
+VNAME="0.4.27"
+if [ "${IGRA_SW:-0}" = "1" ]; then
+  NAME="igra-0.4.27sw"
+  VCODE=31
+  VNAME="0.4.27sw"
+fi
 
 echo "==> sync web → assets"
 rm -rf "$APP/assets/www"
 mkdir -p "$APP/assets"
 cp -a "$ROOT/web" "$APP/assets/www"
+if [ "${IGRA_SW:-0}" = "1" ]; then
+  : > "$APP/assets/www/sw.flag"
+fi
 
 echo "==> work dir"
 rm -rf "$WORK"
@@ -34,8 +44,8 @@ FLAT=( "$WORK/compiled"/*.flat )
   -A "$APP/assets" \
   --min-sdk-version 26 \
   --target-sdk-version 34 \
-  --version-code 29 \
-  --version-name 0.4.26 \
+  --version-code "$VCODE" \
+  --version-name "$VNAME" \
   --auto-add-overlay \
   "${FLAT[@]}"
 
