@@ -89,6 +89,9 @@ public class MainActivity extends Activity {
             }
 
             setContentView(webView);
+            webView.post(new Runnable() {
+                public void run() { applyPhysicalViewport(); }
+            });
             webView.loadUrl("https://igra.local/www/index.html");
         } catch (Throwable t) {
             t.printStackTrace();
@@ -152,6 +155,38 @@ public class MainActivity extends Activity {
         return guess != null ? guess : "application/octet-stream";
     }
 
+    private void applyPhysicalViewport() {
+        if (webView == null) return;
+        try {
+            android.util.DisplayMetrics real = new android.util.DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getRealMetrics(real);
+            int vw = webView.getWidth();
+            int vh = webView.getHeight();
+            if (vw < 8 || vh < 8) {
+                webView.postDelayed(new Runnable() {
+                    public void run() { applyPhysicalViewport(); }
+                }, 120);
+                return;
+            }
+            float sx = (float) real.widthPixels / (float) vw;
+            float sy = (float) real.heightPixels / (float) vh;
+            // Oukitel G1 Android 15 can lay out WebView in CSS pixels while
+            // the window is painted in physical pixels. Apply the correction
+            // only after layout, otherwise Android resets it during attach.
+            if (sx > 1.05f || sy > 1.05f) {
+                webView.setPivotX(0f);
+                webView.setPivotY(0f);
+                webView.setScaleX(sx);
+                webView.setScaleY(sy);
+            } else {
+                webView.setScaleX(1f);
+                webView.setScaleY(1f);
+            }
+            webView.evaluateJavascript(
+                    "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+        } catch (Throwable ignored) {}
+    }
+
     private void hideSystemUi() {
         try {
             View decor = getWindow().getDecorView();
@@ -177,8 +212,7 @@ public class MainActivity extends Activity {
                     public void run() {
                         try {
                             if (webView != null) {
-                                webView.evaluateJavascript(
-                                        "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                                applyPhysicalViewport();
                             }
                         } catch (Throwable ignored) {}
                     }
@@ -222,8 +256,7 @@ public class MainActivity extends Activity {
                     public void run() {
                         try {
                             if (webView != null) {
-                                webView.evaluateJavascript(
-                                        "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                                applyPhysicalViewport();
                             }
                         } catch (Throwable ignored) {}
                     }
