@@ -9,8 +9,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.webkit.MimeTypeMap;
 import android.webkit.WebChromeClient;
@@ -19,7 +17,6 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,61 +31,57 @@ public class MainActivity extends Activity {
     @android.annotation.SuppressLint("SetJavaScriptEnabled")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setBackgroundDrawable(new ColorDrawable(0xFF05060A));
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(0xFF05060A);
-            getWindow().setNavigationBarColor(0xFF05060A);
+        try {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+            getWindow().setBackgroundDrawable(new ColorDrawable(0xFF05060A));
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(0xFF05060A);
+                getWindow().setNavigationBarColor(0xFF05060A);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                getWindow().getAttributes().layoutInDisplayCutoutMode =
+                        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            }
+            hideSystemUi();
+
+            webView = new WebView(this);
+            webView.setBackgroundColor(0xFF05060A);
+            webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+            webView.setVerticalScrollBarEnabled(false);
+            webView.setHorizontalScrollBarEnabled(false);
+            webView.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+            webView.setWebViewClient(new AssetClient(getAssets()));
+            webView.setWebChromeClient(new WebChromeClient());
+
+            WebSettings s = webView.getSettings();
+            s.setJavaScriptEnabled(true);
+            s.setDomStorageEnabled(true);
+            s.setDatabaseEnabled(true);
+            s.setMediaPlaybackRequiresUserGesture(false);
+            s.setAllowFileAccess(true);
+            s.setAllowContentAccess(true);
+            s.setAllowFileAccessFromFileURLs(true);
+            s.setAllowUniversalAccessFromFileURLs(true);
+            s.setUseWideViewPort(true);
+            s.setLoadWithOverviewMode(true);
+            s.setSupportZoom(false);
+            s.setBuiltInZoomControls(false);
+            s.setDisplayZoomControls(false);
+            s.setTextZoom(100);
+            s.setCacheMode(WebSettings.LOAD_NO_CACHE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                s.setSafeBrowsingEnabled(false);
+            }
+
+            setContentView(webView);
+            webView.loadUrl("https://igra.local/www/index.html");
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            getWindow().getAttributes().layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-        }
-        hideSystemUi();
-
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(0xFF05060A);
-        root.setLayoutParams(new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-
-        webView = new WebView(this);
-        webView.setBackgroundColor(0xFF05060A);
-        webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
-        webView.setVerticalScrollBarEnabled(false);
-        webView.setHorizontalScrollBarEnabled(false);
-        webView.setLayoutParams(new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT));
-        webView.setWebViewClient(new AssetClient(getAssets()));
-        webView.setWebChromeClient(new WebChromeClient());
-
-        WebSettings s = webView.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setDatabaseEnabled(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
-        s.setAllowFileAccess(true);
-        s.setAllowContentAccess(true);
-        s.setAllowFileAccessFromFileURLs(true);
-        s.setAllowUniversalAccessFromFileURLs(true);
-        s.setUseWideViewPort(true);
-        s.setLoadWithOverviewMode(true);
-        s.setSupportZoom(false);
-        s.setBuiltInZoomControls(false);
-        s.setDisplayZoomControls(false);
-        s.setTextZoom(100);
-        s.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            s.setSafeBrowsingEnabled(false);
-        }
-
-        root.addView(webView);
-        setContentView(root);
-
-        webView.loadUrl("https://igra.local/www/index.html");
     }
 
     private static class AssetClient extends WebViewClient {
@@ -100,8 +93,19 @@ public class MainActivity extends Activity {
 
         @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            if (request == null) return null;
             Uri uri = request.getUrl();
             if (uri == null) return null;
+            return handleUri(uri);
+        }
+
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+            if (url == null) return null;
+            return handleUri(Uri.parse(url));
+        }
+
+        private WebResourceResponse handleUri(Uri uri) {
             String hostName = uri.getHost();
             if (hostName == null || !hostName.equals("igra.local")) return null;
             String path = uri.getPath();
@@ -138,23 +142,18 @@ public class MainActivity extends Activity {
     }
 
     private void hideSystemUi() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            getWindow().setDecorFitsSystemWindows(false);
-            WindowInsetsController controller = getWindow().getInsetsController();
-            if (controller != null) {
-                controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-                controller.setSystemBarsBehavior(
-                        WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        try {
+            View decor = getWindow().getDecorView();
+            if (decor != null) {
+                decor.setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
             }
-        } else {
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        }
+        } catch (Throwable ignored) {}
     }
 
     @Override
@@ -165,8 +164,12 @@ public class MainActivity extends Activity {
             if (webView != null) {
                 webView.postDelayed(new Runnable() {
                     public void run() {
-                        webView.evaluateJavascript(
-                                "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                        try {
+                            if (webView != null) {
+                                webView.evaluateJavascript(
+                                        "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                            }
+                        } catch (Throwable ignored) {}
                     }
                 }, 100);
             }
@@ -176,8 +179,10 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         if (webView != null) {
-            webView.evaluateJavascript(
-                    "window.IGRA && IGRA.onBack && IGRA.onBack()", null);
+            try {
+                webView.evaluateJavascript(
+                        "window.IGRA && IGRA.onBack && IGRA.onBack()", null);
+            } catch (Throwable ignored) {}
         }
     }
 
@@ -185,9 +190,11 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         if (webView != null) {
-            webView.onPause();
-            webView.evaluateJavascript(
-                    "window.IGRA && IGRA.pause && IGRA.pause()", null);
+            try {
+                webView.onPause();
+                webView.evaluateJavascript(
+                        "window.IGRA && IGRA.pause && IGRA.pause()", null);
+            } catch (Throwable ignored) {}
         }
     }
 
@@ -196,23 +203,31 @@ public class MainActivity extends Activity {
         super.onResume();
         hideSystemUi();
         if (webView != null) {
-            webView.onResume();
-            webView.evaluateJavascript(
-                    "window.IGRA && IGRA.resume && IGRA.resume()", null);
-            webView.postDelayed(new Runnable() {
-                public void run() {
-                    webView.evaluateJavascript(
-                            "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
-                }
-            }, 100);
+            try {
+                webView.onResume();
+                webView.evaluateJavascript(
+                        "window.IGRA && IGRA.resume && IGRA.resume()", null);
+                webView.postDelayed(new Runnable() {
+                    public void run() {
+                        try {
+                            if (webView != null) {
+                                webView.evaluateJavascript(
+                                        "window.IGRA && IGRA.app && IGRA.app.resize && IGRA.app.resize()", null);
+                            }
+                        } catch (Throwable ignored) {}
+                    }
+                }, 100);
+            } catch (Throwable ignored) {}
         }
     }
 
     @Override
     protected void onDestroy() {
         if (webView != null) {
-            webView.destroy();
-            webView = null;
+            try {
+                webView.destroy();
+                webView = null;
+            } catch (Throwable ignored) {}
         }
         super.onDestroy();
     }
