@@ -10,7 +10,7 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-0.4.21"
+NAME="igra-0.4.22"
 
 echo "==> sync web → assets"
 rm -rf "$APP/assets/www"
@@ -34,8 +34,8 @@ FLAT=( "$WORK/compiled"/*.flat )
   -A "$APP/assets" \
   --min-sdk-version 26 \
   --target-sdk-version 34 \
-  --version-code 24 \
-  --version-name 0.4.21 \
+  --version-code 25 \
+  --version-name 0.4.22 \
   --auto-add-overlay \
   "${FLAT[@]}"
 
