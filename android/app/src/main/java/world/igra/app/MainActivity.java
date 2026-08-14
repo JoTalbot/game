@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
             // left CSS-width slice of the display.
             s.setUseWideViewPort(true);
             s.setLoadWithOverviewMode(false);
-            s.setInitialScale(Math.max(100, Math.round(getResources().getDisplayMetrics().density * 100f)));
+            webView.setInitialScale(Math.max(100, Math.round(getResources().getDisplayMetrics().density * 100f)));
             s.setSupportZoom(false);
             s.setBuiltInZoomControls(false);
             s.setDisplayZoomControls(false);
