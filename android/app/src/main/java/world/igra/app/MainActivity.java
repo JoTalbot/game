@@ -207,6 +207,33 @@ public class MainActivity extends Activity {
             webView.evaluateJavascript(
                     "(function(){if(window.IGRA&&IGRA.app&&IGRA.app.resize)IGRA.app.resize();"
                     + "var e=document.getElementById('fit-debug');if(e)e.textContent='" + escaped + "';})()", null);
+            // The CSS viewport can be narrower than the laid-out Android View.
+            // Measure it after the page exists, then scale the WebView to the
+            // physical display width (384 CSS px -> 576 physical px on G1).
+            webView.evaluateJavascript(
+                    "(window.innerWidth||0)+','+(window.innerHeight||0)",
+                    new android.webkit.ValueCallback<String>() {
+                        @Override public void onReceiveValue(String value) {
+                            try {
+                                String v = value.replace("\"", "");
+                                String[] parts = v.split(",");
+                                float cssW = Float.parseFloat(parts[0]);
+                                float cssH = Float.parseFloat(parts[1]);
+                                if (cssW < 8 || cssH < 8) return;
+                                float cssScaleX = real.widthPixels / cssW;
+                                float cssScaleY = real.heightPixels / cssH;
+                                webView.setPivotX(0f);
+                                webView.setPivotY(0f);
+                                webView.setScaleX(cssScaleX);
+                                webView.setScaleY(cssScaleY);
+                                String d = "android real=" + real.widthPixels + "x" + real.heightPixels
+                                        + " css=" + ((int) cssW) + "x" + ((int) cssH)
+                                        + " scale=" + cssScaleX + "x" + cssScaleY;
+                                String e = d.replace("'", "\\'");
+                                webView.evaluateJavascript("var e=document.getElementById('fit-debug');if(e)e.textContent='" + e + "';", null);
+                            } catch (Throwable ignored) {}
+                        }
+                    });
         } catch (Throwable ignored) {}
     }
 
