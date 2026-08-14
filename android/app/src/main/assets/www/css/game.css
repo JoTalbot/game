@@ -244,13 +244,18 @@ button:active {
 }
 
 #fit-debug {
-  position: absolute;
-  left: 10px;
-  bottom: 28px;
-  z-index: 20;
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  bottom: auto;
+  z-index: 50;
+  max-width: calc(100vw - 16px);
+  padding: 3px 5px;
   font-size: 10px;
-  letter-spacing: 0.08em;
-  color: rgba(232, 230, 242, 0.35);
+  line-height: 1.25;
+  letter-spacing: 0.04em;
+  color: rgba(232, 230, 242, 0.6);
+  background: rgba(0, 0, 0, 0.38);
   pointer-events: none;
 }
 
