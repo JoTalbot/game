@@ -258,6 +258,10 @@ button:active {
   background: rgba(0, 0, 0, 0.38);
   pointer-events: none;
   white-space: pre-line;
+  display: none;
+}
+body.debug #fit-debug {
+  display: block;
 }
 
 #hud-right {

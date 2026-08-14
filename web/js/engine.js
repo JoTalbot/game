@@ -79,6 +79,15 @@ var IGRA = IGRA || {};
 
     var dbg = document.getElementById("fit-debug");
     if (dbg) {
+      if (!dbg.__armed) {
+        dbg.__armed = true;
+        if ((location.search || "").indexOf("debug") >= 0 && document.body) {
+          document.body.classList.add("debug");
+        }
+      }
+      if (dbg.offsetParent === null && !document.body.classList.contains("debug")) {
+        dbg.textContent = "";
+      } else {
       var doc = document.documentElement;
       var line = w + "×" + h + " dpr" + rawDpr.toFixed(2) + " " + fit + "\n" +
         "inner=" + window.innerWidth + "×" + window.innerHeight +
@@ -88,6 +97,7 @@ var IGRA = IGRA || {};
         " vv=" + (window.visualViewport ? (Math.round(visualViewport.width) + "×" + Math.round(visualViewport.height) + "@" + visualViewport.scale.toFixed(2)) : "-") +
         "\n" + (window.IGRA_ANDROID_METRICS || "");
       dbg.textContent = line;
+      }
     }
     if (!G.Renderer.ready) G.Renderer.init(w, h);
   };
