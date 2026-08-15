@@ -116,6 +116,9 @@ function makeWorld(G, seed) {
     time: 0,
     dpr: 1,
     sky: false,
+    state: "play",
+    // Director читает ввод: без него первый мозг спотыкается
+    input: { down: false, x: 0, y: 0, wx: 0, wy: 0, rhythm: 0, wild: 0, taps: [] },
     cam: { x: 0, y: 0, z: 1, w: 800, h: 600 }
   };
   return game;
@@ -140,8 +143,68 @@ function step(G, game, dt, target, speed) {
   }
   game.time += dt;
   game.world.update(dt, p, game.dna, game.fx, game);
+  // Director — первый мозг: без него берег нем и не растит фронтир,
+  // а проверки тишины считают чужую тишину
+  if (G.Director && G.Director.observe) {
+    try {
+      G.Director.observe(dt, game);
+    } catch (e) {
+      if (!step._warned) {
+        step._warned = true;
+        console.log("  (Director споткнулся в стенде: " + e.message + ")");
+      }
+    }
+  }
   game.fx.update(dt);
   game.floaters.update(dt);
+}
+
+// Взгляд — главный жест игры, и он живёт в Game._gaze, а не в World.
+// Стенд повторяет его честно: палец лежит на узле, время идёт,
+// узел кристаллизуется. Возвращает true, если что-то выросло.
+function gaze(G, game, node, seconds, still) {
+  var dt = 1 / 60;
+  var grown = false;
+  var gest = node.gesture;
+  for (var i = 0; i < Math.round(seconds / dt); i++) {
+    if (node.dead || node.state === "alive") break;
+    node.care = Math.min(1, node.care + dt * 0.4);
+    if (still === false) gest.explore += dt * 0.5;
+    else gest.still += dt * 0.8;
+    game.player.gazeT += dt;
+    game.time += dt;
+    if (game.player.gazeT >= 1.35) {
+      if (node.state !== "alive") {
+        game.dna.gazes++;
+        node.state = "crystallizing";
+        var kind = game.world.crystallize(node, gest, game.dna);
+        var trait = G.KIND_TRAIT[kind];
+        if (trait) game.dna.feed(trait, 0.045);
+        if (G.Director && G.Director.onCrystal) {
+          try {
+            G.Director.onCrystal(game, kind);
+          } catch (e) {}
+        }
+        grown = true;
+      }
+      game.player.gazeT = 0;
+    }
+    game.world.update(dt, game.player, game.dna, game.fx, game);
+  }
+  return grown;
+}
+
+// Ближайший узел, на который вообще можно смотреть.
+function nearestUnformed(game) {
+  var best = null;
+  var bd = 1e9;
+  for (var i = 0; i < game.world.nodes.length; i++) {
+    var n = game.world.nodes[i];
+    if (n.dead || n.state === "alive") continue;
+    var d = Math.hypot(n.x - game.player.x, n.y - game.player.y);
+    if (d < bd) { bd = d; best = n; }
+  }
+  return best;
 }
 
 // Подставной 2D-контекст: считает вызовы, ничего не рисует.
@@ -171,4 +234,13 @@ function ctxStub() {
   return o;
 }
 
-module.exports = { boot: boot, makeWorld: makeWorld, step: step, ctxStub: ctxStub, ROOT: ROOT, ORDER: ORDER };
+module.exports = {
+  boot: boot,
+  makeWorld: makeWorld,
+  step: step,
+  gaze: gaze,
+  nearestUnformed: nearestUnformed,
+  ctxStub: ctxStub,
+  ROOT: ROOT,
+  ORDER: ORDER
+};

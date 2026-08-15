@@ -272,5 +272,40 @@ group("язык: обе раскладки полны");
   G.Lang.id = prev;
 })();
 
+// ——— первая минута: то, что нельзя сломать ———
+group("первая минута без туториала");
+(function () {
+  var game = H.makeWorld(G, 7);
+  var said = [];
+  var realSay = G.Voice._set;
+  G.Voice._set = function (t) {
+    said.push({ t: game.time, line: t });
+    return realSay.apply(G.Voice, arguments);
+  };
+
+  // человек, не читавший подсказок: подошёл к мерцанию и задержал палец
+  var firstGrown = 0;
+  var grownCount = 0;
+  for (var round = 0; round < 6 && game.time < 60; round++) {
+    var n = H.nearestUnformed(game);
+    if (!n) break;
+    // дойти
+    for (var i = 0; i < 60 * 6 && game.time < 60; i++) {
+      if (Math.hypot(n.x - game.player.x, n.y - game.player.y) < 40) break;
+      H.step(G, game, 1 / 60, n, 150);
+    }
+    if (H.gaze(G, game, n, 2.2, true)) {
+      grownCount++;
+      if (!firstGrown) firstGrown = game.time;
+    }
+  }
+  G.Voice._set = realSay;
+
+  ok(game.world.nodes.length > 4, "берегу есть что показать", game.world.nodes.length + " узлов");
+  ok(grownCount > 0, "взгляд выращивает узел", grownCount + " за минуту");
+  ok(firstGrown && firstGrown < 25, "первое рождение — в первые секунды", firstGrown ? firstGrown.toFixed(1) + " с" : "не случилось");
+  ok(said.length < 14, "но Игра не заваливает словами", said.length + " реплик за минуту");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
