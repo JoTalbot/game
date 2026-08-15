@@ -1,0 +1,100 @@
+# Сборка APK без Gradle — тем же путём, что и руками.
+#
+# Здесь нарочно НЕТ actions/setup-android и Gradle: у машины, где я работаю,
+# мало памяти, и сборка идёт голыми aapt2/javac/d8/apksigner через
+# tools/build-apk.sh. Если CI будет собирать иначе, чем человек, он начнёт
+# проверять не ту игру. Один путь, один скрипт.
+name: APK
+
+on:
+  push:
+    branches: [main]
+    # Метка вида v0.4.44 — это релиз: APK прицепится к нему сам.
+    tags: ["v*"]
+    # Фильтра по путям здесь нарочно нет: вместе с метками он врёт —
+    # если метку поставить на коммит, тронувший только память смены,
+    # сборка молча не запустится, и релиз останется без APK.
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Проверки души идут ДО сборки: собирать сломанное незачем.
+      - name: Проверки души
+        run: node tools/probe/run.js
+
+      - name: Сторож расхождений
+        run: bash tools/check-sync.sh
+
+      - name: Android SDK (build-tools 34, platform 34)
+        run: |
+          set -euo pipefail
+          SDK="$HOME/android-sdk"
+          mkdir -p "$SDK/cmdline-tools"
+          cd "$SDK/cmdline-tools"
+          curl -sSL -o cmdline.zip \
+            https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q cmdline.zip
+          mv cmdline-tools latest
+          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" --licenses >/dev/null
+          "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" \
+            "platforms;android-34" "build-tools;34.0.0" >/dev/null
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+
+      # Ключ подписи не лежит в репозитории (и не должен). Если в секретах
+      # есть настоящий — берём его, чтобы обновление ставилось поверх
+      # прошлого APK. Если нет, скрипт сам родит отладочный: игра соберётся,
+      # но человеку придётся снести старую перед установкой.
+      - name: Ключ подписи
+        env:
+          KEYSTORE_B64: ${{ secrets.IGRA_KEYSTORE_B64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          if [ -n "${KEYSTORE_B64:-}" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > dist/debug.keystore
+            echo "ключ из секретов"
+          else
+            echo "ключа в секретах нет — будет свежий отладочный"
+          fi
+
+      - name: Сборка APK
+        run: bash tools/build-apk.sh
+
+      - name: Имя версии
+        id: ver
+        run: |
+          V=$(sed -n 's/^VNAME="\(.*\)"$/\1/p' tools/build-apk.sh | head -1)
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+
+      - name: Забрать APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: igra-${{ steps.ver.outputs.v }}
+          path: dist/igra-${{ steps.ver.outputs.v }}.apk
+          if-no-files-found: error
+
+      # Метку ставит человек — значит это релиз, и APK нужен в нём.
+      - name: Прицепить к релизу
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/igra-${{ steps.ver.outputs.v }}.apk
