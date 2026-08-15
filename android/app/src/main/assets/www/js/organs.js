@@ -158,7 +158,7 @@ var IGRA = IGRA || {};
         var verse = null;
         if (p.stillT > 8 && G.chance(0.45)) {
           verse = this.composeVerse(game);
-          game.world.verses.push(verse);
+          game.world.addVerse(verse);
           G.Voice.sayText(verse, true);
         }
         var b = this.plantBloom(game.world, p.x, p.y, verse);

@@ -307,5 +307,36 @@ group("первая минута без туториала");
   ok(said.length < 14, "но Игра не заваливает словами", said.length + " реплик за минуту");
 })();
 
+// ——— долгая игра не топит сейв ———
+group("долгая игра: сейв не пухнет");
+(function () {
+  var game = H.makeWorld(G, 11);
+  var T = 1800; // полчаса
+  while (game.time < T) {
+    var n = H.nearestUnformed(game);
+    if (!n) {
+      for (var k = 0; k < 60 * 3; k++) H.step(G, game, 1 / 60, null, 0);
+      continue;
+    }
+    for (var i = 0; i < 60 * 8 && game.time < T; i++) {
+      if (Math.hypot(n.x - game.player.x, n.y - game.player.y) < 40) break;
+      H.step(G, game, 1 / 60, n, 150);
+    }
+    H.gaze(G, game, n, 2.2, true);
+  }
+  var w = game.world;
+  var kb = JSON.stringify(w.toJSON()).length / 1024;
+
+  ok(w.stars.length <= 160, "звёзды забвения не копятся без предела", w.stars.length + " звёзд");
+  ok(w.verses.length <= 60, "стихи не копятся без предела", w.verses.length + " строк");
+  ok(kb < 45, "сейв за полчаса остаётся лёгким", kb.toFixed(1) + " КБ");
+  ok(w.stars.length > 40, "но небо не пустеет — забвение видно", w.stars.length + " звёзд");
+
+  // метаморфоза — из списка того, что нельзя сломать
+  ok(game.metas > 0, "за полчаса игра хотя бы раз перерождается", game.metas + " раз");
+  ok(game.state === "play", "после метаморфозы мир возвращается к игре", game.state);
+  ok(w.nodes.length > 0 && game.player, "мир переживает перерождение", w.nodes.length + " узлов");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

@@ -119,6 +119,23 @@ function makeWorld(G, seed) {
     state: "play",
     // Director читает ввод: без него первый мозг спотыкается
     input: { down: false, x: 0, y: 0, wx: 0, wy: 0, rhythm: 0, wild: 0, taps: [] },
+    metaT: 0,
+    metaFlash: 0,
+    metas: 0,
+    // метаморфоза — то, что нельзя сломать. Стенд повторяет её так же,
+    // как движок: beginMeta помечает состояние, finishMeta пересобирает мир.
+    beginMeta: function () {
+      this.state = "meta";
+      this.metaT = 0;
+      this.metaFlash = 1;
+      this.metas++;
+    },
+    finishMeta: function () {
+      this.world.metamorphose(this.player, this.dna);
+      this.state = "play";
+      this.metaFlash = 0.6;
+    },
+    save: function () {},
     cam: { x: 0, y: 0, z: 1, w: 800, h: 600 }
   };
   return game;
@@ -142,6 +159,12 @@ function step(G, game, dt, target, speed) {
     p.stillT += dt;
   }
   game.time += dt;
+  // Метаморфоза длится 3.2 с и сама себя завершает — движок делает это
+  // в Game.update. Без этого мир навсегда застревает в перерождении.
+  if (game.state === "meta") {
+    game.metaT += dt;
+    if (game.metaT > 3.2) game.finishMeta();
+  }
   game.world.update(dt, p, game.dna, game.fx, game);
   // Director — первый мозг: без него берег нем и не растит фронтир,
   // а проверки тишины считают чужую тишину

@@ -185,4 +185,20 @@ var IGRA = IGRA || {};
   G.now = function () {
     return performance.now() / 1000;
   };
+
+  // Немой запасной интерфейс. Игра — душа, а не кнопки: если ui.js не
+  // загрузился (стенд, урезанная сборка, ошибка сети), мир должен жить
+  // дальше молча, а не падать на пятнадцати вызовах G.UI.*.
+  // Настоящий ui.js перекрывает это целиком.
+  G.UI = {
+    game: null,
+    bind: function () {},
+    hint: function () {},
+    law: function () {},
+    paintSeason: function () {},
+    paintSigil: function () {},
+    toggleSigil: function () {},
+    setMute: function () {},
+    apply: function () {}
+  };
 })(IGRA);

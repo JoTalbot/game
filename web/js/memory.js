@@ -215,7 +215,7 @@ var IGRA = IGRA || {};
       }
       if (hours > 2 && G.chance(0.7)) {
         var verse = G.Organs.composeVerse(game);
-        w.verses.push(verse);
+        w.addVerse(verse);
         this.note("пока тебя не было: " + verse);
       }
       return { hours: hours, lost: lost, blooms: blooms, debt: debt };

@@ -409,7 +409,10 @@ var IGRA = IGRA || {};
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.state = "play";
     this.metaFlash = 0.6;
-    G.Voice.sayText("теперь ты — " + this.dna.name() + ".", true);
+    G.Voice.sayText(
+      (G.Lang && G.Lang.id === "en" ? "now you are " : "теперь ты — ") + this.dna.name() + ".",
+      true
+    );
     this.save();
   };
 

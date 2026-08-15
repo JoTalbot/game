@@ -229,7 +229,7 @@ var IGRA = IGRA || {};
         "не всё должно двигаться",
         "я слышу дно"
       ]);
-      this.verses.push(node.verse);
+      this.addVerse(node.verse);
     }
     if (kind === "echo") {
       var b = G.Organs.birthBeing(node.x + 20, node.y - 12, "empathy", this.rng);
@@ -260,6 +260,10 @@ var IGRA = IGRA || {};
       verse: node.verse || ""
     };
     this.stars.push(star);
+    // Небо — память, а не свалка. За полчаса игры сюда набегало 565 звёзд
+    // (100 КБ сейва и каша на экране). Держим последние 160: старое
+    // забвение гаснет, недавнее горит. Это честно — память тоже редеет.
+    if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
     this.forgotten.push({ kind: node.kind, x: node.x, y: node.y, c: node.color() });
     if (this.forgotten.length > 24) this.forgotten.shift();
     if (asWound) {
@@ -267,6 +271,14 @@ var IGRA = IGRA || {};
       return "wound";
     }
     return "star";
+  };
+
+  // Один вход для стихов: сигила читает три последних, а сейв не должен
+  // пухнуть. За полчаса набегало 600 строк — держим 60.
+  G.World.prototype.addVerse = function (verse) {
+    if (!verse) return;
+    this.verses.push(verse);
+    if (this.verses.length > 60) this.verses.splice(0, this.verses.length - 60);
   };
 
   G.World.prototype.update = function (dt, player, dna, fx, game) {
