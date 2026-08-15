@@ -210,12 +210,7 @@ var IGRA = IGRA || {};
         if (nap > 0.04) {
           var report = G.Memory.sleepWorld(self, Math.min(nap, 8));
           if (report.lost || report.blooms) {
-            G.Voice.sayText(
-              report.lost
-                ? "пока экран спал, забвение работало."
-                : "сад вырос в темноте.",
-              true
-            );
+            G.Voice.say(report.lost ? "nightLost" : "nightBloom", true);
           }
         }
       }

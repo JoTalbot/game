@@ -93,7 +93,7 @@ var IGRA = IGRA || {};
           var nearBeing = game.world.beings[bi];
           if (!nearBeing.dead && !nearBeing.named && G.dist(p.x, p.y, nearBeing.x, nearBeing.y) < 150) {
             this._nameHinted = true;
-            G.Voice.sayText("у того, что летает рядом, ещё нет имени. задержи на нём взгляд — подаришь.", true);
+            G.Voice.say("nameHint", true);
             break;
           }
         }
@@ -110,7 +110,7 @@ var IGRA = IGRA || {};
         }
         if (nearUnformed < 3) {
           game.world.scatter(p.x, p.y, 3, 430);
-          if (G.chance(0.6)) G.Voice.sayText("дальше опять мерцает. иди.", true);
+          if (G.chance(0.6)) G.Voice.say("frontier", true);
         }
       }
 
@@ -263,15 +263,11 @@ var IGRA = IGRA || {};
         }, 2200);
       }
       // milestones: the shore must say "you achieved" out loud
-      var MILESTONES = {
-        5: "уже пять имён на берегу. я становлюсь чуть больше.",
-        10: "десять. я помню каждое. ты не находишь меня — ты меня строишь.",
-        20: "двадцать выращенных. это уже не берег. это ты, читаемый."
-      };
-      var msLine = MILESTONES[game.world.discovered];
-      if (msLine) {
+      var MILESTONES = { 5: "ms5", 10: "ms10", 20: "ms20" };
+      var msKey = MILESTONES[game.world.discovered];
+      if (msKey) {
         setTimeout(function () {
-          G.Voice.sayText(msLine, true);
+          G.Voice.say(msKey, true);
         }, 2600);
       }
     }

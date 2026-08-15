@@ -256,6 +256,14 @@ group("язык: обе раскладки полны");
   }
   ok(!cyr.length, "в английской раскладке нет кириллицы", cyr.join(", "));
 
+  // голос: каждый ключ должен звучать на обоих языках
+  var voiceKeys = G.Voice.keys ? G.Voice.keys() : [];
+  var noEn = [];
+  for (var vk = 0; vk < voiceKeys.length; vk++) {
+    if (!G.LINES_EN[voiceKeys[vk]]) noEn.push(voiceKeys[vk]);
+  }
+  ok(!noEn.length, "у каждой реплики Игры есть английская", noEn.join(", "));
+
   var prev = G.Lang.id;
   G.Lang.id = "en";
   ok(!/[а-яА-Я]/.test(G.Memory.climateName()), "сезон переводится", G.Memory.climateName());

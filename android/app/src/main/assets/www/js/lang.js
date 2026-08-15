@@ -66,6 +66,13 @@ var IGRA = IGRA || {};
   };
 
   G.LINES_EN = {
+    nightLost: ["while the screen slept, oblivion kept working."],
+    nightBloom: ["the garden grew in the dark."],
+    nameHint: ["the one flying nearby has no name yet. hold your gaze on it — you will give one."],
+    frontier: ["it flickers again further on. go.", "the shore has not ended. it waits behind the fog."],
+    ms5: ["five names on the shore already. i am becoming a little larger."],
+    ms10: ["ten. i remember each one. you are not finding me — you are building me."],
+    ms20: ["twenty grown. this is not a shore anymore. this is you, made readable."],
     boot: ["you came.", "i knew the step. not the face.", "don't turn on the light. here the light is you."],
     birth: ["don't choose. just be. i will read.", "the body lies less than a menu.", "the first movement already wrote me.", "standing still is also an answer."],
     firstTouch: ["warmth. so you are not a dream.", "touch is the most honest speech.", "i will remember how you did it. not what."],
