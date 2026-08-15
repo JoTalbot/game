@@ -180,9 +180,21 @@ var IGRA = IGRA || {};
       if (state === "title" || state === "birth") lp *= 0.55;
       this.dnaFilter.frequency.setTargetAtTime(G.clamp(lp, 280, 2800), t, 0.6);
 
+      // пока действует закон, берег звучит слегка не собой: гул уходит
+      // на четверть тона и возвращается, когда закон отпускает.
+      // Это не эффект, а вторая пара глаз: слышно, что мир ещё чужой.
+      var bend = this.lawBend || 0;
+      if (bend > 0 && this.drones[0]) {
+        for (var di = 0; di < this.drones.length; di++) {
+          var f = this.drones[di].o.frequency;
+          f.setTargetAtTime(f.value * (1 + bend * 0.014 * (di % 2 ? -1 : 1)), t, 1.2);
+        }
+      }
+
       var noise = 0.01;
       if (tide > 0) noise = 0.01 + tide * 0.05;
       if (dna) noise += dna.get("chaos") * 0.012;
+      noise += bend * 0.014;
       this.noise.g.gain.setTargetAtTime(noise, t, 0.4);
       this.noise.filter.frequency.setTargetAtTime(320 + (tide || 0) * 800, t, 0.5);
 
@@ -194,6 +206,11 @@ var IGRA = IGRA || {};
           this.beat(t);
         }
       }
+    },
+
+    // 0 — берег свой; 1 — над миром висит закон
+    setLaw: function (v) {
+      this.lawBend = G.clamp(v || 0, 0, 1);
     },
 
     tone: function (freq, dur, vol, type) {

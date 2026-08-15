@@ -509,6 +509,11 @@ var IGRA = IGRA || {};
       });
     }
 
+    // закон слышно: пока он висит над миром, гул уведён в сторону
+    if (G.Audio.setLaw) {
+      var act = this.world.active;
+      G.Audio.setLaw(act && act.length ? Math.min(1, act[act.length - 1].left / 6) : 0);
+    }
     G.Audio.update(dt, this.dna, this.state, this.world.tide);
 
     this.dirtySave += dt;
