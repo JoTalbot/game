@@ -15,7 +15,6 @@ var IGRA = IGRA || {};
       if (this.offered) return;
       this.offered = true;
       G.Voice.say("fate");
-      if (!G.LINES_EN.fate) {}
       var ru = G.Lang.id !== "en";
       G.Voice.sayText(
         ru
