@@ -10,6 +10,22 @@ var IGRA = IGRA || {};
     return g;
   }
 
+  // Web Audio не убирает за собой. Остановленный осциллятор молчит, но
+  // и он, и гейн, через который он шёл, остаются подключены к выходу и
+  // продолжают участвовать в сведении. Игра сыплет по ноте на каждый
+  // взгляд — за десять минут в графе скапливалось 1700 живых узлов, и
+  // человек слышал это как гул, который тем гуще, чем дольше играешь.
+  // Отключаем цепочку, как только нота отзвучала.
+  function reap(osc, chain) {
+    if (!osc) return;
+    osc.onended = function () {
+      try { osc.disconnect(); } catch (e) {}
+      for (var i = 0; i < chain.length; i++) {
+        try { chain[i].disconnect(); } catch (e) {}
+      }
+    };
+  }
+
   G.Audio = {
     ctx: null,
     master: null,
@@ -177,6 +193,7 @@ var IGRA = IGRA || {};
       g.connect(this.heart.g);
       o.start(now);
       o.stop(now + 0.22);
+      reap(o, [g]);
       var o2 = ctx.createOscillator();
       o2.type = "sine";
       o2.frequency.setValueAtTime(70, now + 0.16);
@@ -185,6 +202,7 @@ var IGRA = IGRA || {};
       g2.connect(this.heart.g);
       o2.start(now + 0.16);
       o2.stop(now + 0.4);
+      reap(o2, [g2]);
     },
 
     setHeart: function (on, bpm) {
@@ -302,6 +320,7 @@ var IGRA = IGRA || {};
       g.connect(this.master);
       o.start(t);
       o.stop(t + dur + 0.05);
+      reap(o, [g]);
     },
 
     chord: function (freqs, dur, vol) {
@@ -354,6 +373,7 @@ var IGRA = IGRA || {};
       g.connect(this.master);
       o.start(t);
       o.stop(t + 2.8);
+      reap(o, [g]);
     },
 
     // Узел утонул. Самое тихое место игры: до 0.4.41 сад уходил в небо
@@ -381,6 +401,7 @@ var IGRA = IGRA || {};
       lp.connect(this.master);
       o.start(t);
       o.stop(t + 1.3);
+      reap(o, [g, lp]);
     },
 
     // Узел начал держаться сам. Награда за возвращение должна звучать
@@ -400,6 +421,7 @@ var IGRA = IGRA || {};
       g.connect(this.master);
       o.start(t);
       o.stop(t + 0.9);
+      reap(o, [g]);
       this.tone(f * 1.5, 0.5, 0.035, "sine");
     },
 

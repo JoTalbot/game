@@ -47,7 +47,14 @@ function ctxStub() {
   var live = []; // короткие ноты, заведённые за такт
 
   function node(name) {
-    return { _name: name, _in: [], _out: [], connect: function (d) {
+    return { _name: name, _in: [], _out: [], disconnect: function () {
+      var self = this;
+      for (var i = 0; i < self._out.length; i++) {
+        var d = self._out[i];
+        if (d && d._in) { var k = d._in.indexOf(self); if (k >= 0) d._in.splice(k, 1); }
+      }
+      self._out = [];
+    }, connect: function (d) {
       this._out.push(d);
       if (d && d._in) d._in.push(this);
       // подключение осциллятора В ПАРАМЕТР — это модуляция
@@ -65,6 +72,18 @@ function ctxStub() {
       if (d instanceof Param) { d.mods.push(g); g._out.push(d); return d; }
       return origConnect.call(g, d);
     };
+    // disconnect обязан рвать связь В ОБЕ СТОРОНЫ и вынимать себя из
+    // параметров, куда был влит. Пока он чистил только свой список
+    // исходящих, отключённый гейн оставался в master._in — обход графа
+    // считал мёртвые узлы живыми, и замер говорил, что утечка не лечится.
+    g.disconnect = function () {
+      for (var i = 0; i < g._out.length; i++) {
+        var d = g._out[i];
+        if (d instanceof Param) { var m = d.mods.indexOf(g); if (m >= 0) d.mods.splice(m, 1); }
+        else if (d && d._in) { var k = d._in.indexOf(g); if (k >= 0) d._in.splice(k, 1); }
+      }
+      g._out = [];
+    };
     return g;
   };
   ctx.createBiquadFilter = function () {
@@ -73,6 +92,16 @@ function ctxStub() {
     f.frequency = new Param(350);
     f.Q = new Param(1);
     f.gain = new Param(0);
+    // как и у гейна: рвать надо в обе стороны, иначе отключённый фильтр
+    // остаётся во входах приёмника и обход считает его живым
+    f.disconnect = function () {
+      for (var i = 0; i < f._out.length; i++) {
+        var d = f._out[i];
+        if (d instanceof Param) { var m = d.mods.indexOf(f); if (m >= 0) d.mods.splice(m, 1); }
+        else if (d && d._in) { var k = d._in.indexOf(f); if (k >= 0) d._in.splice(k, 1); }
+      }
+      f._out = [];
+    };
     return f;
   };
   ctx.createOscillator = function () {
@@ -82,6 +111,17 @@ function ctxStub() {
     o.detune = new Param(0);
     o.start = function (t) { o._start = t || ctx.currentTime; live.push(o); };
     o.stop = function (t) { o._stop = t || ctx.currentTime; };
+    o.disconnect = function () {
+      // рвём связи в обе стороны, как настоящий Web Audio: и свой список
+      // исходящих, и упоминание себя во входах приёмника, и вклад в
+      // параметр, если осциллятор работал модулятором (LFO)
+      for (var i = 0; i < o._out.length; i++) {
+        var d = o._out[i];
+        if (d instanceof Param) { var m = d.mods.indexOf(o); if (m >= 0) d.mods.splice(m, 1); }
+        else if (d && d._in) { var k = d._in.indexOf(o); if (k >= 0) d._in.splice(k, 1); }
+      }
+      o._out = [];
+    };
     return o;
   };
   ctx.createBuffer = function (ch, len, sr) {
@@ -97,6 +137,36 @@ function ctxStub() {
     return s;
   };
   ctx._live = live;
+  // Сколько узлов до сих пор висит в графе. Web Audio не убирает их сам:
+  // остановленный осциллятор молчит, но гейн, в который он включён,
+  // остаётся подключён к выходу и продолжает суммироваться. Тысяча
+  // мёртвых узлов на телефоне — это уже нагрузка и грязь в звуке.
+  ctx._who = function () {
+    var out = {};
+    var stack = [ctx.destination];
+    var visited = [];
+    while (stack.length) {
+      var n = stack.pop();
+      if (!n || visited.indexOf(n) >= 0) continue;
+      visited.push(n);
+      out[n._name || "?"] = (out[n._name || "?"] || 0) + 1;
+      if (n._in) for (var i = 0; i < n._in.length; i++) stack.push(n._in[i]);
+    }
+    return out;
+  };
+  ctx._graphSize = function () {
+    var seen = 0;
+    var stack = [ctx.destination];
+    var visited = [];
+    while (stack.length) {
+      var n = stack.pop();
+      if (!n || visited.indexOf(n) >= 0) continue;
+      visited.push(n);
+      seen++;
+      if (n._in) for (var i = 0; i < n._in.length; i++) stack.push(n._in[i]);
+    }
+    return seen;
+  };
   return ctx;
 }
 
@@ -109,6 +179,7 @@ function run(seconds, mode) {
   // подставной Web Audio ставим ДО unlock, иначе игра построит граф
   // на настоящем контексте, которого в node нет
   var ctx = ctxStub();
+  var live = ctx._live;
   global.window.AudioContext = function () { return ctx; };
   G.Audio.ready = false;
   G.Audio._unlock();
@@ -129,6 +200,17 @@ function run(seconds, mode) {
 
   while (t < seconds) {
     ctx.currentTime = t;
+    // Настоящий Web Audio зовёт onended, когда нота отзвучала. Без этого
+    // уборка в audio.js никогда не случится и замер соврёт, что утечка
+    // не лечится.
+    for (var li = live.length - 1; li >= 0; li--) {
+      var lo = live[li];
+      if (lo._stop !== undefined && lo._stop <= t) {
+        live.splice(li, 1);
+        if (typeof lo.onended === "function") { lo.onended(); ctx._reaped = (ctx._reaped || 0) + 1; }
+        else ctx._noReap = (ctx._noReap || 0) + 1;
+      }
+    }
     H.step(G, game, dt);
     // Audio.update зовёт движок (engine.js:535), а движка в стенде нет:
     // без этой строки уровень сада остаётся нулевым и замер врёт.
@@ -159,11 +241,14 @@ function run(seconds, mode) {
         gardenPeak: sw.peak,
         drone: G.Audio.drones.reduce(function (a, d) { return a + d.g.gain.value; }, 0),
         droneHz: G.Audio.drones.map(function (d) { return Math.round(d.o.frequency.value); }),
-        notes: startCount
+        notes: startCount,
+        graph: ctx._graphSize(),
+        reaped: ctx._reaped || 0,
+        noReap: ctx._noReap || 0
       });
     }
   }
-  return { samples: samples, notes: startCount, G: G };
+  return { samples: samples, notes: startCount, G: G, who: ctx._who() };
 }
 
 function report(label, seconds, mode) {
