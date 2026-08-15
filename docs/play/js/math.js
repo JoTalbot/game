@@ -2,6 +2,11 @@ var IGRA = IGRA || {};
 (function (G) {
   "use strict";
 
+  // Версия видна в отчёте с телефона: без неё нельзя понять, о какой
+  // сборке говорит человек. Сверяется сторожем `tools/check-sync.sh`
+  // вместе с build-apk.sh и gradle — три места, одно число.
+  G.VERSION = "0.4.48";
+
   G.TAU = Math.PI * 2;
 
   G.clamp = function (v, a, b) {

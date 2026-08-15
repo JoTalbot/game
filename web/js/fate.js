@@ -63,13 +63,26 @@ var IGRA = IGRA || {};
       G.Haptic.play("meta");
       G.Voice.say("became");
       G.Voice.sayText(G.Lang.t("becameLine") + " " + game.dna.name() + ".", true);
-      setTimeout(function () {
+      // «Стать игрой» стирает сохранение и перезагружает страницу — если
+      // не спросить сейчас, спрашивать будет уже некого и не о чем.
+      // Поэтому конец ждёт: отчёт открывается, а перезагрузку запускает
+      // сам человек, закрыв его. Без этого рассказ о последней сессии
+      // умирал бы вместе с ней через пять секунд.
+      var finish = function () {
         G.Save.clear();
         try {
           localStorage.setItem("igra.lang", G.Lang.id);
         } catch (e) {}
         location.reload();
-      }, 5200);
+      };
+      setTimeout(function () {
+        if (G.UI && G.UI.openReport) {
+          G.UI.openReport(game);
+          G.UI.afterReport = finish;
+        } else {
+          finish();
+        }
+      }, 3000);
     },
 
     greetPlus: function () {

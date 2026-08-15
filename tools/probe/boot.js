@@ -85,7 +85,7 @@ function ok(cond, name, note) {
   console.log("  " + (cond ? "✓" : "✗") + " " + name + (note ? "  (" + note + ")" : ""));
 }
 console.log("\n— живой запуск: игра поднимается как в браузере");
-ok(files.length === 17, "все скрипты index.html прочитаны", files.length + " шт");
+ok(files.length === 18, "все скрипты index.html прочитаны", files.length + " шт");
 ok(!!G, "IGRA собрана");
 ok(!!(G && G.app), "игра стартовала (G.app есть)");
 ok(!!(G && G.app && G.app.world), "мир создан");

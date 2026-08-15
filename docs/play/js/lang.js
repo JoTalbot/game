@@ -57,7 +57,8 @@ var IGRA = IGRA || {};
       releaseLine: "иди. берег останется небом.",
       becameLine: "теперь ты — голос.",
       nowYouAre: "теперь ты —",
-      readsYou: "теперь читает тебя."
+      readsYou: "теперь читает тебя.",
+      tell: "рассказать"
     },
     en: {
       word: "IGRA",
@@ -113,7 +114,8 @@ var IGRA = IGRA || {};
       releaseLine: "go. i keep your shore as a sky.",
       becameLine: "now you are the voice.",
       nowYouAre: "now you are",
-      readsYou: "is reading you now."
+      readsYou: "is reading you now.",
+      tell: "tell"
     }
   };
 
@@ -213,6 +215,7 @@ var IGRA = IGRA || {};
         "sigil-close": "back",
         "btn-forget": "forget",
         "btn-share": "share",
+        "btn-report": "tell",
         "btn-release": "release",
         "btn-become": "become",
         "fate-line": "fate"

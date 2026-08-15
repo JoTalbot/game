@@ -16,6 +16,7 @@ var ORDER = [
   "audio",
   "fx",
   "igra",
+  "report",
   "organs",
   "memory",
   "fate",

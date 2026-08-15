@@ -47,6 +47,20 @@ var IGRA = IGRA || {};
           G.Audio.ui();
         });
       }
+      var reportBtn = document.getElementById("btn-report");
+      var reportClose = document.getElementById("report-close");
+      var reportCopy = document.getElementById("report-copy");
+      if (reportBtn) reportBtn.addEventListener("click", function () {
+        self.toggleSigil(game, false);
+        self.openReport(game);
+      });
+      if (reportClose) reportClose.addEventListener("click", function () {
+        self.closeReport();
+      });
+      if (reportCopy) reportCopy.addEventListener("click", function () {
+        self.copyReport(game);
+      });
+
       if (relBtn) relBtn.addEventListener("click", function () {
         G.Fate.release(game);
       });
@@ -238,6 +252,124 @@ var IGRA = IGRA || {};
           Ts("dayWord") + " " + G.Memory.days + ". " + G.Memory.climateHint();
       }
       this.paintSeason();
+    },
+
+    // Экран отчёта. Игра спрашивает — человек отвечает касанием, текст
+    // собирается сам и уходит в буфер одной кнопкой. Печатать на телефоне
+    // после часа игры никто не станет, поэтому поле «своими словами»
+    // необязательное и стоит последним.
+    openReport: function (game) {
+      var scr = document.getElementById("report-screen");
+      if (!scr) return;
+      var R = G.Report;
+      var self = this;
+
+      var title = document.getElementById("report-title");
+      var sub = document.getElementById("report-sub");
+      var en = G.Lang && G.Lang.id === "en";
+      if (title) title.textContent = en ? "tell the shore" : "что скажешь берегу";
+      if (sub) {
+        sub.textContent = en
+          ? "i remember what i did. i cannot know how it felt."
+          : "я помню, что делала. я не знаю, каково это было.";
+      }
+      var note = document.getElementById("report-note");
+      if (note) note.placeholder = en ? "in your own words (optional)" : "своими словами (необязательно)";
+      var copyBtn = document.getElementById("report-copy");
+      if (copyBtn) copyBtn.textContent = en ? "copy" : "скопировать";
+      var closeBtn = document.getElementById("report-close");
+      if (closeBtn) closeBtn.textContent = G.Lang.t("back");
+
+      var asks = document.getElementById("report-asks");
+      if (asks) {
+        asks.innerHTML = "";
+        for (var i = 0; i < R.ASKS.length; i++) {
+          (function (a) {
+            var row = document.createElement("div");
+            row.className = "ask";
+            var q = document.createElement("span");
+            q.className = "ask-q";
+            q.textContent = R.askText(a);
+            row.appendChild(q);
+            var opts = R.optText(a);
+            for (var j = 0; j < opts.length; j++) {
+              (function (label) {
+                var b = document.createElement("button");
+                b.type = "button";
+                b.textContent = label;
+                if (R.answers[a.id] === label) b.className = "on";
+                b.addEventListener("click", function () {
+                  // второе касание по тому же — снять ответ: человек
+                  // не должен застревать в случайно нажатом
+                  R.answers[a.id] = R.answers[a.id] === label ? "" : label;
+                  G.Audio.ui();
+                  self.openReport(game);
+                });
+                row.appendChild(b);
+              })(opts[j]);
+            }
+            asks.appendChild(row);
+          })(R.ASKS[i]);
+        }
+      }
+      this.paintReport(game);
+      scr.classList.add("on");
+    },
+
+    paintReport: function (game) {
+      var pre = document.getElementById("report-text");
+      if (pre) pre.textContent = G.Report.text(game);
+    },
+
+    // Кто-то мог поставить продолжение на закрытие отчёта: «стать игрой»
+    // ждёт рассказа, прежде чем стереть берег и перезапустить мир.
+    afterReport: null,
+
+    closeReport: function () {
+      var scr = document.getElementById("report-screen");
+      if (scr) scr.classList.remove("on");
+      var next = this.afterReport;
+      this.afterReport = null;
+      if (next) setTimeout(next, 400);
+    },
+
+    copyReport: function (game) {
+      this.paintReport(game);
+      var text = G.Report.text(game);
+      var btn = document.getElementById("report-copy");
+      var en = G.Lang && G.Lang.id === "en";
+      function done(okFlag) {
+        if (!btn) return;
+        btn.textContent = okFlag ? (en ? "copied" : "скопировано")
+                                 : (en ? "select and copy" : "выдели и скопируй");
+        setTimeout(function () {
+          btn.textContent = en ? "copy" : "скопировать";
+        }, 2400);
+      }
+      // WebView без https не всегда даёт clipboard — запасной путь
+      // обязателен, иначе кнопка молча ничего не делает.
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { done(true); },
+                                                   function () { done(fallback(text)); });
+          return;
+        }
+      } catch (e) {}
+      done(fallback(text));
+
+      function fallback(t) {
+        try {
+          var ta = document.createElement("textarea");
+          ta.value = t;
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          document.body.appendChild(ta);
+          ta.select();
+          var okc = document.execCommand && document.execCommand("copy");
+          document.body.removeChild(ta);
+          return !!okc;
+        } catch (err) { return false; }
+      }
     },
 
     law: function (text) {

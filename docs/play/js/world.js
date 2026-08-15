@@ -438,6 +438,7 @@ var IGRA = IGRA || {};
           // долг в HANDOFF — попытка переносить по нему узлы через
           // перерождение чинит одно и ломает другое.
           n.returns = (n.returns || 0) + 1;
+          if (G.Report) G.Report.act("returns");
           n.cooled = 0;
           // поступок: человек вернулся к остывшему. Director считает это
           // как черту характера, а не как состояние узла.
@@ -904,6 +905,7 @@ var IGRA = IGRA || {};
     this.anchors.push(node.id);
     node.care = 1;
     this.saved++;
+    if (G.Report) G.Report.act("anchors");
     return true;
   };
 

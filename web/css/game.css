@@ -561,3 +561,137 @@ body.debug #fit-debug {
     margin-top: 24px;
   }
 }
+
+/* Экран рассказа. Не анкета: тот же язык, что у сигилы — тьма, тонкая
+   линия, серифный курсив в вопросах. Прокрутка разрешена намеренно:
+   это единственное место игры, где текста больше экрана. */
+#report-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: rgba(4, 5, 9, 0.9);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  padding: 26px 18px 34px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+#report-screen.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#report-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+#report-sub {
+  margin-top: 6px;
+  margin-bottom: 18px;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--mute);
+  text-align: center;
+  max-width: 340px;
+}
+
+#report-asks {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ask {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.ask-q {
+  width: 100%;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 16px;
+  color: rgba(232, 230, 242, 0.82);
+}
+
+.ask button {
+  padding: 9px 15px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+/* выбранное светится — как узел, к которому вернулись */
+.ask button.on {
+  border-color: rgba(255, 193, 74, 0.55);
+  background: rgba(255, 193, 74, 0.10);
+  color: #ffe6ae;
+}
+
+#report-note {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 18px;
+  padding: 12px 14px;
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  resize: none;
+  user-select: text;
+}
+
+#report-note:focus {
+  outline: none;
+  border-color: rgba(232, 230, 242, 0.34);
+}
+
+/* Сам текст показан целиком: человек должен видеть, что именно уносит,
+   а не отправлять вслепую. */
+#report-text {
+  width: 100%;
+  max-width: 420px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgba(232, 230, 242, 0.62);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+}
+
+#report-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#report-copy {
+  border-color: rgba(255, 193, 74, 0.4);
+  color: #ffe6ae;
+}

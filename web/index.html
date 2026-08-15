@@ -60,6 +60,18 @@
           </div>
         </section>
 
+        <section id="report-screen">
+          <h2 id="report-title">что скажешь берегу</h2>
+          <p id="report-sub"></p>
+          <div id="report-asks"></div>
+          <textarea id="report-note" rows="3" placeholder="своими словами (необязательно)"></textarea>
+          <pre id="report-text"></pre>
+          <div id="report-actions">
+            <button id="report-copy" type="button">скопировать</button>
+            <button id="report-close" type="button">назад в берег</button>
+          </div>
+        </section>
+
         <section id="sigil-screen">
           <canvas id="sigil-canvas" width="280" height="280"></canvas>
           <h2 id="sigil-name"></h2>
@@ -69,6 +81,7 @@
           <p id="sigil-season"></p>
           <div id="sigil-actions">
             <button id="sigil-close" type="button">назад в берег</button>
+            <button id="btn-report" type="button">рассказать</button>
             <button id="btn-share" type="button">унести сигилу</button>
             <button id="btn-forget" type="button">забыть меня</button>
           </div>
@@ -87,6 +100,7 @@
     <script src="js/audio.js"></script>
     <script src="js/fx.js"></script>
     <script src="js/igra.js"></script>
+    <script src="js/report.js"></script>
     <script src="js/organs.js"></script>
     <script src="js/memory.js"></script>
     <script src="js/fate.js"></script>

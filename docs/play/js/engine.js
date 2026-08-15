@@ -273,6 +273,7 @@ var IGRA = IGRA || {};
     if (this.state === "play" || this.state === "birth") {
       var crack = G.Organs.nearestCrack(this.world, this.input.wx, this.input.wy, 36);
       if (crack) {
+        if (G.Report) G.Report.act("laws");
         G.Organs.applyLaw(this, crack);
         this.dna.feed("chaos", 0.03);
         return;
@@ -361,6 +362,7 @@ var IGRA = IGRA || {};
     this.player.energy -= 16;
     this.player.pulseT = 0.55;
     this.dna.pulses++;
+    if (G.Report) G.Report.act("pulses");
     this.dna.feed(this.dna.dominant(), 0.015);
     G.Director.pulseEffect(this);
     if (G.Haptic) G.Haptic.play("pulse");
@@ -477,6 +479,16 @@ var IGRA = IGRA || {};
       this.metaFlash = Math.max(this.metaFlash, 0.08);
       if (this.releaseT > 14) {
         G.UI.toggleSigil(this, true);
+        // Игра кончилась — самое время спросить, каково это было. Один
+        // раз за исход: человек может закрыть отчёт и вернуться к сигиле.
+        if (!this._askedEnd) {
+          this._askedEnd = true;
+          var selfG = this;
+          setTimeout(function () {
+            G.UI.toggleSigil(selfG, false);
+            G.UI.openReport(selfG);
+          }, 2600);
+        }
       }
       G.Audio.update(dt, this.dna, this.state, 0);
       return;
@@ -863,6 +875,8 @@ var IGRA = IGRA || {};
       this.resize();
     }
 
+    if (G.Report && this.state === "play") G.Report.frame(dt);
+
     try {
       this.update(dt);
       if (G.WebGL && G.WebGL.ready) G.WebGL.draw(this);
@@ -880,6 +894,10 @@ var IGRA = IGRA || {};
         this.ctx.fillText(G.Lang.t("shoreBreathes"), 16, this.h - 36);
         var dbg = document.getElementById("fit-debug");
         if (dbg) dbg.textContent = "render: " + (err && err.message ? err.message : String(err)).slice(0, 120);
+        // Сбой рендера раньше жил только в невидимой отладочной строке и
+        // умирал вместе с сессией: о поломке на чужом телефоне я узнавал
+        // только если человек догадается её пересказать.
+        if (G.Report) G.Report.error("render: " + (err && err.message ? err.message : String(err)));
       } catch (fallbackErr) {}
     }
     requestAnimationFrame(this.frame.bind(this));
