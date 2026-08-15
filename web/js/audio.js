@@ -54,6 +54,7 @@ var IGRA = IGRA || {};
 
       this._buildDrones();
       this._buildNoise();
+      this._buildGarden();
       this._buildHeart();
       this.ready = true;
       if (ctx.state === "suspended") ctx.resume();
@@ -106,6 +107,39 @@ var IGRA = IGRA || {};
       this.noise = { src: src, filter: filter, g: g };
     },
 
+    // Второй слой фона: дыхание сада. Шум — это погода, он не знает,
+    // сколько ты вырастил; замер показал, что за десять минут берег
+    // растёт с одного узла до полусотни, а звучит ровно одинаково
+    // (шум 0.011 от начала до конца). Этот слой — медленная волна,
+    // которая тем полнее, чем больше живого вокруг: не мелодия, а
+    // ощущение населённости. Пустой берег молчит.
+    _buildGarden: function () {
+      var ctx = this.ctx;
+      var g = ctx.createGain();
+      g.gain.value = 0;
+      g.connect(this.music);
+      var lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 500;
+      lp.Q.value = 0.5;
+      lp.connect(g);
+      // две расстроенные квинты: живое всегда чуть не в унисон
+      var a = this._osc("sine", 196, lp);
+      var b = this._osc("sine", 294.3, lp);
+      a.g.gain.value = 0.5;
+      b.g.gain.value = 0.32;
+      // медленное дыхание: период около двадцати секунд
+      var lfo = ctx.createOscillator();
+      lfo.type = "sine";
+      lfo.frequency.value = 0.05;
+      var lfoAmt = ctx.createGain();
+      lfoAmt.gain.value = 0.45;
+      lfo.connect(lfoAmt);
+      lfoAmt.connect(g.gain);
+      lfo.start();
+      this.garden = { g: g, lp: lp, a: a, b: b, lfo: lfo, level: 0 };
+    },
+
     _buildHeart: function () {
       var ctx = this.ctx;
       var g = ctx.createGain();
@@ -155,7 +189,7 @@ var IGRA = IGRA || {};
       this.heart.g.gain.linearRampToValueAtTime(on ? 1 : 0, ctx.currentTime + 0.4);
     },
 
-    update: function (dt, dna, state, tide) {
+    update: function (dt, dna, state, tide, world) {
       if (!this.ready) return;
       var ctx = this.ctx;
       if (ctx.state === "suspended") return;
@@ -197,6 +231,32 @@ var IGRA = IGRA || {};
       noise += bend * 0.014;
       this.noise.g.gain.setTargetAtTime(noise, t, 0.4);
       this.noise.filter.frequency.setTargetAtTime(320 + (tide || 0) * 800, t, 0.5);
+
+      // Сад дышит громче, когда он полон. Считаем не все узлы, а живые:
+      // небо из отпущенного не звучит, звучит то, что растёт сейчас.
+      // Укоренённое весит больше — привычка слышнее случайного.
+      if (this.garden) {
+        var lvl = 0;
+        if (world && world.nodes) {
+          var alive = 0, rooted = 0;
+          for (var ni = 0; ni < world.nodes.length; ni++) {
+            var nd = world.nodes[ni];
+            if (nd.dead || nd.state !== "alive") continue;
+            alive++;
+            if (nd.roots >= 0.6) rooted++;
+          }
+          // Насыщение подобрано по замеру: живой берег держится на
+          // 25–55 узлах, поэтому потолок на тридцати делал слой плоским
+          // уже к третьей минуте. Пятьдесят — разница между «посадил» и
+          // «вырастил» слышна до конца сессии.
+          lvl = G.clamp(alive / 50, 0, 1) * 0.055 + G.clamp(rooted / 8, 0, 1) * 0.03;
+        }
+        if (state === "title" || state === "birth") lvl *= 0.3;
+        this.garden.level = lvl;
+        this.garden.g.gain.setTargetAtTime(lvl, t, 2.5);
+        // с приливом сад глохнет: слышно, что мир накрывает
+        this.garden.lp.frequency.setTargetAtTime(520 - (tide || 0) * 260, t, 1.0);
+      }
 
       if (this.heart && this.heart.on) {
         this.heart.t += dt;
@@ -278,6 +338,53 @@ var IGRA = IGRA || {};
       g.connect(this.master);
       o.start(t);
       o.stop(t + 2.8);
+    },
+
+    // Узел утонул. Самое тихое место игры: до 0.4.41 сад уходил в небо
+    // совершенно беззвучно — за сессию так исчезало под сорок узлов, и
+    // человек не слышал ни одного. Это не удар, а обратная
+    // кристаллизация: та же нота породы, но падающая и глухая, будто
+    // её накрыли водой.
+    forget: function (trait) {
+      if (!this.ready) return;
+      var ctx = this.ctx;
+      var t = ctx.currentTime;
+      var f = G.TRAIT_NOTE[trait] || 330;
+      var o = ctx.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(f * 0.75, t);
+      o.frequency.exponentialRampToValueAtTime(Math.max(40, f * 0.32), t + 1.1);
+      var g = envGain(ctx, t, 0.055, 0.06, 1.0);
+      // приглушённо: забвение слышно, но не спорит с приливом
+      var lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.setValueAtTime(900, t);
+      lp.frequency.exponentialRampToValueAtTime(220, t + 1.1);
+      o.connect(g);
+      g.connect(lp);
+      lp.connect(this.master);
+      o.start(t);
+      o.stop(t + 1.3);
+    },
+
+    // Узел начал держаться сам. Награда за возвращение должна звучать
+    // иначе, чем рождение: не вспышка, а опора — низкая нота снизу
+    // вверх, короткая квинта, как будто что-то встало на ноги.
+    rooted: function (trait) {
+      if (!this.ready) return;
+      var ctx = this.ctx;
+      var t = ctx.currentTime;
+      var f = G.TRAIT_NOTE[trait] || 330;
+      var o = ctx.createOscillator();
+      o.type = "triangle";
+      o.frequency.setValueAtTime(f * 0.5, t);
+      o.frequency.exponentialRampToValueAtTime(f * 0.75, t + 0.5);
+      var g = envGain(ctx, t, 0.075, 0.08, 0.7);
+      o.connect(g);
+      g.connect(this.master);
+      o.start(t);
+      o.stop(t + 0.9);
+      this.tone(f * 1.5, 0.5, 0.035, "sine");
     },
 
     metamorphosis: function (dna) {

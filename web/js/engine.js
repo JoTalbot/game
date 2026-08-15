@@ -517,7 +517,7 @@ var IGRA = IGRA || {};
       var act = this.world.active;
       G.Audio.setLaw(act && act.length ? Math.min(1, act[act.length - 1].left / 6) : 0);
     }
-    G.Audio.update(dt, this.dna, this.state, this.world.tide);
+    G.Audio.update(dt, this.dna, this.state, this.world.tide, this.world);
 
     this.dirtySave += dt;
     if (this.dirtySave > 8) {
@@ -670,11 +670,17 @@ var IGRA = IGRA || {};
         this.floaters.add(n.x, n.y - 20, kindText, n.color());
         G.Director.onCrystal(this, kind);
         if (G.Haptic) G.Haptic.play("crystal");
-        if (gest.still > 0.8) this.world.anchor(n);
+        // Якорь на рождении раньше ставился молча и без подписи: тот же
+        // жест по живому узлу давал и надпись, и аккорд, а на новорождённом
+        // — ничего. Человек не понимал, что удержал.
+        if (gest.still > 0.8 && this.world.anchor(n)) {
+          this.floaters.add(n.x, n.y - 22, G.Lang ? G.Lang.t("anchor") : "якорь", n.color());
+          G.Audio.chord([330, 495], 0.8, 0.05);
+        }
         this.player.gazeT = 0;
       } else if (gest.still > 0.7) {
         if (this.world.anchor(n)) {
-          this.floaters.add(n.x, n.y - 22, "якорь", n.color());
+          this.floaters.add(n.x, n.y - 22, G.Lang ? G.Lang.t("anchor") : "якорь", n.color());
           G.Audio.chord([330, 495], 0.8, 0.05);
         }
         this.player.gazeT = 0;
@@ -746,6 +752,7 @@ var IGRA = IGRA || {};
         n.care = src.care != null ? src.care : 0.4;
         n.roots = src.roots || 0;
         n.cooled = src.cooled || 0;
+        n.rootTold = src.rootTold || 0;
         n.hp = src.hp != null ? src.hp : 1;
         n.age = src.age || 0;
         n.growth = src.growth != null ? src.growth : (n.state === "alive" ? 1 : 0);

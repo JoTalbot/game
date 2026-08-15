@@ -229,6 +229,13 @@ function gaze(G, game, node, seconds, still) {
     else gest.still += dt * 0.8;
     game.player.gazeT += dt;
     game.time += dt;
+    // как в engine.js:654 — взгляд тикает вслух шесть раз в секунду,
+    // а НЕ каждый кадр. Без этого условия звуковой замер насчитал
+    // 17 тысяч тиков вместо честных двух с половиной.
+    if (G.Audio && G.Audio.gazeTick && game.player.gazeT > 0.2 &&
+        Math.floor(game.player.gazeT * 6) !== Math.floor((game.player.gazeT - dt) * 6)) {
+      G.Audio.gazeTick(G.clamp(game.player.gazeT / 1.35, 0, 1), game.dna.dominant());
+    }
     if (game.player.gazeT >= 1.35) {
       if (node.state !== "alive") {
         game.dna.gazes++;
@@ -236,6 +243,9 @@ function gaze(G, game, node, seconds, still) {
         var kind = game.world.crystallize(node, gest, game.dna);
         var trait = G.KIND_TRAIT[kind];
         if (trait) game.dna.feed(trait, 0.045);
+        // как в engine.js:665 — рождение звучит. Без этой строки звуковой
+        // замер врал: казалось, что кристаллизация молчит, хотя молчал стенд.
+        if (G.Audio && G.Audio.crystallize) G.Audio.crystallize(trait || game.dna.dominant());
         if (G.Director && G.Director.onCrystal) {
           try {
             G.Director.onCrystal(game, kind);
