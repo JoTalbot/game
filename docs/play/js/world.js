@@ -385,7 +385,14 @@ var IGRA = IGRA || {};
           // Правило то же, что у пород: узнавание бывает один раз.
           if (was < 0.6 && n.roots >= 0.6 && !n.rootTold) {
             n.rootTold = 1;
-            G.Voice.say("rooted");
+            // Звук — на каждый узел: это ответ на твой жест, он должен
+            // быть всегда. Слова — реже. Укореняется по десятку узлов за
+            // сессию, и «оно держится само» двенадцать раз подряд
+            // превращает открытие в уведомление. Раз в две минуты.
+            if (this.age - (this._rootSaid || -999) > 120) {
+              this._rootSaid = this.age;
+              G.Voice.say("rooted");
+            }
             if (G.Audio && G.Audio.rooted) G.Audio.rooted(G.KIND_TRAIT[n.kind]);
           }
         }
