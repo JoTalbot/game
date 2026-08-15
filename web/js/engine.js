@@ -25,6 +25,9 @@ var IGRA = IGRA || {};
       y: 0,
       wx: 0,
       wy: 0,
+      // точка экрана, где палец лёг на узел: по ней меряем срыв взгляда
+      gsx: null,
+      gsy: null,
       taps: [],
       lastTap: 0,
       rhythm: 0,
@@ -274,8 +277,12 @@ var IGRA = IGRA || {};
         this.dna.feed("chaos", 0.03);
         return;
       }
-      var being = G.Organs.nearestBeing(this.world, this.input.wx, this.input.wy, 42);
-      var node = this.world.nearestNode(this.input.wx, this.input.wy, 48);
+      // Подушечка пальца накрывает около 9 мм — это ~57 точек холста, а
+      // прицел был 48 от ЦЕНТРА узла. Человек целился точнее, чем вообще
+      // видит палец. Меряем теперь от края узла (см. world.nearestNode) и
+      // даём радиус по пальцу, а не по глазу.
+      var being = G.Organs.nearestBeing(this.world, this.input.wx, this.input.wy, 48);
+      var node = this.world.nearestNode(this.input.wx, this.input.wy, 58);
       var boss = this.world.boss;
       var bossNear = boss && G.dist(this.input.wx, this.input.wy, boss.x, boss.y) < boss.r + 18;
       if (being && (!node || G.dist2(this.input.wx, this.input.wy, being.x, being.y) < G.dist2(this.input.wx, this.input.wy, node.x, node.y))) {
@@ -291,6 +298,8 @@ var IGRA = IGRA || {};
         this.gazeTarget = null;
         this.player.gaze = node;
         this.player.gazeT = 0;
+        this.input.gsx = this.input.x;
+        this.input.gsy = this.input.y;
         this.dna.feed("contemplation", 0.01);
         if (this.dna.gazes === 0) G.Voice.say("firstGaze");
       } else {
@@ -644,8 +653,15 @@ var IGRA = IGRA || {};
       this.player.gaze = null;
       return;
     }
-    // if pointer wandered off, convert to move
-    if (G.dist(this.input.wx, this.input.wy, n.x, n.y) > 70) {
+    // Срыв мерили в МИРЕ: расстояние от пальца до узла. Но мир едет —
+    // камера догоняет игрока, инерция после бега, перелёт по зову, — и
+    // узел уползал из-под лежащего пальца сам, без единого движения руки.
+    // Человек говорил: «обводишь, а после перелёта сбивается». Рвать
+    // взгляд должен ЖЕСТ, а не ход камеры: меряем, ушёл ли палец от той
+    // точки ЭКРАНА, где он лёг. Сцена под пальцем вольна уезжать.
+    var gsx = this.input.gsx != null ? this.input.gsx : this.input.x;
+    var gsy = this.input.gsy != null ? this.input.gsy : this.input.y;
+    if (G.dist(this.input.x, this.input.y, gsx, gsy) > 96) {
       this.player.gaze = null;
       return;
     }

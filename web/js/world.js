@@ -230,14 +230,19 @@ var IGRA = IGRA || {};
     this.scatter(player.x, player.y, 7, r + 80);
   };
 
+  // Целимся по КРАЮ узла, а не по центру. Узлы разного размера: гнездо
+  // r=18 и малёк r=11 при общем радиусе попадания ловились одинаково,
+  // то есть мелкий требовал попасть на 7 единиц точнее — человек и
+  // говорил, что «мелкие особенно не выходит обвести». Меряем от края:
+  // тогда каждый узел одинаково щедр к пальцу.
   G.World.prototype.nearestNode = function (x, y, max) {
     var best = null;
-    var bestD = max * max;
+    var bestD = 1e9;
     for (var i = 0; i < this.nodes.length; i++) {
       var n = this.nodes[i];
       if (n.dead || n.state === "gone") continue;
-      var d = G.dist2(x, y, n.x, n.y);
-      if (d < bestD) {
+      var d = Math.sqrt(G.dist2(x, y, n.x, n.y)) - (n.r || 12);
+      if (d < max && d < bestD) {
         bestD = d;
         best = n;
       }
