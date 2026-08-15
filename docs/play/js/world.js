@@ -778,7 +778,10 @@ var IGRA = IGRA || {};
       blooms: this.blooms,
       forgotten: this.forgotten,
       anchorCap: this.anchorCap,
-      laws: this.laws
+      laws: this.laws,
+      active: this.active,
+      tideFrozen: this.tideFrozen,
+      invertMove: this.invertMove
     };
   };
 })(IGRA);

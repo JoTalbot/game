@@ -767,6 +767,11 @@ var IGRA = IGRA || {};
       this.world.forgotten = data.world.forgotten || [];
       this.world.laws = data.world.laws || [];
       this.world.anchorCap = data.world.anchorCap || 3;
+      // действующий закон тоже ждёт возвращения: мир не должен тайком
+      // выпрямиться, пока человека нет
+      this.world.active = data.world.active || [];
+      this.world.tideFrozen = data.world.tideFrozen || 0;
+      this.world.invertMove = data.world.invertMove || 0;
       if (this.world.nodes.length < 5) this.world.scatter(this.player.x, this.player.y, 8, 360);
     }
     G.Voice.fromJSON(data.voice);

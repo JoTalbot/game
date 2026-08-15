@@ -203,6 +203,19 @@ group("законы: молния объясняет себя");
   ok(bye.join(" ").indexOf("тяжесть вернулась") >= 0, "берег сообщает, что закон отпустил");
 })();
 
+// ——— закон переживает выход ———
+group("законы: срок не сгорает при выходе");
+(function () {
+  var game = H.makeWorld(G, 35);
+  G.Organs.spawnCrack(game.world, game.player.x + 6, game.player.y);
+  var crack = game.world.cracks[game.world.cracks.length - 1];
+  crack.law = { id: "invert", ru: "тяжесть наоборот", hint: "шаг наоборот", en: "weight inverted", enHint: "step inverted", lasts: 11 };
+  G.Organs.applyLaw(game, crack);
+  var raw = JSON.parse(JSON.stringify(game.world.toJSON()));
+  ok(raw.active && raw.active.length === 1, "действующий закон попадает в сейв");
+  ok(raw.invertMove > 0, "следствие закона тоже сохраняется", "invertMove=" + raw.invertMove.toFixed(1));
+})();
+
 // ——— законы говорят по-английски ———
 group("законы: вторая раскладка");
 (function () {
