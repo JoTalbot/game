@@ -148,6 +148,10 @@ var IGRA = IGRA || {};
     watchNoAnchor: ["you have held nothing. perhaps that is right. but i will ask again.", "everything here is yours and nothing is. not one anchor."],
     watchStill: ["you sit longer than you look. i am listening with you.", "it has grown empty around you, and you do not leave. that is an answer too."],
     watchTogether: ["you are not alone here anymore. did you notice?", "it follows you not because it must."],
+    cooling: ["that one dimmed. go back to it — it will put down a root.",
+      "look: it is cooling. what cooled can be returned to.",
+      "it dims not as a reproach. that is the shore asking for a second look."
+    ],
     rooted: ["you came back to it. now it holds on its own.", "a second time is not chance. it is a root."],
     lost: ["it became a star. you can still see.", "what left will shine more honestly."],
     woundBorn: ["the abandoned returns hungry.", "this is yours. only angry."],
@@ -270,6 +274,39 @@ var IGRA = IGRA || {};
       this.particles = low ? 160 : 420;
       this.fog = low ? 7 : 16;
       this.glow = !low;
+    },
+
+    // Живая проверка: паспорт телефона врёт.
+    //
+    // Первый отчёт с телефона человека: 52 fps и 128 тяжёлых кадров за
+    // 1.3 минуты — на экране 427×948 @1.4, который init уверенно счёл
+    // «сильным» (памяти хватает, ядер хватает, экран не узкий). Кадр
+    // стоит 1529 операций, объектов немного — телефон просто медленнее
+    // своего паспорта. А послабления раздавались РАЗ И НАВСЕГДА на
+    // старте, по железу, и на настоящую плавность игра не смотрела
+    // никогда.
+    //
+    // Теперь смотрит. Если берег устойчиво не держит кадр — украшения
+    // гаснут сами. Решение принимается один раз и только в сторону
+    // облегчения: мигать туда-сюда на границе хуже, чем просто быть
+    // чуть скромнее.
+    demoted: false,
+    watch: function (dt) {
+      if (this.demoted || !this.glow || !dt) return;
+      // Считаем только заметно тяжёлые кадры — дольше 1/30 с. Редкий
+      // тяжёлый кадр бывает у всех (сборка мусора, рождение узла);
+      // болезнь — это когда их много подряд.
+      if (dt > 1 / 30) {
+        this._heavy = (this._heavy || 0) + 1;
+      } else {
+        this._heavy = Math.max(0, (this._heavy || 0) - 0.25);
+      }
+      if (this._heavy > 90) {
+        this.demoted = true;
+        this.glow = false;
+        this.particles = Math.min(this.particles, 160);
+        this.fog = Math.min(this.fog, 7);
+      }
     }
   };
 })(IGRA);

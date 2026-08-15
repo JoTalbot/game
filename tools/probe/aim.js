@@ -134,6 +134,50 @@ function walkAndHold(G, opts) {
   return { crystal: false, gaze: !!g.player.gaze };
 }
 
+// Растим узлы один за другим, как играет человек: подвёл, подержал до
+// рождения, отпустил, пошёл к следующему. Возвращает, сколько якорей
+// досталось на сколько рождений.
+function growMany(G, opts) {
+  opts = opts || {};
+  var g = makeGame(G, opts.seed);
+  var anchors = 0, grown = 0;
+  var W = Object.getPrototypeOf(g.world);
+  var orig = W.anchor;
+  W.anchor = function (n) { var r = orig.call(this, n); if (r) anchors++; return r; };
+
+  var rounds = opts.rounds || 12;
+  for (var round = 0; round < rounds; round++) {
+    var n = null;
+    for (var i = 0; i < g.world.nodes.length; i++) {
+      var c = g.world.nodes[i];
+      if (!c.dead && c.state === "unformed") { n = c; break; }
+    }
+    if (!n) { g.world.scatter(g.player.x, g.player.y, 6, 300); continue; }
+    g.player.x = n.x; g.player.y = n.y;
+    g.cam.x = n.x; g.cam.y = n.y;
+    g.input.x = 400; g.input.y = 300;
+    var w = g.screenToWorld(400, 300);
+    g.input.wx = w.x; g.input.wy = w.y;
+    g.input.down = true; g.time += 1;
+    try { g.onDown(); } catch (e) {}
+    // держим чуть дольше рождения (1.35 с), но заметно меньше якоря
+    var frames = Math.round((opts.seconds || 1.66) * 60);
+    for (var f = 0; f < frames; f++) {
+      g.time += 1 / 60;
+      var sx = 400 + (n.x - g.cam.x), sy = 300 + (n.y - g.cam.y);
+      g.input.x = sx; g.input.y = sy;
+      var w2 = g.screenToWorld(sx, sy);
+      g.input.wx = w2.x; g.input.wy = w2.y;
+      try { g.update(1 / 60); } catch (e) {}
+    }
+    g.input.down = false;
+    try { g.onUp && g.onUp(); } catch (e) {}
+    if (n.state === "alive") grown++;
+  }
+  W.anchor = orig;
+  return { grown: grown, anchors: anchors };
+}
+
 // Обратная крайность: человек ВЕДЁТ игрока сквозь плотный берег и не
 // хочет ничего трогать. Палец всё время в движении — захвата быть не
 // должно, иначе ходьба цепляется за каждый встречный узел.
@@ -250,7 +294,7 @@ function reach(G, opts) {
 }
 
 module.exports = { bootEngine: bootEngine, hold: hold, reach: reach, pad: pad, makeGame: makeGame,
-                   walkAndHold: walkAndHold, walkThrough: walkThrough };
+                   walkAndHold: walkAndHold, walkThrough: walkThrough, growMany: growMany };
 
 if (require.main === module) {
   var G = bootEngine();

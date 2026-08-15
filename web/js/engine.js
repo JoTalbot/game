@@ -652,20 +652,32 @@ var IGRA = IGRA || {};
     // узел. Замирание на 0.18 с — уже намерение, а не транзит.
     if (!this.player.gaze && !this.gazeTarget && !this.sky &&
         (this.state === "play" || this.state === "birth")) {
-      var hx = this.input.x, hy = this.input.y;
-      if (this.input.hx == null || G.dist(hx, hy, this.input.hx, this.input.hy) > 7) {
+      // Замирание меряем в МИРЕ, а не на экране: пока игрок идёт, камера
+      // едет за ним, и точка узла на экране ползёт сама — экранный
+      // счётчик обнулялся каждый кадр и не накапливался никогда. В мире
+      // же неподвижный палец над узлом честно стоит на месте.
+      var hx = this.input.wx, hy = this.input.wy;
+      if (this.input.hx == null || G.dist(hx, hy, this.input.hx, this.input.hy) > 14) {
         this.input.hx = hx;
         this.input.hy = hy;
         this.input.hold = 0;
       } else {
         this.input.hold = (this.input.hold || 0) + dt;
-        if (this.input.hold > 0.18) {
+        // 0.3 с, а не 0.18: ведя палец, человек то и дело замирает на
+        // доли секунды — при коротком пороге игра «залипала» на каждом
+        // встречном узле и переставала слушаться. Замер поймал это как
+        // побочное: взгляд был захвачен 29% всех кадров, игрок почти не
+        // двигался, и существа никогда не отходили от него.
+        if (this.input.hold > 0.3) {
           var late = this.world.nearestNode(this.input.wx, this.input.wy, 58);
-          if (late && !late.dead) {
+          // И только то, до чего человек ДОШЁЛ. Обводят вблизи; ловить
+          // узел на другом конце экрана — значит отнимать управление.
+          if (late && !late.dead &&
+              G.dist(this.player.x, this.player.y, late.x, late.y) < 190) {
             this.player.gaze = late;
             this.player.gazeT = 0;
-            this.input.gsx = hx;
-            this.input.gsy = hy;
+            this.input.gsx = this.input.x;
+            this.input.gsy = this.input.y;
             this.input.hold = 0;
             this.dna.feed("contemplation", 0.01);
           }
@@ -708,10 +720,26 @@ var IGRA = IGRA || {};
         // Рана отказывает каждые 1.2 секунды, пока в неё смотришь, — но
         // говорит об этом раз в минуту. Иначе одна упрямая рана даёт
         // сотню одинаковых реплик за сессию и заглушает всё остальное.
+        // Кулдаун общий, а не на каждой ране. Он стоял на самой ране
+        // (`gazeTarget._refuseSaid`), и это ловушка: ран на берегу много,
+        // у каждой свой счётчик — реплика звучала пятнадцать раз за
+        // двадцать минут, чаще всех прочих, формально не нарушая «раз в
+        // минуту». Молчание должно считаться по РЕПЛИКЕ, а не по тому,
+        // кто её произносит.
         var tw = G.now();
-        if (!this.gazeTarget._refuseSaid || tw - this.gazeTarget._refuseSaid > 60) {
+        if (!this._refuseSaid || tw - this._refuseSaid > 110) {
+          this._refuseSaid = tw;
           this.gazeTarget._refuseSaid = tw;
-          G.Voice.sayText(this.gazeTarget.name + " " + G.Lang.t("refuseMem"));
+          // У раны нет собственного имени — и не должно быть: она не
+          // существо, а то, чем стал брошенный узел. Раньше здесь стояло
+          // `gazeTarget.name`, поля которого у G.Wound нет вовсе, и Игра
+          // вслух говорила «undefined помнит каждый отказ» — пятнадцать
+          // раз за двадцать минут, чаще любой другой реплики. Замер
+          // болтливости это видел как «самая частая строка», но саму
+          // строку никто не читал. Рана называет породу, из которой
+          // родилась: «рана искры помнит каждый отказ».
+          G.Voice.sayText(G.kindName(this.gazeTarget.from || "wound") + " " +
+            G.Lang.t("refuseMem"));
         }
         this.gazeTarget.weak = 2.5;
         this.player.gazeT = 0;
@@ -772,13 +800,18 @@ var IGRA = IGRA || {};
         this.floaters.add(n.x, n.y - 20, kindText, n.color());
         G.Director.onCrystal(this, kind);
         if (G.Haptic) G.Haptic.play("crystal");
-        // Якорь на рождении раньше ставился молча и без подписи: тот же
-        // жест по живому узлу давал и надпись, и аккорд, а на новорождённом
-        // — ничего. Человек не понимал, что удержал.
-        if (gest.still > 0.8 && this.world.anchor(n)) {
-          this.floaters.add(n.x, n.y - 22, G.Lang ? G.Lang.t("anchor") : "якорь", n.color());
-          G.Audio.chord([330, 495], 0.8, 0.05);
-        }
+        // Якоря на рождении больше нет.
+        //
+        // Первый отчёт с телефона: «выращено 9, якорей 10». Самый дорогой
+        // жест игры доставался ЧАЩЕ, чем рождался узел. Условие было
+        // `gest.still > 0.8`, а `still` копится по 0.8 в секунду всё время
+        // удержания — к рождению на 1.35 с он равен 1.08 и порог взят
+        // всегда. Замер: якорь на 100% рождений, ровно та же болезнь, что
+        // была у корней. Даровая награда — не награда.
+        //
+        // Якорь — отдельное намерение: не отпустить то, что уже родилось.
+        // Кто продолжает держать палец, доходит до второго круга ниже и
+        // получает якорь честно, за 2.7 с вместо 1.35.
         this.player.gazeT = 0;
       } else if (gest.still > 0.7) {
         if (this.world.anchor(n)) {
@@ -928,6 +961,9 @@ var IGRA = IGRA || {};
     }
 
     if (G.Report && this.state === "play") G.Report.frame(dt);
+    // Телефон, который не тянет, обязан получить послабление сам —
+    // человек не должен искать настройку, которой в игре и нет.
+    if (G.Quality && G.Quality.watch && this.state === "play") G.Quality.watch(dt);
 
     try {
       this.update(dt);
