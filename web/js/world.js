@@ -276,8 +276,13 @@ var IGRA = IGRA || {};
     // забвение гаснет, недавнее горит. Это честно — память тоже редеет.
     if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
     // Уход слышно. Раньше узел тонул молча — единственное крупное
-    // событие мира без голоса.
-    if (G.Audio && G.Audio.forget) G.Audio.forget(G.KIND_TRAIT[node.kind]);
+    // событие мира без голоса. Два исхода звучат по-разному: рана —
+    // низкий скрежет (голос wound был написан, но его никто не звал),
+    // тихий уход — падающая нота породы.
+    if (G.Audio) {
+      if (asWound && G.Audio.wound) G.Audio.wound();
+      else if (G.Audio.forget) G.Audio.forget(G.KIND_TRAIT[node.kind]);
+    }
     this.forgotten.push({ kind: node.kind, x: node.x, y: node.y, c: node.color() });
     if (this.forgotten.length > 24) this.forgotten.shift();
     if (asWound) {
