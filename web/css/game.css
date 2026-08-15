@@ -324,9 +324,13 @@ body.debug #fit-debug {
   color: #9be7ff;
 }
 
+/* Закон висел на 48px и лез прямо под кнопки HUD: на узком телефоне,
+   где кнопки переносятся в две строки, он читался поверх них. Человек:
+   «надпись закона опустить ниже кнопок». Опущен под HUD с запасом на
+   вторую строку кнопок. */
 #law {
   position: absolute;
-  top: 48px;
+  top: 96px;
   left: 0;
   right: 0;
   text-align: center;
@@ -361,14 +365,24 @@ body.debug #fit-debug {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* `center` + прокрутка срезает верх содержимого намертво: браузер не
+     даёт прокрутить выше центрирующего отступа. Поэтому safe-центровка —
+     `auto`-поля, а не `justify-content`. Сигила переросла экран, когда
+     кнопок стало четыре. */
+  justify-content: flex-start;
   background: rgba(4, 5, 9, 0.78);
   backdrop-filter: blur(10px);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s ease;
   padding: 32px 20px 40px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
+
+
 
 #sigil-screen.on {
   opacity: 1;
@@ -377,7 +391,14 @@ body.debug #fit-debug {
 
 #sigil-canvas {
   display: block;
-  margin: 0 auto;
+  /* auto сверху — та самая safe-центровка: пока содержимое влезает, оно
+     стоит по центру; когда переросло экран, поле схлопывается и ничего
+     не срезается. */
+  margin: auto auto 0;
+}
+
+#mouth-wrap {
+  margin-bottom: auto;
 }
 
 #sigil-name {
@@ -409,11 +430,21 @@ body.debug #fit-debug {
   color: rgba(232, 230, 242, 0.72);
 }
 
+/* Кнопок стало четыре («рассказать» добавилась), и они уехали за оба
+   края экрана: на скриншоте человека «назад в берег» обрезано слева,
+   «забыть меня» справа. Перенос строки и полоски отступов — чтобы ряд
+   кнопок никогда не был шире экрана, сколько бы их ни стало. */
 #sigil-actions {
   margin-top: 28px;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
+  width: 100%;
+  max-width: 420px;
+  padding: 0 12px;
 }
+
 
 #btn-forget {
   border-color: rgba(255, 80, 90, 0.25);
@@ -550,6 +581,12 @@ body.debug #fit-debug {
   #hud-right button {
     padding: 7px 8px;
     font-size: 10px;
+  }
+
+  /* кнопки переносятся в две строки — закон уходит ещё ниже */
+  #law {
+    top: 118px;
+    font-size: 15px;
   }
 }
 

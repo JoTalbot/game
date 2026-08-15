@@ -95,6 +95,79 @@ function firstNode(g, small) {
   return null;
 }
 
+// Так играет живой человек: палец опускается на ПУСТОЕ место, ведёт
+// игрока к узлу и, дойдя, замирает на узле не отрываясь. Захват решался
+// только в onDown — то есть когда палец был ещё далеко, — и узел под
+// неподвижным пальцем не рождался никогда. Человек: «новые планеты не
+// обводятся, а продолжаешь движение».
+function walkAndHold(G, opts) {
+  opts = opts || {};
+  var g = makeGame(G, opts.seed);
+  var n = firstNode(g, opts.small);
+  if (!n) return { error: "нет узла" };
+
+  // палец на пустоте в стороне — это жест ходьбы
+  g.input.x = 400 + (opts.away || 140);
+  g.input.y = 300 + (opts.away || 140);
+  var w = g.screenToWorld(g.input.x, g.input.y);
+  g.input.wx = w.x;
+  g.input.wy = w.y;
+  g.input.down = true;
+  g.time += 2;
+  g.onDown();
+  g.player.gaze = null;          // человек начал с пустого места
+
+  var frames = Math.round((opts.seconds || 4) * 60);
+  for (var f = 0; f < frames; f++) {
+    g.time += 1 / 60;
+    // палец приведён на узел и лежит там
+    var tx = 400 + (n.x - g.cam.x);
+    var ty = 300 + (n.y - g.cam.y);
+    g.input.x = tx;
+    g.input.y = ty;
+    var w2 = g.screenToWorld(tx, ty);
+    g.input.wx = w2.x;
+    g.input.wy = w2.y;
+    try { g.update(1 / 60); } catch (e) { return { error: e.message }; }
+    if (n.state !== "unformed") return { crystal: true, at: f / 60 };
+  }
+  return { crystal: false, gaze: !!g.player.gaze };
+}
+
+// Обратная крайность: человек ВЕДЁТ игрока сквозь плотный берег и не
+// хочет ничего трогать. Палец всё время в движении — захвата быть не
+// должно, иначе ходьба цепляется за каждый встречный узел.
+function walkThrough(G, opts) {
+  opts = opts || {};
+  var g = makeGame(G, opts.seed);
+  g.world.scatter(g.player.x, g.player.y, 14, 300);
+  g.input.x = 400 + 150;
+  g.input.y = 300 + 150;
+  var w = g.screenToWorld(g.input.x, g.input.y);
+  g.input.wx = w.x;
+  g.input.wy = w.y;
+  g.input.down = true;
+  g.time += 2;
+  g.onDown();
+  g.player.gaze = null;
+
+  var grabbed = 0;
+  var frames = Math.round((opts.seconds || 10) * 60);
+  for (var f = 0; f < frames; f++) {
+    g.time += 1 / 60;
+    var sx = 400 + 150 * Math.cos(f / 40);
+    var sy = 300 + 150 * Math.sin(f / 40);
+    g.input.x = sx;
+    g.input.y = sy;
+    var w2 = g.screenToWorld(sx, sy);
+    g.input.wx = w2.x;
+    g.input.wy = w2.y;
+    try { g.update(1 / 60); } catch (e) { return { error: e.message }; }
+    if (g.player.gaze) { grabbed++; g.player.gaze = null; }
+  }
+  return { grabbed: grabbed };
+}
+
 // Палец кладут на узел и держат. camLag — насколько камера отстала от
 // игрока (после перелёта по зову она догоняет). Возвращает, чем кончилось.
 function hold(G, opts) {
@@ -176,7 +249,8 @@ function reach(G, opts) {
   return { r: n.r || 12, miss: miss };
 }
 
-module.exports = { bootEngine: bootEngine, hold: hold, reach: reach, pad: pad, makeGame: makeGame };
+module.exports = { bootEngine: bootEngine, hold: hold, reach: reach, pad: pad, makeGame: makeGame,
+                   walkAndHold: walkAndHold, walkThrough: walkThrough };
 
 if (require.main === module) {
   var G = bootEngine();

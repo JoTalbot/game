@@ -153,7 +153,9 @@ var IGRA = IGRA || {};
       self.onDown();
     }
     function move(e) {
-      if (!self.input.down && !e.touches) return;
+      // Чужое движение — не наше дело: без этого прокрутка экрана
+      // рассказа и поля «рот» подёргивалась вслед за камерой берега.
+      if (!self.input.down) return;
       var p = pos(e);
       self.input.x = p.x;
       self.input.y = p.y;
@@ -162,19 +164,31 @@ var IGRA = IGRA || {};
       self.input.wy = w.y;
     }
     function up(e) {
-      e.preventDefault();
+      // preventDefault только на своём касании. Глобальный `touchend` с
+      // preventDefault съедал клик ДО того, как браузер его создаст:
+      // палец на кнопке «рассказать» опускался, отпускался — и ничего
+      // не происходило, потому что синтетический click не рождался
+      // вовсе. Кнопки перестали работать все разом, включая старые.
+      if (self.input.down && e.cancelable) e.preventDefault();
+      if (!self.input.down) return;
       var p = pos(e);
       self.input.x = p.x;
       self.input.y = p.y;
       self.onUp();
       self.input.down = false;
     }
+    // Игра слушает ХОЛСТ, а не окно. На окне она перехватывала касания
+    // интерфейса — кнопок, поля рта, прокрутки рассказа, — и они молчали.
+    // Движение и отпускание всё же ловим на окне: палец, начавший жест на
+    // берегу, волен уйти за край холста, и взгляд не должен рваться.
+    // Отличаем своё от чужого по `input.down`.
     el.addEventListener("mousedown", down);
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
     el.addEventListener("touchstart", down, { passive: false });
     window.addEventListener("touchmove", move, { passive: false });
     window.addEventListener("touchend", up, { passive: false });
+    window.addEventListener("touchcancel", up, { passive: false });
     window.addEventListener("keydown", function (e) {
       self.input.keys[e.code] = true;
       if (e.code === "Space") {
@@ -621,6 +635,44 @@ var IGRA = IGRA || {};
 
   G.Game.prototype._gaze = function (dt) {
     if (!this.input.down) return;
+
+    // Взгляд можно ПОЙМАТЬ на ходу, а не только в миг касания.
+    //
+    // Человек: «новые планеты не обводятся, а продолжаешь движение».
+    // Так и было. Захват решался ровно один раз, в onDown. Но играют
+    // иначе: опускают палец на пустоту, ведут игрока к узлу и, дойдя,
+    // ОСТАНАВЛИВАЮТ палец на нём, не отрывая. В этот момент палец лежит
+    // прямо на узле — а игра считает, что он всё ещё тянет ходьбу, и
+    // проносит игрока сквозь. Замер: палец в ОДНОЙ точке от центра узла,
+    // четыре секунды без движения — захвата нет, узел не рождается.
+    // Отпустить и ткнуть заново человек не догадывается, да и не должен.
+    //
+    // Условие ловли — не «палец рядом», а «палец ЗАМЕР рядом»: иначе
+    // жест ходьбы через плотный берег цеплялся бы за каждый встречный
+    // узел. Замирание на 0.18 с — уже намерение, а не транзит.
+    if (!this.player.gaze && !this.gazeTarget && !this.sky &&
+        (this.state === "play" || this.state === "birth")) {
+      var hx = this.input.x, hy = this.input.y;
+      if (this.input.hx == null || G.dist(hx, hy, this.input.hx, this.input.hy) > 7) {
+        this.input.hx = hx;
+        this.input.hy = hy;
+        this.input.hold = 0;
+      } else {
+        this.input.hold = (this.input.hold || 0) + dt;
+        if (this.input.hold > 0.18) {
+          var late = this.world.nearestNode(this.input.wx, this.input.wy, 58);
+          if (late && !late.dead) {
+            this.player.gaze = late;
+            this.player.gazeT = 0;
+            this.input.gsx = hx;
+            this.input.gsy = hy;
+            this.input.hold = 0;
+            this.dna.feed("contemplation", 0.01);
+          }
+        }
+      }
+    }
+
     if (this.gazeTarget && this.gazeTarget.temper) {
       var b = this.gazeTarget;
       if (b.dead || G.dist(this.input.wx, this.input.wy, b.x, b.y) > 70) {
