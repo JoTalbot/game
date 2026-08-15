@@ -417,5 +417,35 @@ group("прилив и забвение: возвращаться выгодне
   ok(dp < 60, "брошенное не выживает само собой", dp + "% брошенного уцелело");
 })();
 
+// ——— фон ———
+// Человек, играя с APK, сказал: «на фоне какой-то шум». Виноват был
+// LFO дыхания сада: размах ±0.45 при уровне слоя 0.04 — модуляция
+// вдесятеро громче того, что качает, то есть ровный гудящий тон
+// поверх всей игры. На слух в песочнице это не поймать, поэтому
+// сторожим числом: фон обязан быть тише гула, а пустой берег — молчать.
+group("фон: тишина остаётся тишиной");
+(function () {
+  var A = require("./noise.js");
+  var idle = A.measure(90, "idle");
+  var full = A.measure(90, "gaze");
+
+  ok(idle.gardenPeak < 0.001, "на пустом берегу сад молчит",
+     "пик " + idle.gardenPeak.toFixed(4));
+  ok(full.gardenAmp <= full.gardenBase, "дыхание тише того, что дышит",
+     "±" + full.gardenAmp.toFixed(4) + " при уровне " + full.gardenBase.toFixed(4));
+  ok(full.gardenPeak < full.drone, "фоновый слой не перекрикивает гул",
+     "сад " + full.gardenPeak.toFixed(3) + " против гула " + full.drone.toFixed(3));
+  ok(idle.noise < 0.006, "в покое шума почти нет",
+     "пол " + idle.noise.toFixed(4));
+  // Шум обязан ОЗНАЧАТЬ событие. Если пол и пик близки, он превращается
+  // в постоянное сипение — фон, который нечего сообщить.
+  var loud = A.run(300, "gaze");
+  var peak = 0;
+  loud.samples.forEach(function (x) { if (x.noise > peak) peak = x.noise; });
+  ok(peak > idle.noise * 4, "прилив слышно как событие, а не как фон",
+     "пик " + peak.toFixed(4) + " — в " + (peak / idle.noise).toFixed(0) + " раз выше пола");
+  ok(full.alive > 10, "берег при этом полон", full.alive + " живых");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

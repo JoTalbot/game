@@ -94,12 +94,16 @@ var IGRA = IGRA || {};
       var src = ctx.createBufferSource();
       src.buffer = buffer;
       src.loop = true;
+      // Полоса должна быть УЗКОЙ. При Q 0.4 полоса такая широкая, что
+      // на выходе почти белый шум — ровное сипение поверх тишины, и
+      // слышно его тем лучше, чем тише всё остальное. Погода — это
+      // далёкий прибой, а не помеха в эфире.
       var filter = ctx.createBiquadFilter();
       filter.type = "bandpass";
-      filter.frequency.value = 400;
-      filter.Q.value = 0.4;
+      filter.frequency.value = 300;
+      filter.Q.value = 1.6;
       var g = ctx.createGain();
-      g.gain.value = 0.012;
+      g.gain.value = 0.004;
       src.connect(filter);
       filter.connect(g);
       g.connect(this.music);
@@ -128,16 +132,20 @@ var IGRA = IGRA || {};
       var b = this._osc("sine", 294.3, lp);
       a.g.gain.value = 0.5;
       b.g.gain.value = 0.32;
-      // медленное дыхание: период около двадцати секунд
+      // Медленное дыхание: период около двадцати секунд.
+      // Размах ОБЯЗАН быть долей уровня, а не числом. Стояло 0.45 при
+      // уровне слоя 0.04 — LFO был вдесятеро громче того, что качал, и
+      // сад не дышал, а ровно гудел поверх всей игры: человек услышал
+      // это как «шум на фоне». Настоящий размах задаётся в update.
       var lfo = ctx.createOscillator();
       lfo.type = "sine";
       lfo.frequency.value = 0.05;
       var lfoAmt = ctx.createGain();
-      lfoAmt.gain.value = 0.45;
+      lfoAmt.gain.value = 0;
       lfo.connect(lfoAmt);
       lfoAmt.connect(g.gain);
       lfo.start();
-      this.garden = { g: g, lp: lp, a: a, b: b, lfo: lfo, level: 0 };
+      this.garden = { g: g, lp: lp, a: a, b: b, lfo: lfo, amt: lfoAmt, level: 0 };
     },
 
     _buildHeart: function () {
@@ -225,10 +233,13 @@ var IGRA = IGRA || {};
         }
       }
 
-      var noise = 0.01;
-      if (tide > 0) noise = 0.01 + tide * 0.05;
-      if (dna) noise += dna.get("chaos") * 0.012;
-      noise += bend * 0.014;
+      // В покое шума почти нет: тишина должна быть тишиной. Всё, что
+      // выше пола, означает событие — идёт прилив, буянит хаос, висит
+      // закон. Тогда шум слышен как смысл, а не как фон.
+      var noise = 0.004;
+      if (tide > 0) noise = 0.004 + tide * 0.05;
+      if (dna) noise += dna.get("chaos") * 0.008;
+      noise += bend * 0.012;
       this.noise.g.gain.setTargetAtTime(noise, t, 0.4);
       this.noise.filter.frequency.setTargetAtTime(320 + (tide || 0) * 800, t, 0.5);
 
@@ -254,6 +265,11 @@ var IGRA = IGRA || {};
         if (state === "title" || state === "birth") lvl *= 0.3;
         this.garden.level = lvl;
         this.garden.g.gain.setTargetAtTime(lvl, t, 2.5);
+        // дыхание — треть уровня: слышно, что слой живой, но пустой
+        // берег молчит по-настоящему, а полный не гудит
+        if (this.garden.amt) {
+          this.garden.amt.gain.setTargetAtTime(lvl * 0.34, t, 2.5);
+        }
         // с приливом сад глохнет: слышно, что мир накрывает
         this.garden.lp.frequency.setTargetAtTime(520 - (tide || 0) * 260, t, 1.0);
       }
