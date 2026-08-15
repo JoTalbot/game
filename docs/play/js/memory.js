@@ -5,7 +5,9 @@ var IGRA = IGRA || {};
   var SEASONS = {
     aggression: {
       id: "жар",
+      en: "heat",
       hint: "неделя удара. мир отвечает острее.",
+      enHint: "a week of the blow. the world answers sharper.",
       tide: 1.25,
       wounds: 1.6,
       garden: 0.6,
@@ -14,7 +16,9 @@ var IGRA = IGRA || {};
     },
     curiosity: {
       id: "странствие",
+      en: "wandering",
       hint: "горизонт шире, чем память.",
+      enHint: "the horizon is wider than memory.",
       tide: 0.9,
       wounds: 0.8,
       garden: 0.9,
@@ -23,7 +27,9 @@ var IGRA = IGRA || {};
     },
     contemplation: {
       id: "тишина",
+      en: "stillness",
       hint: "сад пишет быстрее, чем ты дышишь.",
+      enHint: "the garden writes faster than you breathe.",
       tide: 0.75,
       wounds: 0.55,
       garden: 1.8,
@@ -32,7 +38,9 @@ var IGRA = IGRA || {};
     },
     empathy: {
       id: "оттепель",
+      en: "thaw",
       hint: "раны мягче. имена липнут.",
+      enHint: "wounds are softer. names stick.",
       tide: 0.8,
       wounds: 0.45,
       garden: 1.3,
@@ -41,7 +49,9 @@ var IGRA = IGRA || {};
     },
     chaos: {
       id: "сбой",
+      en: "glitch",
       hint: "законы не держатся. швы наружу.",
+      enHint: "laws do not hold. the seams show.",
       tide: 1.1,
       wounds: 1.1,
       garden: 0.7,
@@ -50,7 +60,9 @@ var IGRA = IGRA || {};
     },
     harmony: {
       id: "хор",
+      en: "choir",
       hint: "берег сам попадает в такт.",
+      enHint: "the shore finds the beat on its own.",
       tide: 0.85,
       wounds: 0.7,
       garden: 1.15,
@@ -72,6 +84,18 @@ var IGRA = IGRA || {};
 
     climate: function () {
       return this.season || SEASONS.contemplation;
+    },
+
+    // имя и подсказка сезона на языке человека: id остаётся ключом,
+    // чтобы сейв и код не зависели от раскладки
+    climateName: function () {
+      var c = this.climate();
+      return G.Lang && G.Lang.id === "en" ? c.en || c.id : c.id;
+    },
+
+    climateHint: function () {
+      var c = this.climate();
+      return G.Lang && G.Lang.id === "en" ? c.enHint || c.hint : c.hint;
     },
 
     setFromDna: function (dna, force) {
@@ -213,7 +237,10 @@ var IGRA = IGRA || {};
       }
       var shift = this.commentShift(this.lastDna, game.dna);
       if (shift) lines.push(shift);
-      lines.push("сейчас сезон — " + this.climate().id + ". " + this.climate().hint);
+      lines.push(
+        (G.Lang && G.Lang.id === "en" ? "the season now is " : "сейчас сезон — ") +
+          this.climateName() + ". " + this.climateHint()
+      );
       var i = 0;
       function next() {
         if (i >= lines.length) return;

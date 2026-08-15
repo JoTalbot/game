@@ -202,18 +202,22 @@ var IGRA = IGRA || {};
       if (name) name.textContent = dna.name();
       if (sub) sub.textContent = G.TRAIT_HINT[dna.dominant()];
       if (stats) {
+        // сигила — лицо игры, она обязана говорить на языке человека
+        var T = function (k) {
+          return G.Lang ? G.Lang.t(k) : k;
+        };
         stats.innerHTML =
-          "<span>берегов " +
+          "<span>" + T("statShores") + " " +
           game.world.meta +
-          "</span><span>выращено " +
+          "</span><span>" + T("statGrown") + " " +
           game.world.discovered +
-          "</span><span>отпущено " +
+          "</span><span>" + T("statLost") + " " +
           game.world.lost +
-          "</span><span>удержано " +
+          "</span><span>" + T("statHeld") + " " +
           game.world.saved +
-          "</span><span>существ " +
+          "</span><span>" + T("statBeings") + " " +
           game.world.beings.length +
-          "</span><span>дорог " +
+          "</span><span>" + T("statRoads") + " " +
           (game.world.arrived || 0) +
           "</span>";
       }
@@ -224,8 +228,12 @@ var IGRA = IGRA || {};
       }
       var seasonEl = document.getElementById("sigil-season");
       if (seasonEl) {
+        var Ts = function (k) {
+          return G.Lang ? G.Lang.t(k) : k;
+        };
         seasonEl.textContent =
-          "сезон «" + G.Memory.climate().id + "». день " + G.Memory.days + ". " + G.Memory.climate().hint;
+          Ts("seasonWord") + " «" + G.Memory.climateName() + "». " +
+          Ts("dayWord") + " " + G.Memory.days + ". " + G.Memory.climateHint();
       }
       this.paintSeason();
     },
@@ -244,7 +252,7 @@ var IGRA = IGRA || {};
     paintSeason: function () {
       var el = document.getElementById("season");
       if (!el) return;
-      el.textContent = G.Memory.climate().id;
+      el.textContent = G.Memory.climateName();
     },
 
     shareSigil: function (game) {

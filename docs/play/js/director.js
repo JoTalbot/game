@@ -66,7 +66,11 @@ var IGRA = IGRA || {};
       if (game.input.wild > 0.5) dna.feed("chaos", 0.025, dt);
 
       if (G.Memory.setFromDna(dna) && dna.age > 40) {
-        G.Voice.sayText("сезон сменился. теперь — " + G.Memory.climate().id + ".", true);
+        G.Voice.sayText(
+          (G.Lang && G.Lang.id === "en" ? "the season turned. now it is " : "сезон сменился. теперь — ") +
+            G.Memory.climateName() + ".",
+          true
+        );
         G.Memory.note("сезон: " + G.Memory.climate().id);
         G.UI.paintSeason();
       }

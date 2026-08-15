@@ -132,7 +132,7 @@ var IGRA = IGRA || {};
         ctx.textAlign = "center";
         ctx.shadowColor = "rgba(0,0,0,0.9)";
         ctx.shadowBlur = 6;
-        ctx.fillText("небо из того, что ты отпустил", w / 2, 52);
+        ctx.fillText(G.Lang ? G.Lang.t("skyLine") : "небо из того, что ты отпустил", w / 2, 52);
         ctx.restore();
       }
 

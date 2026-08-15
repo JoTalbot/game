@@ -237,5 +237,32 @@ group("законы: вторая раскладка");
   G.Lang.id = prev;
 })();
 
+// ——— английский берег без кириллицы ———
+group("язык: обе раскладки полны");
+(function () {
+  var ru = G.UI_STR.ru;
+  var en = G.UI_STR.en;
+  var missing = [];
+  for (var k in ru) {
+    if (!Object.prototype.hasOwnProperty.call(ru, k)) continue;
+    if (!en[k]) missing.push(k);
+  }
+  ok(!missing.length, "у каждого русского слова есть английское", missing.join(", "));
+
+  var cyr = [];
+  for (var k2 in en) {
+    if (!Object.prototype.hasOwnProperty.call(en, k2)) continue;
+    if (/[а-яА-Я]/.test(String(en[k2]))) cyr.push(k2);
+  }
+  ok(!cyr.length, "в английской раскладке нет кириллицы", cyr.join(", "));
+
+  var prev = G.Lang.id;
+  G.Lang.id = "en";
+  ok(!/[а-яА-Я]/.test(G.Memory.climateName()), "сезон переводится", G.Memory.climateName());
+  ok(!/[а-яА-Я]/.test(G.Memory.climateHint()), "подсказка сезона переводится");
+  ok(!/[а-яА-Я]/.test(G.Lang.t("skyLine")), "небо забвения переводится", G.Lang.t("skyLine"));
+  G.Lang.id = prev;
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
