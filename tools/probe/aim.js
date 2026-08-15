@@ -278,6 +278,30 @@ function pad(G, r) {
   return miss;
 }
 
+// Сколько ЭКРАННЫХ точек прощает палец при данном отдалении камеры.
+// Прицел мерился в мировых единицах жёстким числом, а палец живёт на
+// стекле: на отдалении 0.38 те же 58 мировых — это 26 точек экрана,
+// вдвое меньше подушечки. Человек: «при отдалении экрана только
+// некоторые ещё можно обвести».
+function screenPad(G, z, r) {
+  var g = makeGame(G, 1);
+  var n = g.world.nodes[0];
+  if (!n) return -1;
+  g.world.nodes = [n];
+  g.world.beings = [];
+  n.r = r == null ? 12 : r;
+  g.player.x = n.x; g.player.y = n.y;
+  g.cam.x = n.x; g.cam.y = n.y;
+  g.cam.z = z;
+  var miss = -1;
+  for (var d = 0; d < 400; d += 1) {
+    var w = g.screenToWorld(g.cam.w / 2 + d, g.cam.h / 2);
+    if (g.world.nearestNode(w.x, w.y, g.aimRadius(58)) !== n) break;
+    miss = d;
+  }
+  return miss;
+}
+
 // Самый дальний промах пальца, при котором узел ещё ловится.
 function reach(G, opts) {
   opts = opts || {};
@@ -294,7 +318,8 @@ function reach(G, opts) {
 }
 
 module.exports = { bootEngine: bootEngine, hold: hold, reach: reach, pad: pad, makeGame: makeGame,
-                   walkAndHold: walkAndHold, walkThrough: walkThrough, growMany: growMany };
+                   walkAndHold: walkAndHold, walkThrough: walkThrough, growMany: growMany,
+                   screenPad: screenPad };
 
 if (require.main === module) {
   var G = bootEngine();

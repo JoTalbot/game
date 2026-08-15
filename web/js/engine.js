@@ -102,6 +102,24 @@ var IGRA = IGRA || {};
     if (!G.Renderer.ready) G.Renderer.init(w, h);
   };
 
+  // Радиус прицела в МИРОВЫХ единицах, выведенный из экранных.
+  //
+  // Палец живёт на стекле и всегда накрывает одни и те же ~57 точек, а
+  // прицел мерился в мире жёстким числом (58). Мировая единица меньше
+  // экранной ровно во столько раз, во сколько отдалена камера: на
+  // масштабе 0.38 те же 58 мировых единиц — это 26 точек экрана, вдвое
+  // меньше подушечки. Человек: «при отдалении экрана только некоторые
+  // ещё можно обвести», и «срывается на новых, куда прилетаешь по
+  // стрелочке» — после перелёта камера как раз отъезжает.
+  //
+  // Делим на cam.z: сколько бы мир ни отъехал, палец прощает столько же
+  // ТОЧЕК ЭКРАНА. Потолок нужен, иначе на сильном отдалении прицел
+  // накрыл бы пол-берега и хватал не то, во что целились.
+  G.Game.prototype.aimRadius = function (screenPad) {
+    var z = this.cam && this.cam.z > 0.05 ? this.cam.z : 1;
+    return Math.min(screenPad / z, screenPad * 3.2);
+  };
+
   G.Game.prototype.screenToWorld = function (x, y) {
     return {
       x: this.cam.x + (x - this.cam.w / 2) / this.cam.z,
@@ -311,7 +329,7 @@ var IGRA = IGRA || {};
     }
 
     if (this.state === "play" || this.state === "birth") {
-      var crack = G.Organs.nearestCrack(this.world, this.input.wx, this.input.wy, 36);
+      var crack = G.Organs.nearestCrack(this.world, this.input.wx, this.input.wy, this.aimRadius(36));
       if (crack) {
         if (G.Report) G.Report.act("laws");
         G.Organs.applyLaw(this, crack);
@@ -322,8 +340,8 @@ var IGRA = IGRA || {};
       // прицел был 48 от ЦЕНТРА узла. Человек целился точнее, чем вообще
       // видит палец. Меряем теперь от края узла (см. world.nearestNode) и
       // даём радиус по пальцу, а не по глазу.
-      var being = G.Organs.nearestBeing(this.world, this.input.wx, this.input.wy, 48);
-      var node = this.world.nearestNode(this.input.wx, this.input.wy, 58);
+      var being = G.Organs.nearestBeing(this.world, this.input.wx, this.input.wy, this.aimRadius(48));
+      var node = this.world.nearestNode(this.input.wx, this.input.wy, this.aimRadius(58));
       var boss = this.world.boss;
       var bossNear = boss && G.dist(this.input.wx, this.input.wy, boss.x, boss.y) < boss.r + 18;
       if (being && (!node || G.dist2(this.input.wx, this.input.wy, being.x, being.y) < G.dist2(this.input.wx, this.input.wy, node.x, node.y))) {
@@ -695,7 +713,7 @@ var IGRA = IGRA || {};
         // побочное: взгляд был захвачен 29% всех кадров, игрок почти не
         // двигался, и существа никогда не отходили от него.
         if (this.input.hold > 0.3) {
-          var late = this.world.nearestNode(this.input.wx, this.input.wy, 58);
+          var late = this.world.nearestNode(this.input.wx, this.input.wy, this.aimRadius(58));
           // И только то, до чего человек ДОШЁЛ. Обводят вблизи; ловить
           // узел на другом конце экрана — значит отнимать управление.
           if (late && !late.dead &&
