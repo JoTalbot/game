@@ -345,6 +345,19 @@ var IGRA = IGRA || {};
       this.lastAt = now;
     },
 
+    // Вернуть строку из пула, не произнося её. Нужно там, где реплика —
+    // часть склеенного приветствия, а не отдельное высказывание: голос
+    // говорит их подряд сам. Раскладку и чередование строк уважает так же,
+    // как say().
+    pick: function (key) {
+      var pool = LINES[key];
+      if (G.Lang && G.Lang.id === "en" && G.LINES_EN && G.LINES_EN[key]) pool = G.LINES_EN[key];
+      if (!pool || !pool.length) return "";
+      var idx = this.said[key] || 0;
+      this.said[key] = idx + 1;
+      return pool[idx % pool.length];
+    },
+
     sayText: function (text, force) {
       if (!force && G.now() - this.lastAt < 3.2) return;
       this._set(text);
