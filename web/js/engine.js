@@ -789,6 +789,7 @@ var IGRA = IGRA || {};
         n.state = src.state || "unformed";
         n.care = src.care != null ? src.care : 0.4;
         n.roots = src.roots || 0;
+        n.returns = src.returns || 0;
         n.cooled = src.cooled || 0;
         n.rootTold = src.rootTold || 0;
         n.hp = src.hp != null ? src.hp : 1;
