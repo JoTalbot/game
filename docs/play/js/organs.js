@@ -124,15 +124,15 @@ var IGRA = IGRA || {};
     composeVerse: function (game) {
       var stem = G.pick(VERSE_STEM);
       var lost = game.world.forgotten && game.world.forgotten.length
-        ? G.KIND_RU[game.world.forgotten[game.world.forgotten.length - 1].kind] || "это"
+        ? G.kindName(game.world.forgotten[game.world.forgotten.length - 1].kind)
         : "ничего";
       var being = game.world.beings[0] ? game.world.beings[0].name : "никто";
       var text = stem
-        .replace("$trait", G.TRAIT_RU[game.dna.dominant()])
+        .replace("$trait", G.traitName(game.dna.dominant()))
         .replace("$lost", lost)
         .replace("$being", being)
         .replace("$n", String((game.world.verses.length || 0) + 1))
-        .replace("$biome", G.TRAIT_RU[game.world.biome] || game.world.biome);
+        .replace("$biome", G.traitName(game.world.biome));
       return text;
     },
 

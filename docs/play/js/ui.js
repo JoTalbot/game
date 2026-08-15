@@ -188,7 +188,7 @@ var IGRA = IGRA || {};
         ctx.font = "600 13px Manrope, sans-serif";
         ctx.textAlign = "center";
         var ang = -Math.PI / 2 + j * (Math.PI / 3);
-        ctx.fillText(G.TRAIT_RU[p.k], cx + Math.cos(ang) * 128, cy + Math.sin(ang) * 128 + 3);
+        ctx.fillText(G.traitName(p.k), cx + Math.cos(ang) * 128, cy + Math.sin(ang) * 128 + 3);
       }
 
       ctx.fillStyle = "#fff";

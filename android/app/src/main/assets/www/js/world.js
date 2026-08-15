@@ -16,6 +16,26 @@ var IGRA = IGRA || {};
     memory: "память"
   };
 
+  // Имя породы всплывает над каждым рождением — самая частая надпись в
+  // игре, и до сих пор она была только по-русски. G.kindName даёт имя
+  // на языке игрока; звать надо её, а не KIND_RU напрямую.
+  G.KIND_EN = {
+    spark: "spark",
+    relic: "relic",
+    thorn: "thorn",
+    still: "stillness",
+    echo: "echo",
+    shard: "shard",
+    tone: "tone",
+    wound: "wound",
+    memory: "memory"
+  };
+
+  G.kindName = function (kind) {
+    if (G.Lang && G.Lang.id === "en") return G.KIND_EN[kind] || kind;
+    return G.KIND_RU[kind] || kind;
+  };
+
   G.KIND_TRAIT = {
     spark: null,
     relic: "curiosity",

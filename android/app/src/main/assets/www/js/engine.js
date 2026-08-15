@@ -260,7 +260,8 @@ var IGRA = IGRA || {};
           this.player.x = star.ox;
           this.player.y = star.oy;
         }
-        G.Voice.sayText(star.verse || ("звезда " + (G.KIND_RU[star.kind] || "") + "."), true);
+        G.Voice.sayText(star.verse ||
+          ((G.Lang && G.Lang.id === "en" ? "a star of " : "звезда ") + G.kindName(star.kind) + "."), true);
         G.Organs.toggleSky(this, false);
       }
       return;
@@ -387,7 +388,7 @@ var IGRA = IGRA || {};
     this.state = "play";
     G.Audio.setHeart(false);
     G.Voice.say("firstNode");
-    G.UI.hint("двойное касание — пульс · i — сигила");
+    G.UI.hint(G.Lang.t("hintBirth2"));
     setTimeout(function () {
       G.UI.hint("");
     }, 6000);
@@ -679,8 +680,8 @@ var IGRA = IGRA || {};
         G.Audio.crystallize(trait || this.dna.dominant());
         this.fx.burst(n.x, n.y, 28, n.color(), 70, 0.9);
         this.fx.ring(n.x, n.y, 20, n.color(), n.r, 0.8);
-        var kindText = G.KIND_RU[kind] || kind;
-        if (trait) kindText += " → " + G.TRAIT_RU[trait];
+        var kindText = G.kindName(kind);
+        if (trait) kindText += " → " + G.traitName(trait);
         this.floaters.add(n.x, n.y - 20, kindText, n.color());
         G.Director.onCrystal(this, kind);
         if (G.Haptic) G.Haptic.play("crystal");

@@ -20,6 +20,23 @@ var IGRA = IGRA || {};
     harmony: "строй"
   };
 
+  // Шесть осей подписаны на сигиле и всплывают над каждым рождением.
+  // Имена короткие и образные — «взгляд», а не «любопытство»; в
+  // английском держим ту же меру: одно слово, не термин.
+  G.TRAIT_EN = {
+    curiosity: "gaze",
+    aggression: "heat",
+    contemplation: "stillness",
+    empathy: "warmth",
+    chaos: "glitch",
+    harmony: "order"
+  };
+
+  G.traitName = function (trait) {
+    if (G.Lang && G.Lang.id === "en") return G.TRAIT_EN[trait] || trait;
+    return G.TRAIT_RU[trait] || trait;
+  };
+
   G.TRAIT_RU_LONG = {
     curiosity: "Взгляд",
     aggression: "Жар",
