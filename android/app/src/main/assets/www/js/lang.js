@@ -68,6 +68,8 @@ var IGRA = IGRA || {};
   };
 
   G.LINES_EN = {
+    metaKept: ["what you rooted into came with me.", "a new shore. but not empty-handed.", "i forgot everything except what you held."],
+    metaBare: ["i came light. you held nothing.", "the new shore is bare. that happens when you only sow.", "nothing held on. roots grow from returning."],
     nightLost: ["while the screen slept, oblivion kept working.", "the shore is shorter at night. someone is missing.", "the dark took what no one was holding."],
     nightBloom: ["the garden grew in the dark.", "something else blooms in the dark.", "the night is not empty. the night is busy."],
     nameHint: ["the one flying nearby has no name yet. hold your gaze on it — you will give one.", "you have no name yet. i will find one when i understand."],

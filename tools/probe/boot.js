@@ -90,8 +90,21 @@ ok(!!G, "IGRA собрана");
 ok(!!(G && G.app), "игра стартовала (G.app есть)");
 ok(!!(G && G.app && G.app.world), "мир создан");
 ok(!!(G && G.app && G.app.world && G.app.world.nodes), "берег засеян");
-ok(!!(G && G.Voice && G.Voice.keys().length === 56), "голос знает все ключи",
-   G && G.Voice ? G.Voice.keys().length + " ключей" : "нет");
+// Число ключей вбивать нельзя: проверка «ровно 56» краснела на каждой
+// новой реплике, ничего не говоря о качестве. Важно не сколько их, а
+// что обе раскладки полны — иначе английский игрок увидит русский текст.
+var vkeys = G && G.Voice ? G.Voice.keys() : [];
+ok(vkeys.length > 40, "голос знает ключи", vkeys.length + " ключей");
+var noEn = vkeys.filter(function (k) {
+  return !(G.LINES_EN && G.LINES_EN[k] && G.LINES_EN[k].length);
+});
+ok(noEn.length === 0, "у каждой реплики есть английская раскладка",
+   noEn.length ? "без перевода: " + noEn.join(", ") : "все переведены");
+var cyr = Object.keys((G.UI_STR && G.UI_STR.en) || {}).filter(function (k) {
+  return /[а-яё]/i.test(G.UI_STR.en[k]);
+});
+ok(cyr.length === 0, "в английском интерфейсе нет кириллицы",
+   cyr.length ? "русское: " + cyr.join(", ") : "чисто");
 
 // Мало проверить, что игра поднялась: она может подняться и тут же быть
 // нерабочей. Первая версия этого стенда оставалась зелёной, когда

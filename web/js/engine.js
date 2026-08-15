@@ -406,6 +406,15 @@ var IGRA = IGRA || {};
 
   G.Game.prototype.finishMeta = function () {
     this.world.metamorphose(this.player, this.dna);
+    // Перерождение — самая крупная потеря в игре: у того, кто только
+    // сеет, оно уносит весь берег до последнего узла, трижды за сессию,
+    // и раньше об этом не говорилось ни слова. Игра называет, что стало
+    // с садом, — и тем самым называет разницу между сеятелем и садовником.
+    var survived = 0;
+    for (var si = 0; si < this.world.nodes.length; si++) {
+      if (this.world.nodes[si].state === "alive") survived++;
+    }
+    this._metaKept = survived;
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.state = "play";
     this.metaFlash = 0.6;
@@ -413,6 +422,11 @@ var IGRA = IGRA || {};
       (G.Lang && G.Lang.id === "en" ? "now you are " : "теперь ты — ") + this.dna.name() + ".",
       true
     );
+    var self = this;
+    // не поверх имени: вторая правда приходит следом
+    setTimeout(function () {
+      G.Voice.say(self._metaKept > 0 ? "metaKept" : "metaBare");
+    }, 4200);
     this.save();
   };
 
