@@ -151,6 +151,9 @@ var IGRA = IGRA || {};
       return bloom;
     },
 
+    _verseSaid: -999,
+    _chordSaid: -999,
+
     maybeGarden: function (game, dt) {
       if (G.Director.organs.garden < 0.22) return;
       var p = game.player;
@@ -159,7 +162,21 @@ var IGRA = IGRA || {};
         if (p.stillT > 8 && G.chance(0.45)) {
           verse = this.composeVerse(game);
           game.world.addVerse(verse);
-          G.Voice.sayText(verse, true);
+          // Сад — самый громкий рот в игре, и никто этого не считал:
+          // замер по источнику показал 154–186 прочитанных вслух стихов
+          // за двадцать минут — больше, чем все прочие рты вместе.
+          // Причина в `true`: sayText с force обходит все кулдауны, и
+          // каждый росток на стоянке немедленно печатал строку поверх
+          // предыдущей. Игра тараторила стихами, и в этом шуме тонули
+          // прилив, рождение, забвение.
+          // Сад пишет столько же — стихи по-прежнему копятся в сигиле, —
+          // но вслух читает раз в полторы минуты и в общей очереди,
+          // уступая дорогу событиям мира.
+          var t = G.now();
+          if (t - this._verseSaid > 90) {
+            this._verseSaid = t;
+            G.Voice.sayText(verse);
+          }
         }
         var b = this.plantBloom(game.world, p.x, p.y, verse);
         game.fx.burst(b.x, b.y, 8, G.TRAIT_COLOR.contemplation, 18, 1.1);
@@ -458,7 +475,14 @@ var IGRA = IGRA || {};
       }
       var near = game.world.nearestNode(p.x, p.y, 180);
       if (near && near.state === "alive") game.world.anchor(near);
-      G.Voice.say("music");
+      // Аккорд складывается примерно раз в четверть минуты. Хвалить его
+      // каждый раз — значит превратить голос в счётчик очков; пусть
+      // звучит сам, а Игра отзывается на него изредка.
+      var tc = G.now();
+      if (!this._chordSaid || tc - this._chordSaid > 120) {
+        this._chordSaid = tc;
+        G.Voice.say("music");
+      }
       game.floaters.add(p.x, p.y - 30, "аккорд", G.TRAIT_COLOR.harmony);
     },
 

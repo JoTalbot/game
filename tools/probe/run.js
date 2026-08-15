@@ -738,5 +738,87 @@ group("долг памяти: брошенная привязанность ра
      Math.round(share * 100) + "% (здоровый берег теряет около десятой части)");
 })();
 
+// ——— голос ———
+// Человек: Игра говорит слишком много. Болтливость мерили счётчиком
+// вызовов G.Voice.say — и он врал дважды. Во-первых, say глушит повторы,
+// а sayText(text, true) проходит мимо всех кулдаунов: считать надо то,
+// что дошло до экрана, то есть Voice._set. Во-вторых, стенды прибавляли
+// game.time вручную, хотя update делает это сам, — сессия шла вдвое
+// быстрее реальной, и все прежние цифры речи были завышены вдвое.
+// Замер по источнику нашёл трёх крикунов: сад читал стихи с force,
+// рана повторяла отказ каждые 1.2 с, аккорд хвалили при каждом созвучии.
+group("голос: Игра говорит редко");
+(function () {
+  var Aim = require("./aim.js");
+
+  function listen(seed, mins, mode) {
+    var G = Aim.bootEngine();
+    var g = Aim.makeGame(G, seed);
+    // Без игровых часов G.now() — настенное время: двадцать игровых минут
+    // проходят за три реальных секунды, все кулдауны голоса схлопываются
+    // и стенд «слышит» тишину там, где её нет.
+    G.now = function () { return g.time; };
+    var heard = [];
+    var set = G.Voice._set.bind(G.Voice);
+    G.Voice._set = function (t) { heard.push(String(t)); return set(t); };
+    var frames = mins * 60 * 60;
+    for (var i = 0; i < frames; i++) {
+      if (mode === "play") {
+        if (i % 180 === 0) {
+          var c = null;
+          for (var k = 0; k < g.world.nodes.length; k++) {
+            var q = g.world.nodes[k];
+            if (!q.dead && q.state === "unformed") { c = q; break; }
+          }
+          if (c) {
+            g.input.x = 400 + (c.x - g.cam.x);
+            g.input.y = 300 + (c.y - g.cam.y);
+            var w = g.screenToWorld(g.input.x, g.input.y);
+            g.input.wx = w.x; g.input.wy = w.y;
+            g.input.down = true;
+            try { g.onDown(); } catch (e) {}
+          }
+        }
+        if (i % 180 === 120) { g.input.down = false; try { g.onUp && g.onUp(); } catch (e) {} }
+      } else {
+        g.player.vx = 0; g.player.vy = 0;
+      }
+      try { g.update(1 / 60); } catch (e) {}
+    }
+    var most = {}, top = 0;
+    heard.forEach(function (t) { most[t] = (most[t] || 0) + 1; if (most[t] > top) top = most[t]; });
+    return { n: heard.length, perMin: heard.length / mins, top: top, lines: heard };
+  }
+
+  var play = listen(7, 20, "play");
+  var still = listen(7, 20, "still");
+
+  // Верхняя граница болтливости. До починки было 12 реплик в минуту в
+  // обычной игре — Игра комментировала каждый шаг.
+  ok(play.perMin < 10, "в обычной игре Игра не тараторит",
+     play.n + " реплик за 20 мин = " + play.perMin.toFixed(1) + "/мин");
+
+  // Тишина — главный жанр этой игры. Тому, кто просто сидит, Игра
+  // говорила 9.3 раза в минуту: сад читал стихи поверх стихов.
+  ok(still.perMin < 4, "человеку, который замер, Игра почти не мешает",
+     still.n + " реплик за 20 мин = " + still.perMin.toFixed(1) + "/мин");
+
+  // Но и немой она быть не должна: голос — существо, а не молчун.
+  ok(still.n >= 8, "и всё же тишина не пустая", still.n + " реплик за 20 мин покоя");
+
+  // Ни одна строка не должна долбить в одну точку. Отказ раны повторялся
+  // 112 раз за сессию — одна и та же фраза чаще, чем все прочие вместе.
+  ok(play.top <= 12, "ни одна реплика не забивает остальные",
+     "самая частая строка звучит " + play.top + " раз за 20 мин");
+
+  // Пул `idle` был написан давно и не звучал ни разу. Он для того, кто
+  // сидит подолгу, — и именно в покое обязан подавать голос.
+  var IDLE_MARK = ["я ещё здесь.", "тишина — тоже жанр.",
+                   "можно ничего не делать. я умею ждать."];
+  var idleHeard = still.lines.filter(function (t) { return IDLE_MARK.indexOf(t) >= 0; }).length;
+  ok(idleHeard > 0, "в долгой тишине Игра говорит, что она ещё здесь",
+     "реплик покоя услышано " + idleHeard);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

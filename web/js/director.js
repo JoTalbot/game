@@ -24,6 +24,7 @@ var IGRA = IGRA || {};
     _watchT: 0,
     _lastWatch: -999,
     _sitSaid: -999,
+    _idleSaid: -999,
     _wanderSaid: -999,
     _greeted: null,
     // Поступки, а не состояние мира. Доля укоренённых узлов характер не
@@ -49,6 +50,7 @@ var IGRA = IGRA || {};
       this._watchT = 0;
       this._lastWatch = -999;
       this._sitSaid = -999;
+      this._idleSaid = -999;
       this._wanderSaid = -999;
       this._greeted = {};
       this._born = 0;
@@ -205,7 +207,11 @@ var IGRA = IGRA || {};
       // комментировала каждый шаг и превращалась в болтуна. Тишина
       // важнее — пусть заметит, что человек сидит, раз в минуту, а не
       // каждые семь секунд.
-      if (p.stillT > 7 && t - this._sitSaid > 60 && G.chance(dt * 0.15)) {
+      // Тот, кто просто сидит, слышал «ты сидишь» уже двадцать раз за
+      // сессию: в тишине этой реплике нечего уступать, и она срабатывает
+      // ровно по кулдауну. Пусть замечает посадку вчетверо реже — а на
+      // долгую неподвижность отвечает idle, у которого есть что сказать.
+      if (p.stillT > 7 && t - this._sitSaid > 240 && G.chance(dt * 0.15)) {
         this._sitSaid = t;
         G.Voice.say("sit");
       }
@@ -215,6 +221,21 @@ var IGRA = IGRA || {};
       }
 
       if (dna.age > 180 && G.chance(dt * 0.01)) G.Voice.say("longPlay");
+
+      // Третий рот: тишина. Пул `idle` («я ещё здесь», «можно ничего не
+      // делать») был написан к самому первому берегу и не звучал НИ РАЗУ —
+      // его никто не звал. Это самый тихий голос Игры, и место ему не в
+      // ряду с «ты сидишь» (та говорит уже через 7 секунд покоя), а
+      // глубже: когда человек не двигается почти минуту и ничего не
+      // трогает. Не «я вижу, что ты сидишь», а «я здесь, пока ты молчишь».
+      // Раз в четыре минуты, не чаще.
+      // lastTap — игровые секунды (engine.js:229), не миллисекунды.
+      var quiet = t - (game.input.lastTap || 0);
+      if (p.stillT > 50 && quiet > 40 && t - this._idleSaid > 240 &&
+          game.state === "play" && !game.sky && G.chance(dt * 0.2)) {
+        this._idleSaid = t;
+        G.Voice.say("idle");
+      }
 
       // metamorphosis when DNA has shifted enough or time passed
       var since = t - this.lastMeta;

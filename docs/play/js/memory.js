@@ -228,6 +228,14 @@ var IGRA = IGRA || {};
         lines.push("ты вернулся в тот же сон. я считаю дни.");
       } else {
         lines.push("день " + this.days + ". сессия " + this.sessions + ".");
+        // Пул `returner` был написан давно и не звучал ни разу: Игра
+        // встречала вернувшегося сухой цифрой сессии. Теперь после счёта
+        // дней она говорит и по-человечески — но только тому, кто уже
+        // возвращался трижды. Первым разам хватает цифры.
+        if (this.sessions >= 3 && G.Voice && G.Voice.pick) {
+          var back = G.Voice.pick("returner");
+          if (back) lines.push(back);
+        }
       }
       if (report && report.hours >= 0.5) {
         var h = report.hours < 2 ? "недолго" : report.hours < 10 ? "несколько часов" : "целую жизнь без тебя";

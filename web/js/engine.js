@@ -641,7 +641,14 @@ var IGRA = IGRA || {};
     if (this.gazeTarget && this.gazeTarget.maxHp) {
       this.player.gazeT += dt;
       if (this.player.gazeT > 1.2) {
-        G.Voice.sayText(this.gazeTarget.name + " " + G.Lang.t("refuseMem"), true);
+        // Рана отказывает каждые 1.2 секунды, пока в неё смотришь, — но
+        // говорит об этом раз в минуту. Иначе одна упрямая рана даёт
+        // сотню одинаковых реплик за сессию и заглушает всё остальное.
+        var tw = G.now();
+        if (!this.gazeTarget._refuseSaid || tw - this.gazeTarget._refuseSaid > 60) {
+          this.gazeTarget._refuseSaid = tw;
+          G.Voice.sayText(this.gazeTarget.name + " " + G.Lang.t("refuseMem"));
+        }
         this.gazeTarget.weak = 2.5;
         this.player.gazeT = 0;
       }
