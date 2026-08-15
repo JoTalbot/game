@@ -338,5 +338,50 @@ group("долгая игра: сейв не пухнет");
   ok(w.nodes.length > 0 && game.player, "мир переживает перерождение", w.nodes.length + " узлов");
 })();
 
+// ——— забота должна что-то значить ———
+group("прилив и забвение: возвращаться выгоднее, чем бросать");
+(function () {
+  var tend = 0, tendLive = 0, drop = 0, dropLive = 0, anyRoots = 0, anyLost = 0;
+  [12, 13].forEach(function (seed) {
+    var game = H.makeWorld(G, seed);
+    var tended = {}, born = {};
+    while (game.time < 600) {
+      var n = null;
+      var live = game.world.nodes.filter(function (x) { return x.state === "alive" && x.care < 0.5; });
+      if (live.length && Math.random() < 0.6) {
+        var mine = live.filter(function (x) { return tended[x.id]; });
+        var pool = mine.length && Math.random() < 0.75 ? mine : live;
+        n = pool[(Math.random() * pool.length) | 0];
+      }
+      var back = !!n;
+      if (!n) n = H.nearestUnformed(game);
+      if (!n) { for (var k = 0; k < 180; k++) H.step(G, game, 1 / 60, null, 0); continue; }
+      for (var i = 0; i < 480 && game.time < 600; i++) {
+        if (Math.hypot(n.x - game.player.x, n.y - game.player.y) < 40) break;
+        H.step(G, game, 1 / 60, n, 150);
+      }
+      if (back) {
+        for (var j = 0; j < 90; j++) H.step(G, game, 1 / 60, null, 0);
+        n.care = Math.min(1, n.care + 0.5);
+        tended[n.id] = 1;
+      } else if (H.gaze(G, game, n, 2.2, true)) born[n.id] = 1;
+    }
+    var alive = {};
+    game.world.nodes.forEach(function (x) { if (x.state === "alive") alive[x.id] = 1; });
+    var tk = Object.keys(tended);
+    var bk = Object.keys(born).filter(function (id) { return !tended[id]; });
+    tend += tk.length; tendLive += tk.filter(function (id) { return alive[id]; }).length;
+    drop += bk.length; dropLive += bk.filter(function (id) { return alive[id]; }).length;
+    anyRoots += game.world.nodes.filter(function (x) { return x.roots > 0; }).length;
+    anyLost += game.world.lost;
+  });
+  var tp = Math.round((100 * tendLive) / tend);
+  var dp = Math.round((100 * dropLive) / drop);
+  ok(tp > dp + 15, "к чему возвращались — живёт дольше брошенного", tp + "% против " + dp + "%");
+  ok(anyRoots > 0, "возвращение пускает корни", anyRoots + " укоренённых");
+  ok(anyLost > 0, "но прилив по-прежнему забирает", anyLost + " забыто");
+  ok(dp < 60, "брошенное не выживает само собой", dp + "% брошенного уцелело");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

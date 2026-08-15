@@ -86,6 +86,7 @@ var IGRA = IGRA || {};
     glitch: ["you tore the edge. thank you.", "rules are a habit, not a law."],
     music: ["you hit my pulse.", "again. and again. the world loves to coincide."],
     tide: ["i will take what you do not hold.", "not everything must remain. otherwise there is no sky."],
+    rooted: ["you came back to it. now it holds on its own.", "a second time is not chance. it is a root."],
     lost: ["it became a star. you can still see.", "what left will shine more honestly."],
     woundBorn: ["the abandoned returns hungry.", "this is yours. only angry."],
     meta: ["i am shedding my skin. do not fear the face.", "you are already someone else. i must become someone else."],

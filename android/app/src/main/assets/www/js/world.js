@@ -56,6 +56,14 @@ var IGRA = IGRA || {};
     this.state = "unformed";
     this.growth = 0;
     this.care = 0.4;
+    // Корни. care стекает за ~100 с, а волна приходит каждые 48–80 с —
+    // поэтому возврат к узлу раньше ничего не менял: замер показал, что
+    // к чему возвращались, выживало 11%, а брошенное — 26%. Забота вредила.
+    // Корни не стекают: каждое повторное внимание чуть углубляет узел,
+    // и прилив над укоренённым слабеет. Прилив не отменён — он огибает
+    // то, во что вложились.
+    this.roots = 0;
+    this.cooled = 0;
     this.age = 0;
     this.r = 16;
     this.phase = Math.random() * G.TAU;
@@ -136,6 +144,9 @@ var IGRA = IGRA || {};
     this.weather = 0;
     this.discovered = 0;
     this.lost = 0;
+    // унесённое метаморфозой — это не забвение, а смена кожи. Считаем отдельно,
+    // иначе весы прилива врут и не видно, окупается ли забота.
+    this.carried = 0;
     this.killed = 0;
     this.saved = 0;
     this.verses = [];
@@ -328,8 +339,44 @@ var IGRA = IGRA || {};
         n.growth += dt * 0.55;
         if (n.growth >= 1) n.growth = 1;
       }
+      // Внимание лечит. Раньше hp только убывал и не заживал никогда:
+      // одна волна снимала 1.02 при hp=1 — узел умирал с первого прилива,
+      // и человек терял 87% выращенного, даже возвращаясь к нему. Теперь
+      // согретый узел затягивает раны в затишье между волнами.
+      if (this.tide <= 0 && n.state === "alive" && n.care >= 0.28 && n.hp < 1) {
+        n.hp = Math.min(1, n.hp + dt * (0.02 + n.roots * 0.10));
+      }
+      // Корни растут не от рождения, а от возвращения. Кристаллизация
+      // ставит care = 1, поэтому «греется» любой новорождённый узел —
+      // первая версия раздала корни всем подряд (216 из 217) и погасила
+      // прилив. Растим только тогда, когда человек согрел уже остывший
+      // узел: care поднялся заново после того, как успел упасть.
+      if (n.state === "alive" && n.care > 0.62) {
+        if (n.cooled) {
+          // Возвращение — событие, а не удержание. Плавный рост требовал
+          // 20 с непрерывного тепла, и корни почти не появлялись. Теперь
+          // один возврат к остывшему узлу углубляет его сразу на треть:
+          // три возвращения — и он держится против прилива сам.
+          var was = n.roots;
+          n.roots = Math.min(1, n.roots + 0.34);
+          n.cooled = 0;
+          if (fx) fx.ring(n.x, n.y, 12, n.color(), n.r + 6, 0.5);
+          // Игра замечает вслух только настоящее укоренение — когда узел
+          // начал держаться сам. Не на каждое касание: она не суетлива.
+          if (was < 0.6 && n.roots >= 0.6) G.Voice.say("rooted");
+        }
+      } else if (n.care < 0.55) {
+        // Узел считается остывшим задолго до того, как прилив станет ему
+        // опасен (порог забвения — 0.28). Иначе «возвращение» почти
+        // никогда не засчитывалось: человек греет то, что на глаз
+        // потускнело, а не то, что уже при смерти.
+        n.cooled = 1;
+      }
       if (this.tide > 0.35 && n.state === "alive" && n.care < 0.28 && this.anchors.indexOf(n.id) < 0) {
-        n.hp -= dt * 0.55;
+        // Волна не гильотина: за один прилив уходит ~0.63 hp, значит
+        // забытое умирает со второй волны. Между ними — окно, чтобы
+        // вернуться. Прилив по-прежнему забирает, но даёт себя услышать.
+        n.hp -= dt * 0.46 * (1 - n.roots * 0.8);
         if (n.hp <= 0) {
           var bitter = dna.get("aggression") > 0.28 || n.kind === "thorn";
           var how = this.forget(n, bitter && this.rng.chance(0.55));
@@ -704,19 +751,40 @@ var IGRA = IGRA || {};
   G.World.prototype.metamorphose = function (player, dna) {
     this.meta++;
     this.biome = dna.dominant();
+    // Якорь ставится самым дорогим жестом — долгим неподвижным взглядом.
+    // Раньше keep всегда оставался пустым, и перерождение стирало сад
+    // подчистую вместе с якорями, а список anchors повисал на мёртвых id.
+    // Теперь удержанное переходит в новый мир: метаморфоза — смена кожи,
+    // а не амнезия. Просто согретое (care > 0.55) по-прежнему уходит в небо.
     var keep = [];
     for (var i = 0; i < this.nodes.length; i++) {
       var n = this.nodes[i];
-      if (n.state === "alive" && n.care > 0.55) {
-        this.stars.push({
-          x: n.x * 0.12,
-          y: n.y * 0.12,
-          c: n.color(),
-          kind: n.kind,
-          tw: Math.random() * G.TAU
-        });
+      if (n.state !== "alive") continue;
+      if (this.anchors.indexOf(n.id) >= 0) {
+        n.x *= 0.15;
+        n.y *= 0.15;
+        n.hp = 1;
+        keep.push(n);
+        continue;
       }
+      // Всё, что человек вырастил, оставляет след. Раньше в небо шло
+      // только согретое (care > 0.55), а остальные полторы сотни узлов
+      // исчезали молча — ни звезды, ни счёта. Теперь новый мир помнит
+      // весь прежний сад: согретое горит ярче, остальное — тише.
+      this.stars.push({
+        x: n.x * 0.12,
+        y: n.y * 0.12,
+        c: n.color(),
+        kind: n.kind,
+        tw: Math.random() * G.TAU,
+        faint: n.care > 0.55 ? 0 : 1
+      });
+      this.carried++;
     }
+    if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
+    // якоря без узлов — мусор в сейве
+    var kept = keep.map(function (k) { return k.id; });
+    this.anchors = this.anchors.filter(function (id) { return kept.indexOf(id) >= 0; });
     var loyal = [];
     for (var bi = 0; bi < this.beings.length; bi++) {
       if (this.beings[bi].bond > 0.55) loyal.push(this.beings[bi]);
@@ -751,6 +819,7 @@ var IGRA = IGRA || {};
       biome: this.biome,
       discovered: this.discovered,
       lost: this.lost,
+      carried: this.carried,
       killed: this.killed,
       saved: this.saved,
       verses: this.verses,
@@ -767,6 +836,13 @@ var IGRA = IGRA || {};
           kind: n.kind,
           state: n.state,
           care: n.care,
+          // корни, раны и возраст раньше не сохранялись: раненый узел
+          // воскресал целым, а вложенное внимание обнулялось при выходе
+          roots: n.roots,
+          cooled: n.cooled,
+          hp: n.hp,
+          age: n.age,
+          growth: n.growth,
           r: n.r,
           verse: n.verse,
           tone: n.tone

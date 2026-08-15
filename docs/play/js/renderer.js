@@ -107,6 +107,8 @@ var IGRA = IGRA || {};
         var sx = w * 0.5 + st.x * scale + Math.sin(t * 0.2 + st.tw) * (sky ? 14 : 8);
         var sy = (sky ? h * 0.42 : h * 0.22) + st.y * (sky ? 0.7 : 0.2) + Math.cos(t * 0.15 + st.tw) * (sky ? 12 : 6);
         var ta = 0.4 + 0.4 * Math.sin(t * 2 + st.tw);
+        // то, что человек грел, горит ярче забытого мимоходом
+        if (st.faint) ta *= 0.45;
         glow(ctx, sx, sy, sky ? 22 : 10, st.c, 0.22 * ta);
         ctx.fillStyle = G.rgb(st.c[0], st.c[1], st.c[2], 0.8 * ta);
         ctx.beginPath();
@@ -501,6 +503,27 @@ var IGRA = IGRA || {};
         ctx.beginPath();
         ctx.arc(p.x, p.y, r * 0.85, 0, G.TAU);
         ctx.stroke();
+        // Корни: то, к чему человек возвращался, держится за мир нитями.
+        // Одна нить за каждое возвращение — считать не нужно, видно и так.
+        if (n.roots > 0.05) {
+          var rc = Math.round(n.roots * 3);
+          ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.16 + n.roots * 0.18);
+          ctx.lineWidth = 1;
+          for (var ri = 0; ri < rc; ri++) {
+            var ra = Math.PI * 0.5 + (ri - (rc - 1) / 2) * 0.42;
+            var rl = r * (0.9 + n.roots * 0.9);
+            var sway = Math.sin(t * 0.7 + n.phase + ri) * r * 0.12;
+            ctx.beginPath();
+            ctx.moveTo(p.x + Math.cos(ra) * r * 0.5, p.y + Math.sin(ra) * r * 0.5);
+            ctx.quadraticCurveTo(
+              p.x + Math.cos(ra) * rl * 0.7 + sway,
+              p.y + Math.sin(ra) * rl * 0.7,
+              p.x + Math.cos(ra) * rl + sway,
+              p.y + Math.sin(ra) * rl
+            );
+            ctx.stroke();
+          }
+        }
         if (game.world.anchors.indexOf(n.id) >= 0) {
           ctx.strokeStyle = G.rgb(255, 220, 170, 0.5);
           ctx.beginPath();
