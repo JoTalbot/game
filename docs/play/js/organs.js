@@ -12,7 +12,16 @@ var IGRA = IGRA || {};
     singer: "поющее"
   };
 
+  var TEMPER_EN = {
+    clingy: "clinging",
+    shy: "shy",
+    curious: "seeking",
+    wounded: "wounded",
+    singer: "singing"
+  };
+
   var BABY_NAMES = ["без имени", "отголосок", "чуть живое", "кто-то", "не я", "едва"];
+  var BABY_NAMES_EN = ["nameless", "an echo", "barely alive", "someone", "not me", "hardly"];
 
   var TRUE_NAMES = {
     clingy: ["Держусь", "Не отпускай", "Рядом", "Теплее"],
@@ -20,6 +29,19 @@ var IGRA = IGRA || {};
     curious: ["Ещё", "Куда ты", "Смотри", "Дальше края"],
     wounded: ["Болит тихо", "Шов", "Было твоё", "Не бросай дважды"],
     singer: ["Второй голос", "Такт", "Совпадение", "Камертон"]
+  };
+
+  // Существо носит имя над головой всю игру — и это была самая заметная
+  // кириллица на английском берегу. Имена больше не строки: у существа
+  // живут ключи (`nameKey`/`babyKey`), а строка собирается на языке
+  // человека в момент отрисовки. Порядок в обеих раскладках один — иначе
+  // «Камертон» после смены языка стал бы другим существом.
+  var TRUE_NAMES_EN = {
+    clingy: ["I Hold On", "Don't Let Go", "Near", "Warmer"],
+    shy: ["A Bit Further", "Almost", "Behind the Fog", "Not At Once"],
+    curious: ["More", "Where To", "Look", "Past the Edge"],
+    wounded: ["It Aches Quietly", "Seam", "Was Yours", "Don't Leave Twice"],
+    singer: ["Second Voice", "Beat", "Coincidence", "Tuning Fork"]
   };
 
   var SPEECH = {
@@ -48,6 +70,70 @@ var IGRA = IGRA || {};
       "мир совпадает, когда ты не торопишься.",
       "я могу держать ноту, пока ты идёшь."
     ]
+  };
+
+  var SPEECH_EN = {
+    clingy: [
+      "don't go far.",
+      "i am already used to your warmth.",
+      "if you pulse aside, i will think it was me."
+    ],
+    shy: [
+      "could you… be a little quieter.",
+      "i come closer when you are not running.",
+      "don't stare. look beside me."
+    ],
+    curious: [
+      "out there, behind the fog, nothing is decided yet.",
+      "come on. i want to see what this becomes.",
+      "you leave tracks. i collect them."
+    ],
+    wounded: [
+      "this is not anger. this is memory.",
+      "i was let go once already.",
+      "if you strike, i will understand. if you sit down, that too."
+    ],
+    singer: [
+      "hit it once more.",
+      "the world coincides when you don't hurry.",
+      "i can hold a note while you walk."
+    ]
+  };
+
+  function speechPool(temper) {
+    var en = G.Lang && G.Lang.id === "en";
+    var src = en ? SPEECH_EN : SPEECH;
+    return src[temper] || src.shy;
+  }
+
+  // Имя существа: ключ → строка на языке человека. Старые сейвы хранят
+  // готовую строку без ключа — её и показываем, чтобы вернувшийся не
+  // потерял того, кого назвал.
+  G.beingName = function (b) {
+    if (!b) return "";
+    var en = G.Lang && G.Lang.id === "en";
+    if (b.healed) return G.Lang ? G.Lang.t("healed") : "исцелённое";
+    if (b.shardOf) {
+      if (b.named) return G.Lang.t("wasAbandoned");
+      return G.Lang.t("shardOf") + " " + G.kindName(b.shardOf);
+    }
+    if (b.named) {
+      if (b.nameKey && TRUE_NAMES[b.nameKey.t]) {
+        var pool = (en ? TRUE_NAMES_EN : TRUE_NAMES)[b.nameKey.t] || TRUE_NAMES[b.nameKey.t];
+        return pool[b.nameKey.i % pool.length];
+      }
+      return b.name || "";
+    }
+    if (b.babyKey != null) {
+      var babies = en ? BABY_NAMES_EN : BABY_NAMES;
+      return babies[b.babyKey % babies.length];
+    }
+    return b.name || "";
+  };
+
+  G.temperName = function (t) {
+    if (G.Lang && G.Lang.id === "en") return TEMPER_EN[t] || t;
+    return TEMPER_RU[t] || t;
   };
 
   // Законы — то, что человек назвал «жёлтенькими молниями». У каждого есть
@@ -84,8 +170,66 @@ var IGRA = IGRA || {};
     "забвение прошло мимо и оставило запятую"
   ];
 
+  var VERSE_STEM_EN = [
+    "in the pause i heard $trait",
+    "you let $lost go. the garden remembers",
+    "$being stood there while you were silent",
+    "silence number $n is not like the first",
+    "the shore breathes $biome",
+    "i am writing this out of what you did not do",
+    "if the pause had a name, it would be yours",
+    "oblivion walked past and left a comma"
+  ];
+
+  // Имя раны-босса: тоже ключ. Босс живёт в сейве, и его русское имя
+  // пережило бы любую смену языка.
+  var BOSS_NAMES = {
+    ru: ["Собранная", "Голод из тебя", "То, что не стало небом"],
+    en: ["The Gathered", "Hunger Made of You", "What Did Not Become Sky"]
+  };
+
+  G.bossName = function (b) {
+    if (!b) return "";
+    if (b.nameKey == null) return b.name || "";
+    var pool = G.Lang && G.Lang.id === "en" ? BOSS_NAMES.en : BOSS_NAMES.ru;
+    return pool[b.nameKey % pool.length];
+  };
+
+  var NOTHING = { ru: "ничего", en: "nothing" };
+  var NOBODY = { ru: "никто", en: "no one" };
+
+  // Стихи узла тишины. Жили в world.js готовыми русскими строками и
+  // оседали в сейве — на английском берегу сад читал кириллицу.
+  var STILL_VERSE = {
+    ru: ["здесь кто-то уже ждал", "пауза имеет форму", "не всё должно двигаться", "я слышу дно"],
+    en: ["someone was already waiting here", "a pause has a shape", "not everything must move", "i hear the bottom"]
+  };
+
+  // Стих — не строка, а замысел: ось, потеря, существо, номер, берег.
+  // Строкой он становится в момент показа, на языке человека. Иначе стих
+  // вмерзает в сейв: переключил язык — и сад до конца жизни читает
+  // по-русски. Старые сейвы хранят готовые строки — их отдаём как есть.
+  G.verseText = function (v) {
+    if (!v) return "";
+    if (typeof v === "string") return v;
+    var en = G.Lang && G.Lang.id === "en";
+    if (v.who) return G.beingName(v.who);
+    if (v.still != null) {
+      var st = en ? STILL_VERSE.en : STILL_VERSE.ru;
+      return st[v.still % st.length];
+    }
+    var stems = en ? VERSE_STEM_EN : VERSE_STEM;
+    return stems[v.i % stems.length]
+      .replace("$trait", G.traitName(v.trait))
+      .replace("$lost", v.lost ? G.kindName(v.lost) : (en ? NOTHING.en : NOTHING.ru))
+      .replace("$being", v.being ? (G.beingName(v.being) || (en ? NOBODY.en : NOBODY.ru)) : (en ? NOBODY.en : NOBODY.ru))
+      .replace("$n", String(v.n))
+      .replace("$biome", G.traitName(v.biome));
+  };
+
   G.Organs = {
     TEMPER_RU: TEMPER_RU,
+    TEMPER_EN: TEMPER_EN,
 
     birthBeing: function (x, y, hint, rng) {
       var b = new G.Being(x, y, hint || "empathy");
@@ -93,8 +237,10 @@ var IGRA = IGRA || {};
       b.temper = r.pick(TEMPERS);
       if (hint === "wounded") b.temper = "wounded";
       if (hint === "harmony") b.temper = "singer";
-      b.name = r.pick(BABY_NAMES);
-      b.trueName = r.pick(TRUE_NAMES[b.temper]);
+      b.babyKey = r.int(0, BABY_NAMES.length);
+      b.nameKey = { t: b.temper, i: r.int(0, TRUE_NAMES[b.temper].length) };
+      b.name = G.beingName(b);
+      b.trueName = TRUE_NAMES[b.temper][b.nameKey.i];
       b.named = false;
       b.debt = 0;
       b.memory = [];
@@ -104,16 +250,16 @@ var IGRA = IGRA || {};
     },
 
     nameBeing: function (b) {
-      if (b.named) return b.name;
+      if (b.named) return G.beingName(b);
       b.named = true;
       b.name = b.trueName || b.name;
-      return b.name;
+      return G.beingName(b);
     },
 
     speakBeing: function (b) {
-      var pool = SPEECH[b.temper] || SPEECH.shy;
+      var pool = speechPool(b.temper);
       var i = (b.memory.length + (b.named ? 1 : 0)) % pool.length;
-      return (b.named ? b.name + ". " : "") + pool[i];
+      return (b.named ? G.beingName(b) + ". " : "") + pool[i];
     },
 
     remember: function (b, ev) {
@@ -121,19 +267,25 @@ var IGRA = IGRA || {};
       if (b.memory.length > 12) b.memory.shift();
     },
 
+    // Возвращает замысел стиха, а не готовую строку. Существо кладём
+    // снимком имени (ключи, а не текст) — сам объект в сейв тянуть нельзя.
     composeVerse: function (game) {
-      var stem = G.pick(VERSE_STEM);
-      var lost = game.world.forgotten && game.world.forgotten.length
-        ? G.kindName(game.world.forgotten[game.world.forgotten.length - 1].kind)
-        : "ничего";
-      var being = game.world.beings[0] ? game.world.beings[0].name : "никто";
-      var text = stem
-        .replace("$trait", G.traitName(game.dna.dominant()))
-        .replace("$lost", lost)
-        .replace("$being", being)
-        .replace("$n", String((game.world.verses.length || 0) + 1))
-        .replace("$biome", G.traitName(game.world.biome));
-      return text;
+      var w = game.world;
+      var b = w.beings[0];
+      return {
+        i: (Math.random() * VERSE_STEM.length) | 0,
+        trait: game.dna.dominant(),
+        lost: w.forgotten && w.forgotten.length ? w.forgotten[w.forgotten.length - 1].kind : "",
+        being: b ? { named: b.named, nameKey: b.nameKey, babyKey: b.babyKey, name: b.name } : null,
+        n: (w.verses.length || 0) + 1,
+        biome: w.biome
+      };
+    },
+
+    // Кубик тот же, что и раньше (G.pick по общему Math.random): поток
+    // случайности мира трогать нельзя, иначе сдвигается вся игра.
+    stillVerse: function () {
+      return { still: (Math.random() * STILL_VERSE.ru.length) | 0 };
     },
 
     plantBloom: function (world, x, y, verse) {
@@ -175,7 +327,7 @@ var IGRA = IGRA || {};
           var t = G.now();
           if (t - this._verseSaid > 90) {
             this._verseSaid = t;
-            G.Voice.sayText(verse);
+            G.Voice.sayText(G.verseText(verse));
           }
         }
         var b = this.plantBloom(game.world, p.x, p.y, verse);
@@ -208,11 +360,11 @@ var IGRA = IGRA || {};
         lunge: 0,
         stun: 0,
         weak: 0,
-        name: G.pick(["Собранная", "Голод из тебя", "То, что не стало небом"])
+        nameKey: (Math.random() * 3) | 0
       };
       w.bossSaid = true;
       G.Voice.say("boss", true);
-      G.UI.hint(w.boss.name + " " + G.Lang.t("bossGathered"));
+      G.UI.hint(G.bossName(w.boss) + " " + G.Lang.t("bossGathered"));
       setTimeout(function () {
         G.UI.hint("");
       }, 4200);
@@ -294,8 +446,12 @@ var IGRA = IGRA || {};
       var part = boss.parts.pop();
       var b = this.birthBeing(boss.x + G.rand(-30, 30), boss.y + G.rand(-30, 30), "empathy", game.world.rng);
       b.temper = "wounded";
-      b.name = G.Lang.t("shardOf") + " " + G.kindName(part.kind);
-      b.trueName = G.Lang.t("wasAbandoned");
+      // осколок носит имя породы, из которой собрался: держим ключ,
+      // строка складывается на языке человека
+      b.shardOf = part.kind;
+      b.nameKey = null;
+      b.name = "";
+      b.trueName = "";
       b.bond = 0.25;
       game.world.beings.push(b);
       G.Voice.say("peel");
@@ -483,7 +639,7 @@ var IGRA = IGRA || {};
         this._chordSaid = tc;
         G.Voice.say("music");
       }
-      game.floaters.add(p.x, p.y - 30, "аккорд", G.TRAIT_COLOR.harmony);
+      game.floaters.add(p.x, p.y - 30, G.Lang.t("chordWord"), G.TRAIT_COLOR.harmony);
     },
 
     nearestBeing: function (world, x, y, max) {

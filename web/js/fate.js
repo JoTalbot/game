@@ -15,13 +15,7 @@ var IGRA = IGRA || {};
       if (this.offered) return;
       this.offered = true;
       G.Voice.say("fate");
-      var ru = G.Lang.id !== "en";
-      G.Voice.sayText(
-        ru
-          ? "я могу отпустить тебя. или ты можешь стать мной."
-          : "i can let you go. or you can become me.",
-        true
-      );
+      G.Voice.sayText(G.Lang.t("fate"), true);
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.add("on");
       G.Haptic.play("end");
@@ -36,12 +30,7 @@ var IGRA = IGRA || {};
       G.Haptic.play("end");
       G.Audio.metamorphosis(game.dna);
       G.Voice.say("released");
-      G.Voice.sayText(
-        G.Lang.id === "en"
-          ? "go. i keep your shore as a sky."
-          : "иди. берег останется небом.",
-        true
-      );
+      G.Voice.sayText(G.Lang.t("releaseLine"), true);
       for (var i = 0; i < game.world.nodes.length; i++) {
         var n = game.world.nodes[i];
         if (n.state === "alive") {
@@ -73,10 +62,7 @@ var IGRA = IGRA || {};
       } catch (e) {}
       G.Haptic.play("meta");
       G.Voice.say("became");
-      G.Voice.sayText(
-        (G.Lang.id === "en" ? "now you are the voice. " : "теперь ты — голос. ") + game.dna.name() + ".",
-        true
-      );
+      G.Voice.sayText(G.Lang.t("becameLine") + " " + game.dna.name() + ".", true);
       setTimeout(function () {
         G.Save.clear();
         try {
@@ -91,14 +77,10 @@ var IGRA = IGRA || {};
         var raw = localStorage.getItem("igra.voiceplus");
         if (!raw) return;
         var data = JSON.parse(raw);
-        if (!data || !data.name) return;
+        if (!data || !(data.dna || data.name)) return;
         setTimeout(function () {
-          G.Voice.sayText(
-            G.Lang.id === "en"
-              ? data.name + " is reading you now."
-              : data.name + " теперь читает тебя.",
-            true
-          );
+          var who = G.dnaName(data.dna) || data.name;
+          G.Voice.sayText(who + " " + G.Lang.t("readsYou"), true);
         }, 2400);
       } catch (e) {}
     }

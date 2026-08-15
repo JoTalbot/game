@@ -106,6 +106,23 @@ var IGRA = IGRA || {};
       return true;
     },
 
+    // Сменилась ли доминанта. Раньше это выясняли, заглядывая в текст
+    // реплики (`indexOf("вчера") === 0`) — на английском берегу такой
+    // проверки не существовало, и «вчерашний ты» там не рождался вовсе,
+    // если человек отсутствовал меньше трёх часов.
+    shifted: function (prev, cur) {
+      if (!prev) return false;
+      var a = "curiosity", b = "curiosity", av = -1, bv = -1;
+      for (var i = 0; i < G.TRAITS.length; i++) {
+        var k = G.TRAITS[i];
+        var pv = prev[k] != null ? prev[k] : 0;
+        var cv = cur.get ? cur.get(k) : cur[k] || 0;
+        if (pv > av) { av = pv; a = k; }
+        if (cv > bv) { bv = cv; b = k; }
+      }
+      return a !== b;
+    },
+
     commentShift: function (prev, cur) {
       if (!prev) return "";
       var a = "curiosity";
@@ -125,10 +142,18 @@ var IGRA = IGRA || {};
           b = k;
         }
       }
-      if (a === b) {
-        return "ты всё ещё " + G.TRAIT_RU[a] + ". я почти поверила, что это навсегда.";
+      // Игра говорит человеку, кем он был вчера, — и говорила это только
+      // по-русски даже на английском берегу.
+      if (G.Lang && G.Lang.id === "en") {
+        if (a === b) {
+          return "you are still " + G.traitName(a) + ". i almost believed it was forever.";
+        }
+        return "yesterday you were " + G.traitName(a) + ". today — " + G.traitName(b) + ". i changed the weather.";
       }
-      return "вчера ты был " + G.TRAIT_RU[a] + ". сегодня — " + G.TRAIT_RU[b] + ". я сменила погоду.";
+      if (a === b) {
+        return "ты всё ещё " + G.traitName(a) + ". я почти поверила, что это навсегда.";
+      }
+      return "вчера ты был " + G.traitName(a) + ". сегодня — " + G.traitName(b) + ". я сменила погоду.";
     },
 
     note: function (text) {
@@ -216,7 +241,7 @@ var IGRA = IGRA || {};
       if (hours > 2 && G.chance(0.7)) {
         var verse = G.Organs.composeVerse(game);
         w.addVerse(verse);
-        this.note("пока тебя не было: " + verse);
+        this.note((G.Lang && G.Lang.id === "en" ? "while you were away: " : "пока тебя не было: ") + G.verseText(verse));
       }
       return { hours: hours, lost: lost, blooms: blooms, debt: debt };
     },
@@ -224,10 +249,15 @@ var IGRA = IGRA || {};
     greet: function (game, report) {
       var self = this;
       var lines = [];
+      var en = G.Lang && G.Lang.id === "en";
       if (this.sessions <= 1) {
-        lines.push("ты вернулся в тот же сон. я считаю дни.");
+        lines.push(en
+          ? "you came back into the same dream. i am counting the days."
+          : "ты вернулся в тот же сон. я считаю дни.");
       } else {
-        lines.push("день " + this.days + ". сессия " + this.sessions + ".");
+        lines.push(en
+          ? "day " + this.days + ". session " + this.sessions + "."
+          : "день " + this.days + ". сессия " + this.sessions + ".");
         // Пул `returner` был написан давно и не звучал ни разу: Игра
         // встречала вернувшегося сухой цифрой сессии. Теперь после счёта
         // дней она говорит и по-человечески — но только тому, кто уже
@@ -238,10 +268,20 @@ var IGRA = IGRA || {};
         }
       }
       if (report && report.hours >= 0.5) {
-        var h = report.hours < 2 ? "недолго" : report.hours < 10 ? "несколько часов" : "целую жизнь без тебя";
-        lines.push("берег спал " + h + ".");
-        if (report.lost) lines.push("забвение съело " + report.lost + ", пока ты был не здесь.");
-        if (report.blooms) lines.push("сад вырос сам. ему не нужно разрешение.");
+        var h = en
+          ? (report.hours < 2 ? "not long" : report.hours < 10 ? "a few hours" : "a whole life without you")
+          : (report.hours < 2 ? "недолго" : report.hours < 10 ? "несколько часов" : "целую жизнь без тебя");
+        lines.push(en ? "the shore slept " + h + "." : "берег спал " + h + ".");
+        if (report.lost) {
+          lines.push(en
+            ? "oblivion ate " + report.lost + " while you were elsewhere."
+            : "забвение съело " + report.lost + ", пока ты был не здесь.");
+        }
+        if (report.blooms) {
+          lines.push(en
+            ? "the garden grew on its own. it does not need permission."
+            : "сад вырос сам. ему не нужно разрешение.");
+        }
       }
       var shift = this.commentShift(this.lastDna, game.dna);
       if (shift) lines.push(shift);
@@ -279,7 +319,7 @@ var IGRA = IGRA || {};
         this.days = Math.max(this.days, dayGap);
         var report = this.sleepWorld(game, hours);
         this.setFromDna(game.dna, true);
-        var changed = this.lastDna && this.commentShift(this.lastDna, game.dna).indexOf("вчера") === 0;
+        var changed = this.shifted(this.lastDna, game.dna);
         if (hours > 3 || changed) {
           this.spawnYesterday(game, this.lastDna, this.lastName);
         }

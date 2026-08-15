@@ -263,8 +263,8 @@ var IGRA = IGRA || {};
           this.player.x = star.ox;
           this.player.y = star.oy;
         }
-        G.Voice.sayText(star.verse ||
-          ((G.Lang && G.Lang.id === "en" ? "a star of " : "звезда ") + G.kindName(star.kind) + "."), true);
+        G.Voice.sayText(G.verseText(star.verse) ||
+          (G.Lang.t("starOf") + " " + G.kindName(star.kind) + "."), true);
         G.Organs.toggleSky(this, false);
       }
       return;
@@ -621,7 +621,7 @@ var IGRA = IGRA || {};
       if (this.player.gazeT >= 1.05) {
         if (!b.named && b.bond > 0.45) {
           G.Organs.nameBeing(b);
-          this.floaters.add(b.x, b.y - 18, b.name, G.TRAIT_COLOR.empathy);
+          this.floaters.add(b.x, b.y - 18, G.beingName(b), G.TRAIT_COLOR.empathy);
         }
         if (b.isYesterday) {
           G.Voice.say("yesterday", true);
@@ -811,6 +811,10 @@ var IGRA = IGRA || {};
         // существо возвращалось чужим. Память существа — тоже память.
         if (sb.temper) b.temper = sb.temper;
         if (sb.trueName) b.trueName = sb.trueName;
+        if (sb.nameKey) b.nameKey = sb.nameKey;
+        if (sb.babyKey != null) b.babyKey = sb.babyKey;
+        if (sb.healed) b.healed = true;
+        if (sb.shardOf) b.shardOf = sb.shardOf;
         b.named = !!sb.named;
         b.debt = sb.debt || 0;
         b.isYesterday = !!sb.isYesterday;

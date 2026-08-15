@@ -57,7 +57,7 @@ var IGRA = IGRA || {};
         mouth.value = G.Mouth.get();
         mouth.addEventListener("change", function () {
           G.Mouth.set(mouth.value);
-          G.UI.hint(mouth.value ? "рот открыт. Игра сможет говорить чужим языком." : "рот закрыт. говорю сама.");
+          G.UI.hint(G.Lang.t(mouth.value ? "mouthOn" : "mouthOff"));
           setTimeout(function () {
             G.UI.hint("");
           }, 2800);
@@ -92,7 +92,7 @@ var IGRA = IGRA || {};
             game.state = "play";
             document.body.classList.remove("title-mode");
             document.getElementById("title-screen").style.display = "none";
-            G.UI.hint("я помню тебя, " + game.dna.name());
+            G.UI.hint(G.Lang.t("rememberYou") + " " + game.dna.name());
             G.UI.paintSeason();
             setTimeout(function () {
               G.UI.hint("");
@@ -200,7 +200,7 @@ var IGRA = IGRA || {};
       var sub = document.getElementById("sigil-sub");
       var stats = document.getElementById("sigil-stats");
       if (name) name.textContent = dna.name();
-      if (sub) sub.textContent = G.TRAIT_HINT[dna.dominant()];
+      if (sub) sub.textContent = G.traitHint(dna.dominant());
       if (stats) {
         // сигила — лицо игры, она обязана говорить на языке человека
         var T = function (k) {
@@ -223,7 +223,9 @@ var IGRA = IGRA || {};
       }
       var verses = document.getElementById("sigil-verses");
       if (verses) {
-        var last = (game.world.verses || []).slice(-3);
+        var last = (game.world.verses || []).slice(-3).map(function (v) {
+          return G.verseText(v);
+        });
         verses.innerHTML = last.join("<br>");
       }
       var seasonEl = document.getElementById("sigil-season");
@@ -280,14 +282,9 @@ var IGRA = IGRA || {};
           a.href = canvas.toDataURL("image/png");
           a.click();
         }
-        G.Voice.sayText(
-          G.Lang.id === "en"
-            ? "take it. the only proof you were here."
-            : "унеси. это единственное доказательство, что ты был.",
-          true
-        );
+        G.Voice.sayText(G.Lang.t("takeSigil"), true);
       } catch (e) {
-        G.UI.hint(G.Lang.id === "en" ? "the shore kept the picture" : "берег не отдал картинку");
+        G.UI.hint(G.Lang.t("pictureKept"));
       }
     }
   };

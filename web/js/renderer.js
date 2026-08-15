@@ -432,14 +432,14 @@ var IGRA = IGRA || {};
         ctx.stroke();
       }
       ctx.restore();
-      if (b.verse) {
+      if (b.verse && G.verseText(b.verse)) {
         ctx.save();
         ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.92);
         ctx.font = "italic 19px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
         ctx.shadowColor = "rgba(0,0,0,0.9)";
         ctx.shadowBlur = 5;
-        ctx.fillText(b.verse, p.x, p.y + r + 22);
+        ctx.fillText(G.verseText(b.verse), p.x, p.y + r + 22);
         ctx.restore();
       }
     },
@@ -486,14 +486,14 @@ var IGRA = IGRA || {};
       ctx.closePath();
       ctx.stroke();
       ctx.restore();
-      if (b.name) {
+      if (G.beingName(b)) {
         ctx.save();
         ctx.fillStyle = G.rgb(255, 205, 215, 0.95);
         ctx.font = "italic 21px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
         ctx.shadowColor = "rgba(0,0,0,0.9)";
         ctx.shadowBlur = 5;
-        ctx.fillText(b.name, p.x, p.y - r - 16);
+        ctx.fillText(G.beingName(b), p.x, p.y - r - 16);
         ctx.restore();
       }
     },
@@ -563,7 +563,7 @@ var IGRA = IGRA || {};
           ctx.textAlign = "center";
           ctx.shadowColor = "rgba(0,0,0,0.9)";
           ctx.shadowBlur = 5;
-          ctx.fillText(n.verse, p.x, p.y + r + 16);
+          ctx.fillText(G.verseText(n.verse), p.x, p.y + r + 16);
           ctx.restore();
         }
       }
@@ -607,7 +607,7 @@ var IGRA = IGRA || {};
         ctx.fillStyle = G.rgb(220, 216, 236, 0.38);
         ctx.font = "italic 17px 'Cormorant Garamond', serif";
       }
-      ctx.fillText(b.name, p.x, p.y + r + 14);
+      ctx.fillText(G.beingName(b), p.x, p.y + r + 14);
       ctx.restore();
     },
 

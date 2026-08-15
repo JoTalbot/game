@@ -125,7 +125,7 @@ var IGRA = IGRA || {};
             G.Memory.climateName() + ".",
           true
         );
-        G.Memory.note("сезон: " + G.Memory.climate().id);
+        G.Memory.note(G.Lang.t("seasonNote") + " " + G.Memory.climateName());
         G.UI.paintSeason();
       }
 
@@ -384,7 +384,7 @@ var IGRA = IGRA || {};
       if (kind === "still" && game.world.verses.length) {
         var v = game.world.verses[game.world.verses.length - 1];
         setTimeout(function () {
-          G.Voice.sayText(v, true);
+          G.Voice.sayText(G.verseText(v), true);
         }, 2200);
       }
       // milestones: the shore must say "you achieved" out loud

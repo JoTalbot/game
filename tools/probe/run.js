@@ -272,6 +272,118 @@ group("язык: обе раскладки полны");
   G.Lang.id = prev;
 })();
 
+// ——— имена и стихи: язык не вмерзает в мир ———
+// Самая большая кириллица английского берега висела не в словаре, а в
+// самом мире: имя человека, имена существ, их речь и стихи сада —
+// всё это было русскими СТРОКАМИ, которые вдобавок ложились в сейв.
+// Переключив язык, человек получал английский интерфейс поверх русского
+// сада — и обратной дороги не было: строка уже сохранена.
+// Теперь мир хранит ключи, а строка собирается на языке человека в
+// момент показа. Эти проверки стерегут и полноту таблиц, и то, что
+// перевод не вмерзает.
+group("язык: мир не вмерзает в раскладку");
+(function () {
+  var prev = G.Lang.id;
+
+  // 1. Имя человека — то, что он уносит в сигиле.
+  var dna = new G.Dna({ curiosity: 0.9, aggression: 0.1, contemplation: 0.2, empathy: 0.15, chaos: 0.1, harmony: 0.1 });
+  G.Lang.id = "ru";
+  var nameRu = dna.name();
+  G.Lang.id = "en";
+  var nameEn = dna.name();
+  ok(!/[а-яА-Я]/.test(nameEn) && nameEn !== nameRu,
+     "имя человека переводится", nameRu + " / " + nameEn);
+
+  // Обе таблицы имён — одного состава и длины: индекс берётся от хеша
+  // ДНК, и разной длиной человек после смены языка стал бы другим.
+  var badName = [];
+  for (var t in G.NAME_TABLES.ru.names) {
+    if (!Object.prototype.hasOwnProperty.call(G.NAME_TABLES.ru.names, t)) continue;
+    var a = G.NAME_TABLES.ru.names[t], b = G.NAME_TABLES.en.names[t];
+    if (!b || b.length !== a.length) badName.push(t);
+  }
+  for (var hk in G.NAME_TABLES.ru.hybrid) {
+    if (!Object.prototype.hasOwnProperty.call(G.NAME_TABLES.ru.hybrid, hk)) continue;
+    if (!G.NAME_TABLES.en.hybrid[hk]) badName.push(hk);
+  }
+  ok(!badName.length, "обе раскладки имени одного состава", badName.join(", "));
+
+  // Подпись под сигилой — второе по заметности место после имени.
+  var noHint = [];
+  for (var ti = 0; ti < G.TRAITS.length; ti++) {
+    G.Lang.id = "en";
+    if (/[а-яА-Я]/.test(G.traitHint(G.TRAITS[ti]))) noHint.push(G.TRAITS[ti]);
+  }
+  ok(!noHint.length, "подпись оси переводится", noHint.join(", "));
+
+  // 2. Существо: имя над головой и речь.
+  G.Lang.id = "ru";
+  var game = H.makeWorld(G, 91);
+  var being = G.Organs.birthBeing(10, 10, "empathy", game.world.rng);
+  var babyRu = G.beingName(being);
+  G.Lang.id = "en";
+  var babyEn = G.beingName(being);
+  ok(!/[а-яА-Я]/.test(babyEn) && babyEn !== babyRu,
+     "безымянное существо зовётся на языке человека", babyRu + " / " + babyEn);
+
+  G.Organs.nameBeing(being);
+  G.Lang.id = "ru";
+  var trueRu = G.beingName(being);
+  G.Lang.id = "en";
+  var trueEn = G.beingName(being);
+  ok(!/[а-яА-Я]/.test(trueEn) && trueEn !== trueRu,
+     "истинное имя переводится", trueRu + " / " + trueEn);
+
+  var badTemper = [];
+  for (var tk in G.Organs.TEMPER_RU) {
+    if (!Object.prototype.hasOwnProperty.call(G.Organs.TEMPER_RU, tk)) continue;
+    if (!G.Organs.TEMPER_EN[tk]) badTemper.push(tk);
+    var pool = G.Organs.TEMPER_EN[tk];
+    if (pool && /[а-яА-Я]/.test(pool)) badTemper.push(tk);
+  }
+  ok(!badTemper.length, "у каждого характера есть английское имя", badTemper.join(", "));
+
+  ok(!/[а-яА-Я]/.test(G.Organs.speakBeing(being)),
+     "существо говорит по-английски", G.Organs.speakBeing(being));
+
+  // 3. Стих сада: замысел, а не строка.
+  G.Lang.id = "ru";
+  var verse = G.Organs.composeVerse(game);
+  ok(typeof verse === "object", "стих хранится замыслом, а не строкой");
+  var vRu = G.verseText(verse);
+  G.Lang.id = "en";
+  var vEn = G.verseText(verse);
+  ok(!/[а-яА-Я]/.test(vEn) && vEn !== vRu, "стих сада переводится", vRu + " / " + vEn);
+
+  var still = G.Organs.stillVerse();
+  G.Lang.id = "en";
+  ok(!/[а-яА-Я]/.test(G.verseText(still)), "стих узла тишины переводится", G.verseText(still));
+
+  // 4. Главное: язык не вмерзает в сейв. Игра, сохранённая по-русски,
+  // после переключения обязана говорить по-английски целиком.
+  G.Lang.id = "ru";
+  var w = H.makeWorld(G, 77);
+  var b2 = G.Organs.birthBeing(30, 30, "empathy", w.world.rng);
+  G.Organs.nameBeing(b2);
+  w.world.beings.push(b2);
+  w.world.addVerse(G.Organs.composeVerse(w));
+  var json = JSON.parse(JSON.stringify(w.world.toJSON()));
+  ok(json.beings[json.beings.length - 1].nameKey != null,
+     "имя существа уезжает в сейв ключом, а не строкой");
+
+  G.Lang.id = "en";
+  var frozen = [];
+  var sb = json.beings[json.beings.length - 1];
+  var revived = { named: sb.named, nameKey: sb.nameKey, babyKey: sb.babyKey, name: sb.name };
+  if (/[а-яА-Я]/.test(G.beingName(revived))) frozen.push("имя существа");
+  for (var vi = 0; vi < json.verses.length; vi++) {
+    if (/[а-яА-Я]/.test(G.verseText(json.verses[vi]))) frozen.push("стих");
+  }
+  ok(!frozen.length, "русский сейв не примораживает язык", frozen.join(", "));
+
+  G.Lang.id = prev;
+})();
+
 // ——— первая минута: то, что нельзя сломать ———
 group("первая минута без туториала");
 (function () {

@@ -21,6 +21,7 @@ var IGRA = IGRA || {};
       aliveWarmth: "живое тоже слышит взгляд — и возвращает тепло.",
       seamHit: "шов. бей сюда — или сядь рядом.",
       shardOf: "осколок",
+      healed: "исцелённое",
       wasAbandoned: "Было брошено",
       whatYouLeft: "то, что ты бросил",
       yesterdayYou: "вчерашний ты",
@@ -44,7 +45,19 @@ var IGRA = IGRA || {};
       fate: "я могу отпустить тебя. или ты можешь стать мной.",
       hintBirth: "коснись. задержись. или просто стой.",
       hintPlay: "двойное касание — пульс · i — сигила",
-      forgetAsk: "Игра забудет тебя. Берег исчезнет. Это тоже жест."
+      forgetAsk: "Игра забудет тебя. Берег исчезнет. Это тоже жест.",
+      mouthOn: "рот открыт. Игра сможет говорить чужим языком.",
+      mouthOff: "рот закрыт. говорю сама.",
+      rememberYou: "я помню тебя,",
+      seasonNote: "сезон:",
+      starOf: "звезда",
+      chordWord: "аккорд",
+      pictureKept: "берег не отдал картинку",
+      takeSigil: "унеси. это единственное доказательство, что ты был.",
+      releaseLine: "иди. берег останется небом.",
+      becameLine: "теперь ты — голос.",
+      nowYouAre: "теперь ты —",
+      readsYou: "теперь читает тебя."
     },
     en: {
       word: "IGRA",
@@ -64,6 +77,7 @@ var IGRA = IGRA || {};
       aliveWarmth: "the living feels a gaze too — and gives warmth back.",
       seamHit: "a seam. strike here — or sit beside it.",
       shardOf: "shard of",
+      healed: "the healed one",
       wasAbandoned: "It Was Abandoned",
       whatYouLeft: "what you left behind",
       yesterdayYou: "yesterday's you",
@@ -87,7 +101,19 @@ var IGRA = IGRA || {};
       fate: "i can let you go. or you can become me.",
       hintBirth: "touch. hold. or just stand.",
       hintPlay: "double tap — pulse · i — sigil",
-      forgetAsk: "The Game will forget you. The shore will vanish. That is also a gesture."
+      forgetAsk: "The Game will forget you. The shore will vanish. That is also a gesture.",
+      mouthOn: "the mouth is open. the Game may speak in a borrowed tongue.",
+      mouthOff: "the mouth is closed. i speak for myself.",
+      rememberYou: "i remember you,",
+      seasonNote: "season:",
+      starOf: "a star of",
+      chordWord: "chord",
+      pictureKept: "the shore kept the picture",
+      takeSigil: "take it. the only proof you were here.",
+      releaseLine: "go. i keep your shore as a sky.",
+      becameLine: "now you are the voice.",
+      nowYouAre: "now you are",
+      readsYou: "is reading you now."
     }
   };
 

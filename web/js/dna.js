@@ -55,6 +55,23 @@ var IGRA = IGRA || {};
     harmony: "ты слышишь пульс и отвечаешь ему"
   };
 
+  // Подпись под сигилой — самое читаемое место игры после имени, и до сих
+  // пор она была только по-русски: англичанин видел кириллицу на лице
+  // собственного портрета.
+  G.TRAIT_HINT_EN = {
+    curiosity: "you walk where nothing has a name yet",
+    aggression: "you touch in order to change by force",
+    contemplation: "you know how not to act",
+    empathy: "you stop in front of what is not yours",
+    chaos: "you break the frame to see the seam",
+    harmony: "you hear the pulse and answer it"
+  };
+
+  G.traitHint = function (trait) {
+    if (G.Lang && G.Lang.id === "en") return G.TRAIT_HINT_EN[trait] || trait;
+    return G.TRAIT_HINT[trait] || trait;
+  };
+
   G.TRAIT_COLOR = {
     curiosity: [78, 224, 255],
     aggression: [255, 59, 78],
@@ -82,6 +99,20 @@ var IGRA = IGRA || {};
     harmony: ["Второй голос", "Камертон берега", "Тот, кто совпадает"]
   };
 
+  // Имя человека — самое личное, что даёт Игра, и оно было только
+  // русским: англичанин играл под кириллическим прозвищем и уносил его
+  // в сигиле. Порядок строк тот же, что в NAMES: имя выбирается по
+  // индексу от хеша ДНК, поэтому обе раскладки обязаны быть одной длины —
+  // иначе при смене языка человек станет кем-то другим.
+  var NAMES_EN = {
+    curiosity: ["The One Who Looks Away", "Cartographer of Fog", "The One Who Goes Further"],
+    aggression: ["Warm Blow", "The White-Hot", "The One Who Tears Form"],
+    contemplation: ["Long Silence", "Garden Without a Gardener", "The One Who Stays"],
+    empathy: ["Quiet Name", "Holder of What Is Not His", "The One They Return To"],
+    chaos: ["Seam Inside Out", "A Mistake That Lives", "The One Who Never Repeats"],
+    harmony: ["Second Voice", "Tuning Fork of the Shore", "The One Who Coincides"]
+  };
+
   var HYBRID = {
     "curiosity+aggression": "Охотник за горизонтом",
     "curiosity+contemplation": "Архивариус пустоты",
@@ -99,6 +130,28 @@ var IGRA = IGRA || {};
     "empathy+harmony": "Хор из двоих",
     "chaos+harmony": "Красивая поломка"
   };
+
+  var HYBRID_EN = {
+    "curiosity+aggression": "Hunter of the Horizon",
+    "curiosity+contemplation": "Archivist of Emptiness",
+    "curiosity+empathy": "Seeker of Other Tracks",
+    "curiosity+chaos": "Map Breaker",
+    "curiosity+harmony": "Gatherer of Constellations",
+    "aggression+contemplation": "Monk With a Knife",
+    "aggression+empathy": "Cruel Tenderness",
+    "aggression+chaos": "Red Glitch",
+    "aggression+harmony": "A Blow in Time",
+    "contemplation+empathy": "Listener to Pain",
+    "contemplation+chaos": "Silence After the Error",
+    "contemplation+harmony": "Bell Without a Tongue",
+    "empathy+chaos": "A Wound That Jokes",
+    "empathy+harmony": "Choir of Two",
+    "chaos+harmony": "Beautiful Breakage"
+  };
+
+  // Стенд сторожит полноту обеих раскладок имени: пропажа тут означает,
+  // что человек при смене языка получит чужое имя или кириллицу.
+  G.NAME_TABLES = { ru: { names: NAMES, hybrid: HYBRID }, en: { names: NAMES_EN, hybrid: HYBRID_EN } };
 
   G.Dna = function (raw) {
     this.values = {};
@@ -183,14 +236,29 @@ var IGRA = IGRA || {};
     return G.rgb(c[0], c[1], c[2], a);
   };
 
+  // Имя не хранится строкой нигде: оно каждый раз выводится из ДНК. Это
+  // и делает его переводимым — человек меняет язык и остаётся собой, а не
+  // застревает в чужой раскладке. Индекс берётся от хеша ДНК, а не от
+  // случайности, поэтому «Картограф тумана» и «Cartographer of Fog» —
+  // один и тот же человек.
   G.Dna.prototype.name = function () {
+    var tbl = G.NAME_TABLES[G.Lang && G.Lang.id === "en" ? "en" : "ru"] || G.NAME_TABLES.ru;
     var a = this.dominant();
     var b = this.second();
     if (this.values[a] - this.values[b] < 0.06) {
       var key = a < b ? a + "+" + b : b + "+" + a;
-      if (HYBRID[key]) return HYBRID[key];
+      if (tbl.hybrid[key]) return tbl.hybrid[key];
     }
-    return NAMES[a][(this.hash() + G.TRAITS.indexOf(b)) % NAMES[a].length];
+    var pool = tbl.names[a] || NAMES[a];
+    return pool[(this.hash() + G.TRAITS.indexOf(b)) % pool.length];
+  };
+
+  // Имя по сохранённой ДНК. «Новая игра+» помнила прошлое имя строкой —
+  // и голос прошлого игрока обращался к новому на языке той сессии.
+  G.dnaName = function (data) {
+    if (!data) return "";
+    if (data.values) return G.Dna.fromJSON(data).name();
+    return "";
   };
 
   G.Dna.prototype.hash = function () {

@@ -114,7 +114,11 @@ var IGRA = IGRA || {};
     this.hue = dnaHint || "empathy";
     this.dead = false;
     this.spoken = false;
-    this.name = G.pick(["без имени", "чуть живое", "отголосок", "кто-то", "не я"]);
+    // имя-ключ, а не строка: см. G.beingName. Настоящий ключ ставит
+    // G.Organs.birthBeing; здесь — запасной, без обращения к случайности
+    // (лишний бросок кубика сдвинул бы весь поток мира).
+    this.babyKey = 0;
+    this.name = "";
   };
 
   G.Wound = function (x, y, fromKind) {
@@ -259,12 +263,7 @@ var IGRA = IGRA || {};
     node.care = 1;
     node.r = 18 + dna.get(G.KIND_TRAIT[kind] || "curiosity") * 10;
     if (kind === "still") {
-      node.verse = G.pick([
-        "здесь кто-то уже ждал",
-        "пауза имеет форму",
-        "не всё должно двигаться",
-        "я слышу дно"
-      ]);
+      node.verse = G.Organs.stillVerse();
       this.addVerse(node.verse);
     }
     if (kind === "echo") {
@@ -345,7 +344,9 @@ var IGRA = IGRA || {};
       tw: Math.random() * G.TAU,
       ox: being.x,
       oy: being.y,
-      verse: being.trueName || being.name || ""
+      // звезда носит имя того, кто ушёл, — ключом, чтобы небо говорило
+      // на языке человека, а не на том, что был включён в час утраты
+      verse: { who: { named: true, nameKey: being.nameKey, babyKey: being.babyKey, healed: being.healed, name: being.trueName || being.name || "" } }
     });
     if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
     if (G.Audio && G.Audio.forget) G.Audio.forget("empathy");
@@ -840,8 +841,12 @@ var IGRA = IGRA || {};
           u.dead = true;
           var b2 = G.Organs.birthBeing(u.x, u.y, "empathy", this.rng);
           b2.temper = "singer";
-          b2.name = "исцелённое";
-          b2.trueName = "исцелённое";
+          // «исцелённое» — не собственное имя, а состояние: держим
+          // флагом, строка собирается на языке человека
+          b2.healed = true;
+          b2.nameKey = null;
+          b2.name = "";
+          b2.trueName = "";
           b2.named = true;
           b2.bond = 0.4;
           this.beings.push(b2);
@@ -999,6 +1004,12 @@ var IGRA = IGRA || {};
           hue: b.hue,
           temper: b.temper,
           trueName: b.trueName,
+          // имена существ живут ключами — иначе сад, названный
+          // по-русски, останется русским после смены языка
+          nameKey: b.nameKey,
+          babyKey: b.babyKey,
+          healed: b.healed,
+          shardOf: b.shardOf,
           named: b.named,
           debt: b.debt,
           isYesterday: !!b.isYesterday
