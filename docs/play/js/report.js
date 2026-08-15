@@ -156,8 +156,13 @@ var IGRA = IGRA || {};
         if (ans) said.push(this.askText(this.ASKS[q]) + " " + ans);
       }
       if (said.length) L.push((en ? "answers: " : "ответы: ") + said.join(" · "));
+      // `note.value` может не быть вовсе: в стенде DOM подставной, а на
+      // телефоне элемент мог не успеть родиться. Падение здесь означало
+      // бы, что человек нажал «рассказать» и получил пустой экран —
+      // именно в тот момент, когда хочет что-то сказать.
       var note = document.getElementById("report-note");
-      if (note && note.value.trim()) L.push((en ? "in his words: " : "словами: ") + note.value.trim().slice(0, 400));
+      var own = note && typeof note.value === "string" ? note.value.trim() : "";
+      if (own) L.push((en ? "in his words: " : "словами: ") + own.slice(0, 400));
 
       if (this.errors.length) {
         var e = [];

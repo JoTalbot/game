@@ -79,11 +79,65 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            webView = new WebView(this);
+            // Жест принадлежит игре, а не прокрутке.
+            //
+            // Человек три релиза подряд: «новые точки не обводятся
+            // удержанием пальца». В JS всё было починено (touch-action,
+            // preventDefault, честный touchcancel), а на телефоне жест
+            // по-прежнему умирал на полпути к рождению (1.35 с). Потому
+            // что рвал его не JavaScript: WebView — прокручиваемый View,
+            // и её собственный распознаватель через ~300 мс решает, что
+            // затянувшееся касание есть скролл. Он забирает жест у
+            // страницы ДО того, как та успеет сказать preventDefault, и
+            // шлёт вниз системную отмену.
+            //
+            // Лечится только здесь: сама вьюха запрещает родителям и
+            // своему распознавателю трогать жест, пока палец на стекле.
+            // В игре нечего прокручивать — берег двигает камера.
+            webView = new WebView(this) {
+                @Override
+                public boolean onTouchEvent(MotionEvent ev) {
+                    int a = ev.getActionMasked();
+                    if (a == MotionEvent.ACTION_DOWN) {
+                        // «Не перехватывать» — просьба ко всей цепочке
+                        // родителей: пока палец лежит, жест наш.
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                    } else if (a == MotionEvent.ACTION_UP || a == MotionEvent.ACTION_CANCEL) {
+                        getParent().requestDisallowInterceptTouchEvent(false);
+                    }
+                    return super.onTouchEvent(ev);
+                }
+
+                // WebView прокручивает себя сама, если решит, что жест —
+                // скролл. Прокручивать нечего: страница ровно в размер
+                // окна. Глушим — иначе она уводит содержимое и рвёт
+                // касание.
+                @Override
+                public void scrollTo(int x, int y) { super.scrollTo(0, 0); }
+
+                @Override
+                public void computeScroll() { /* инерции нет */ }
+
+                @Override
+                protected boolean overScrollBy(int dx, int dy, int sx, int sy,
+                                               int rx, int ry, int mx, int my,
+                                               boolean touch) {
+                    return false;
+                }
+            };
             webView.setBackgroundColor(0xFF05060A);
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
+            // Долгое удержание — жест игры, а не системное «выделить
+            // текст»: длинный тап поднимал бы контекстное меню и убивал
+            // касание ровно на той секунде, когда рождается узел.
+            webView.setLongClickable(false);
+            webView.setHapticFeedbackEnabled(false);
+            webView.setOnLongClickListener(new View.OnLongClickListener() {
+                public boolean onLongClick(View v) { return true; }
+            });
+            webView.setNestedScrollingEnabled(false);
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());
 

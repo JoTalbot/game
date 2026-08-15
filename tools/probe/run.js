@@ -384,6 +384,57 @@ group("язык: мир не вмерзает в раскладку");
   G.Lang.id = prev;
 })();
 
+// ——— судьба ———
+// Развилка «отпустить / стать игрой» — конец пути. В отчёте с телефона
+// стояло «судьба: become» при 1.3 минутах игры, нуле берегов и сессии 0:
+// человек увидел финал раньше, чем игру. Виноват был счётчик
+// `discovered + lost > 22` — двадцать два узла набегают за пару минут
+// бодрого сева. Замер: развилка приходила на 194-й секунде.
+group("судьба: финал приходит в конце, а не в начале");
+(function () {
+  var Aim = require("./aim.js");
+
+  function firstOffer(mins) {
+    var G2 = Aim.bootEngine();
+    var g2 = Aim.makeGame(G2, 7);
+    G2.now = function () { return g2.time; };
+    var at = -1;
+    var orig = G2.Fate.offer.bind(G2.Fate);
+    G2.Fate.offer = function (gm) { if (at < 0) at = g2.time; return orig(gm); };
+    for (var f = 0; f < mins * 60 * 60; f++) {
+      g2.time += 1 / 60;
+      if (f % 180 === 0) {
+        var n = null;
+        for (var i = 0; i < g2.world.nodes.length; i++) {
+          var c = g2.world.nodes[i];
+          if (!c.dead && c.state === "unformed") { n = c; break; }
+        }
+        if (n) {
+          g2.input.x = 400 + (n.x - g2.cam.x);
+          g2.input.y = 300 + (n.y - g2.cam.y);
+          var w = g2.screenToWorld(g2.input.x, g2.input.y);
+          g2.input.wx = w.x; g2.input.wy = w.y; g2.input.down = true;
+          try { g2.onDown(); } catch (e) {}
+        }
+      }
+      if (f % 180 === 120) { g2.input.down = false; try { g2.onUp && g2.onUp(); } catch (e) {} }
+      try { g2.update(1 / 60); } catch (e) {}
+      if (at >= 0) break;
+    }
+    return { at: at, meta: g2.world.meta, grown: g2.world.discovered };
+  }
+
+  var r = firstOffer(45);
+  ok(r.at < 0 || r.at >= 1200, "финал не приходит к тому, кто только начал",
+     r.at < 0 ? "за 45 минут не предложен" :
+     "предложен на " + Math.round(r.at) + "с (" + (r.at / 60).toFixed(1) + " мин)");
+
+  // И обратная крайность: судьба обязана однажды прийти. Игра без финала
+  // — это не «бесконечная», это незаконченная.
+  ok(r.at >= 0, "но однажды судьба всё же предлагается",
+     r.at >= 0 ? "на " + (r.at / 60).toFixed(1) + " мин, берегов " + r.meta : "НЕ предложена за 45 минут");
+})();
+
 // ——— рассказ с телефона ———
 // Человек играет с APK, а я его игру не вижу. Обратная связь шла через
 // чат по памяти, спустя сутки, и половина вопросов была про то, что
@@ -774,6 +825,26 @@ group("оболочка: игра не съедает касания интер�
   ok(cancelIdx > 0 && !/touchcancel", up\b/.test(cancelTail),
      "системная отмена жеста не выдаётся за отпускание пальца",
      cancelTail.replace(/\s+/g, " ").slice(0, 70));
+
+  // Оболочка тоже часть руки. Человек ТРИ релиза подряд говорил «новые
+  // точки не обводятся удержанием», хотя в JS всё было починено:
+  // touch-action, preventDefault на своём движении, честный touchcancel.
+  // Рвал жест не JavaScript — сама WebView: это прокручиваемый View, и
+  // её распознаватель через ~300 мс решает, что затянувшееся касание
+  // есть скролл. Он забирает жест у страницы ДО preventDefault и шлёт
+  // вниз системную отмену. Лечится только в Java, значит и стеречь надо
+  // Java: стенд читает MainActivity глазами.
+  var java = fs.readFileSync(path.join(__dirname, "..", "..", "android", "app",
+    "src", "main", "java", "world", "igra", "app", "MainActivity.java"), "utf8");
+  var jcode = java.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+
+  ok(/requestDisallowInterceptTouchEvent\(true\)/.test(jcode),
+     "оболочка не отдаёт жест прокрутке, пока палец на стекле");
+  ok(/setLongClickable\(false\)/.test(jcode) && /onLongClick/.test(jcode),
+     "долгое удержание не поднимает системное меню выделения");
+  ok(/overScrollBy[\s\S]{0,220}return false/.test(jcode) &&
+     /scrollTo\(int[\s\S]{0,80}super\.scrollTo\(0, 0\)/.test(jcode),
+     "WebView не уводит содержимое собственной прокруткой");
 
   // Экраны поверх берега обязаны быть кликабельны и не шире экрана:
   // на скриншоте человека четыре кнопки сигилы уехали за оба края.
