@@ -27,13 +27,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
 
       - name: Node 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: "20"
 
@@ -54,7 +54,12 @@ jobs:
             https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q cmdline.zip
           mv cmdline-tools latest
-          yes | "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" --licenses >/dev/null
+          # Не `yes | sdkmanager`: sdkmanager закрывает трубу раньше, чем `yes`
+          # выдохнется, `yes` умирает от SIGPIPE, и pipefail роняет весь шаг.
+          # Первый прогон CI сломался ровно на этом. Кормим ровно столько «y»,
+          # сколько лицензий, и не даём трубе пережить читателя.
+          printf 'y\n%.0s' $(seq 1 50) | "$SDK/cmdline-tools/latest/bin/sdkmanager" \
+            --sdk_root="$SDK" --licenses >/dev/null
           "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" \
             "platforms;android-34" "build-tools;34.0.0" >/dev/null
           echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
