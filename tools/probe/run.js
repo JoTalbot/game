@@ -338,20 +338,54 @@ group("долгая игра: сейв не пухнет");
   ok(w.nodes.length > 0 && game.player, "мир переживает перерождение", w.nodes.length + " узлов");
 })();
 
+// ——— якорь: самый дорогой жест не должен быть пустым ———
+group("якорь переживает перерождение");
+(function () {
+  var game = H.makeWorld(G, 7);
+  var w = game.world;
+  for (var i = 0; i < 200; i++) H.step(G, game, 1 / 60, null, 0);
+  w.nodes.filter(function (n) { return n.state === "unformed"; })
+    .slice(0, 3).forEach(function (n) { H.gaze(G, game, n, 2.2, true); });
+  w.nodes.filter(function (n) { return n.state === "alive"; })
+    .slice(0, 3).forEach(function (n) { w.anchor(n); });
+  var ids = w.anchors.slice();
+  ok(ids.length > 0, "якорь вообще ставится", ids.length + " якорей");
+  w.metamorphose(game.player, game.dna);
+  var surv = w.nodes.filter(function (n) { return ids.indexOf(n.id) >= 0; });
+  // birthShore обнуляет nodes: если позвать его после того, как удержанное
+  // уже положено в nodes, якоря исчезают молча, а список anchors висит на
+  // мёртвых id. Так и было — жест ничего не значил.
+  ok(surv.length === ids.length, "удержанное переходит в новый мир",
+    surv.length + " из " + ids.length);
+  ok(w.anchors.length === surv.length, "список якорей не висит на мёртвых id",
+    w.anchors.length + " якорей на " + surv.length + " узлов");
+})();
+
 // ——— забота должна что-то значить ———
 group("прилив и забвение: возвращаться выгоднее, чем бросать");
 (function () {
   var tend = 0, tendLive = 0, drop = 0, dropLive = 0, anyRoots = 0, anyLost = 0;
-  [12, 13].forEach(function (seed) {
+  // Садовник должен быть один и тот же в каждом прогоне. С Math.random()
+  // его выбор менялся от запуска к запуску, и один и тот же баланс давал
+  // то 14%, то 23% — стенд мерил шум и по нему нельзя было настраивать.
+  var rndSeed = 20240815;
+  function rnd() {
+    rndSeed = (rndSeed * 1664525 + 1013904223) >>> 0;
+    return rndSeed / 4294967296;
+  }
+  // Пять миров, а не два: на двух seed-ах итог скакал через порог от
+  // случайной расстановки узлов, и один и тот же баланс то проходил,
+  // то падал. Вывод о заботе должен быть про баланс, а не про везение.
+  [11, 12, 13, 14, 15].forEach(function (seed) {
     var game = H.makeWorld(G, seed);
     var tended = {}, born = {};
     while (game.time < 600) {
       var n = null;
       var live = game.world.nodes.filter(function (x) { return x.state === "alive" && x.care < 0.5; });
-      if (live.length && Math.random() < 0.6) {
+      if (live.length && rnd() < 0.6) {
         var mine = live.filter(function (x) { return tended[x.id]; });
-        var pool = mine.length && Math.random() < 0.75 ? mine : live;
-        n = pool[(Math.random() * pool.length) | 0];
+        var pool = mine.length && rnd() < 0.75 ? mine : live;
+        n = pool[(rnd() * pool.length) | 0];
       }
       var back = !!n;
       if (!n) n = H.nearestUnformed(game);

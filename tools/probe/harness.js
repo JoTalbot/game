@@ -98,6 +98,7 @@ function boot(opts) {
 
 // Мир без движка: World + Dna + подставная игра с fx/floaters.
 function makeWorld(G, seed) {
+  seedRandom((seed || 1) * 7919);
   var w = new G.World(seed || 1);
   var dna = new G.Dna();
   // настоящий игрок, а не заглушка: у него есть трейл и мотыльки,
@@ -138,10 +139,38 @@ function makeWorld(G, seed) {
     save: function () {},
     cam: { x: 0, y: 0, z: 1, w: 800, h: 600 }
   };
+  useGameClock(G, game);
+  // Director и Voice — синглтоны: без сброса счётчики, органы и антиспам
+  // предыдущего игрока перетекают в следующего, и стенд меряет смесь
+  // всех прогонов сразу.
+  if (G.Director && G.Director.reset) G.Director.reset();
+  if (G.Voice && G.Voice.reset) G.Voice.reset();
   return game;
 }
 
 // Один шаг мира. speed — с какой прытью игрок идёт к цели (0 = стоит).
+// Часы стенда. В браузере G.now() — настенное время, и оно совпадает с
+// игровым. В стенде 600 игровых секунд проходят за ~3 реальных, поэтому
+// настенные часы делают вид, что вся сессия случилась в одно мгновение:
+// антиспам Voice (18 с на ключ, 4.5 с на любую реплику) душит всё подряд
+// и замер показывает немоту, которой в живой игре нет.
+// Стенд должен быть повторяем. Игра зовёт Math.random() в полусотне мест
+// (id узлов, фазы, разброс Director, органы), поэтому один и тот же баланс
+// давал то 14%, то 23% выживших — по такому шуму настраивать нельзя.
+// Подменяем глобальный генератор на детерминированный: игра этого не
+// замечает, а прогон становится воспроизводимым.
+function seedRandom(seed) {
+  var s = (seed || 1) >>> 0;
+  Math.random = function () {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
+}
+
+function useGameClock(G, game) {
+  G.now = function () { return game.time; };
+}
+
 function step(G, game, dt, target, speed) {
   var p = game.player;
   if (target && speed) {
@@ -178,6 +207,10 @@ function step(G, game, dt, target, speed) {
       }
     }
   }
+  // Голос живёт по часам движка (engine.js зовёт Voice.update каждый кадр).
+  // Без этого очередь реплик никогда не сливается и стенд меряет немоту,
+  // которой в игре нет.
+  if (G.Voice && G.Voice.update) G.Voice.update(dt);
   game.fx.update(dt);
   game.floaters.update(dt);
 }
@@ -258,6 +291,8 @@ function ctxStub() {
 }
 
 module.exports = {
+  useGameClock,
+  seedRandom,
   boot: boot,
   makeWorld: makeWorld,
   step: step,

@@ -20,6 +20,19 @@ var IGRA = IGRA || {};
     _nameHinted: false,
     _regazeHinted: false,
     _frontierT: 0,
+    _frontierSaid: -999,
+    _watchT: 0,
+    _lastWatch: -999,
+    _sitSaid: -999,
+    _wanderSaid: -999,
+    _greeted: null,
+    // Поступки, а не состояние мира. Доля укоренённых узлов характер не
+    // выдаёт: корни — условие выживания, к концу сессии они есть почти у
+    // всех уцелевших, и сеятель выглядит садовником. Считаем то, что
+    // человек делает руками: сколько раз родил новое и сколько раз
+    // вернулся к старому.
+    _born: 0,
+    _returns: 0,
 
     reset: function () {
       this.acc = {};
@@ -32,10 +45,49 @@ var IGRA = IGRA || {};
       this._nameHinted = false;
       this._regazeHinted = false;
       this._frontierT = 0;
+      this._frontierSaid = -999;
+      this._watchT = 0;
+      this._lastWatch = -999;
+      this._sitSaid = -999;
+      this._wanderSaid = -999;
+      this._greeted = {};
+      this._born = 0;
+      this._returns = 0;
     },
 
     note: function (kind, amt) {
       this.acc[kind] = (this.acc[kind] || 0) + (amt || 1);
+    },
+
+    // Что Игра видит в человеке прямо сейчас. Возвращает ключ реплики
+    // или null, если повадка не отчётлива — тогда Игра молчит. Порядок
+    // важен: сверху то, что реже и потому дороже.
+    read: function (game) {
+      var w = game.world;
+      var dna = game.dna;
+      var p = game.player;
+      var acts = this._born + this._returns;
+      var alive = 0, unformed = 0;
+      for (var i = 0; i < w.nodes.length; i++) {
+        var n = w.nodes[i];
+        if (n.dead) continue;
+        if (n.state === "unformed") { unformed++; continue; }
+        if (n.state === "alive") alive++;
+      }
+
+      // Садовник: больше половины поступков — возвращения к своему.
+      if (acts >= 10 && this._returns / acts > 0.5) return "watchRooted";
+      // Сеятель: почти всё время рождает новое и почти не возвращается.
+      if (acts >= 14 && this._returns / acts < 0.15) return "watchScatter";
+      // Ни одного якоря за долгую игру — ничего не удержал.
+      if (dna.age > 240 && w.anchors.length === 0 && alive >= 5) return "watchNoAnchor";
+      // Сидит на месте, хотя вокруг уже нечего рождать.
+      if (p.stillT > 20 && unformed < 2) return "watchStill";
+      // Существо привязалось — играет не один.
+      for (var b = 0; b < w.beings.length; b++) {
+        if (w.beings[b].bond > 0.6) return "watchTogether";
+      }
+      return null;
     },
 
     growOrgans: function (dna) {
@@ -110,7 +162,14 @@ var IGRA = IGRA || {};
         }
         if (nearUnformed < 3) {
           game.world.scatter(p.x, p.y, 3, 430);
-          if (G.chance(0.6)) G.Voice.say("frontier", true);
+          // Мир досыпается молча. Раньше здесь стоял force: true — он
+          // обходил антиспам, и за 10 минут «иди дальше» звучало 18 раз
+          // из 27 реплик. Игра не погоняет, она замечает. Голос подаётся
+          // редко и только если человек давно ничего не слышал.
+          if (t - this._frontierSaid > 150 && G.chance(0.5)) {
+            this._frontierSaid = t;
+            G.Voice.say("frontier");
+          }
         }
       }
 
@@ -122,8 +181,33 @@ var IGRA = IGRA || {};
         }
       }
 
-      if (p.stillT > 7 && G.chance(dt * 0.15)) G.Voice.say("sit");
-      if (p.moveT > 9 && G.chance(dt * 0.08)) G.Voice.say("wander");
+      // Второй рот: наблюдение. Первый говорит о событиях мира — прилив,
+      // закон, существо. Этот говорит о человеке: не «что случилось», а
+      // «каков ты». Игра смотрит на повадку и называет её вслух — редко,
+      // не чаще раза в две минуты, и только когда повадка отчётлива.
+      this._watchT += dt;
+      if (this._watchT > 22 && t - this._lastWatch > 115 && game.state === "play" && !game.sky) {
+        this._watchT = 0;
+        var seen = this.read(game);
+        if (seen) {
+          this._lastWatch = t;
+          G.Voice.say(seen);
+        }
+      }
+
+      // Фон говорит редко. Без троттлинга эти двое срабатывали броском
+      // кубика каждый кадр и давали до полусотни реплик за сессию: Игра
+      // комментировала каждый шаг и превращалась в болтуна. Тишина
+      // важнее — пусть заметит, что человек сидит, раз в минуту, а не
+      // каждые семь секунд.
+      if (p.stillT > 7 && t - this._sitSaid > 60 && G.chance(dt * 0.15)) {
+        this._sitSaid = t;
+        G.Voice.say("sit");
+      }
+      if (p.moveT > 9 && t - this._wanderSaid > 75 && G.chance(dt * 0.08)) {
+        this._wanderSaid = t;
+        G.Voice.say("wander");
+      }
 
       if (dna.age > 180 && G.chance(dt * 0.01)) G.Voice.say("longPlay");
 
@@ -246,16 +330,31 @@ var IGRA = IGRA || {};
     },
 
     onCrystal: function (game, kind) {
+      this._born++;
       var map = {
         relic: "curiosity",
         thorn: "aggression",
-        still: "sit",
+        // Раньше здесь стоял "sit" — фоновая реплика про то, что человек
+        // сидит без дела. Рождение узла тишины сообщением "в тебе много
+        // несделанного" звучало как упрёк вместо поздравления, и вдобавок
+        // сбивало счётчик фоновой болтовни. У тишины теперь свой голос.
+        still: "stillBorn",
         echo: "kind",
         shard: "glitch",
         tone: "music",
         spark: "firstNode"
       };
-      G.Voice.say(map[kind] || "firstNode");
+      // Первую встречу с породой Игра приветствует, дальше молчит.
+      // Раньше говорила на КАЖДОЕ рождение: сеятель делал две сотни узлов
+      // и получал две сотни реплик — восторг превращался в бубнёж, и на
+      // фоне этого шума терялись редкие важные слова. Узнавание бывает
+      // один раз; потом это просто твоя работа, и она в комментариях
+      // не нуждается.
+      this._greeted = this._greeted || {};
+      if (!this._greeted[kind]) {
+        this._greeted[kind] = 1;
+        G.Voice.say(map[kind] || "firstNode");
+      }
       if (kind === "still" && game.world.verses.length) {
         var v = game.world.verses[game.world.verses.length - 1];
         setTimeout(function () {
