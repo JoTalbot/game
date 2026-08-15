@@ -168,5 +168,61 @@ group("голос: Игра не тараторит");
   ok(said.length < 30, "за две минуты Игра говорит редко", said.length + " реплик");
 })();
 
+// ——— законы: молния должна быть понятной ———
+group("законы: молния объясняет себя");
+(function () {
+  var game = H.makeWorld(G, 33);
+  var w = game.world;
+
+  // ставим трещину под ноги и трогаем её законом «тяжесть наоборот»
+  G.Organs.spawnCrack(w, game.player.x + 10, game.player.y + 10);
+  var crack = w.cracks[w.cracks.length - 1];
+  crack.law = { id: "invert", ru: "тяжесть наоборот", hint: "шаг идёт в другую сторону", en: "weight inverted", enHint: "your step goes the other way", lasts: 11 };
+  var said = [];
+  var realSay = G.Voice.sayText;
+  G.Voice.sayText = function (t) { said.push(t); return realSay.apply(G.Voice, arguments); };
+  G.Organs.applyLaw(game, crack);
+  G.Voice.sayText = realSay;
+
+  ok(w.active && w.active.length === 1, "у временного закона есть срок");
+  ok(w.active[0].left > 10, "срок начинается полным", w.active[0].left + " с");
+  ok(said.join(" ").indexOf("тяжесть наоборот") >= 0, "закон называет себя вслух");
+
+  // пока закон жив — его видно в кадре
+  var ctx = H.ctxStub();
+  G.Renderer.draw(ctx, game, 1.2);
+  ok(ctx.calls.indexOf("fillRect") >= 0, "действующий закон рисуется на кромке");
+
+  // время идёт — закон истекает и прощается
+  var bye = [];
+  var realSay2 = G.Voice.sayText;
+  G.Voice.sayText = function (t) { bye.push(t); return realSay2.apply(G.Voice, arguments); };
+  for (var i = 0; i < 60 * 14; i++) H.step(G, game, 1 / 60, null, 0);
+  G.Voice.sayText = realSay2;
+  ok(!w.active.length, "закон истекает сам");
+  ok(bye.join(" ").indexOf("тяжесть вернулась") >= 0, "берег сообщает, что закон отпустил");
+})();
+
+// ——— законы говорят по-английски ———
+group("законы: вторая раскладка");
+(function () {
+  var prev = G.Lang.id;
+  G.Lang.id = "en";
+  var game = H.makeWorld(G, 34);
+  G.Organs.spawnCrack(game.world, game.player.x + 8, game.player.y);
+  var crack = game.world.cracks[game.world.cracks.length - 1];
+  crack.law = { id: "tideSleep", ru: "прилив спит", hint: "забвение не придёт", en: "the tide sleeps", enHint: "oblivion will not come for a while", lasts: 32 };
+  var said = [];
+  var realSay = G.Voice.sayText;
+  G.Voice.sayText = function (t) { said.push(t); return realSay.apply(G.Voice, arguments); };
+  G.Organs.applyLaw(game, crack);
+  G.Voice.sayText = realSay;
+  var all = said.join(" ");
+  ok(all.indexOf("the tide sleeps") >= 0, "по-английски закон звучит по-английски");
+  ok(!/[а-яА-Я]/.test(all), "кириллица не течёт в английский берег", all.slice(0, 40));
+  ok(G.lawEnded("tideSleep").indexOf("tide") >= 0, "прощание закона тоже переведено");
+  G.Lang.id = prev;
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

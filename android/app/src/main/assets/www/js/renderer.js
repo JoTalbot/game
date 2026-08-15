@@ -269,6 +269,18 @@ var IGRA = IGRA || {};
       game.fx.draw(ctx, cam);
       game.floaters.draw(ctx, cam);
 
+      // действующий закон: полоска у кромки тает вместе с ним, чтобы
+      // «жёлтенькие молнии» перестали быть непонятно чем
+      if (game.world.active && game.world.active.length) {
+        var la = game.world.active[game.world.active.length - 1];
+        var frac = Math.max(0, Math.min(1, la.left / (la.full || 1)));
+        var lc = G.TRAIT_COLOR.chaos;
+        var bw = w * 0.42 * frac;
+        ctx.fillStyle = G.rgb(lc[0], lc[1], lc[2], 0.5);
+        ctx.fillRect(w / 2 - bw / 2, 30, bw, 1.6);
+        glow(ctx, w / 2, 30, 40 * frac, lc, 0.05);
+      }
+
       // metamorphosis flash
       if (game.metaFlash > 0) {
         ctx.fillStyle = G.rgb(col[0], col[1], col[2], game.metaFlash * 0.35);

@@ -50,16 +50,28 @@ var IGRA = IGRA || {};
     ]
   };
 
+  // Законы — то, что человек назвал «жёлтенькими молниями». У каждого есть
+  // имя, следствие и срок: без срока непонятно, действует ли он ещё.
   var LAWS = [
-    { id: "tideSleep", ru: "прилив спит", hint: "забвение не придёт какое-то время" },
-    { id: "woundsSing", ru: "раны поют", hint: "голод становится тоном" },
-    { id: "invert", ru: "тяжесть наоборот", hint: "шаг идёт в другую сторону" },
-    { id: "rename", ru: "имена лгут", hint: "существа меняют лица" },
-    { id: "moreAnchors", ru: "якорей больше", hint: "можно удержать ещё одно" },
-    { id: "swapKinds", ru: "берег путает органы", hint: "живое меняет природу" },
-    { id: "bloom", ru: "сад без разрешения", hint: "цветы сами" },
-    { id: "reveal", ru: "туман признаётся", hint: "неоформленное вспыхивает" }
+    { id: "tideSleep", ru: "прилив спит", hint: "забвение не придёт какое-то время", en: "the tide sleeps", enHint: "oblivion will not come for a while", lasts: 32 },
+    { id: "woundsSing", ru: "раны поют", hint: "голод становится тоном", en: "wounds sing", enHint: "hunger turns into a tone" },
+    { id: "invert", ru: "тяжесть наоборот", hint: "шаг идёт в другую сторону", en: "weight inverted", enHint: "your step goes the other way", lasts: 11 },
+    { id: "rename", ru: "имена лгут", hint: "существа меняют лица", en: "names lie", enHint: "beings change their faces" },
+    { id: "moreAnchors", ru: "якорей больше", hint: "можно удержать ещё одно", en: "more anchors", enHint: "you can hold one more" },
+    { id: "swapKinds", ru: "берег путает органы", hint: "живое меняет природу", en: "the shore confuses organs", enHint: "the living changes its nature" },
+    { id: "bloom", ru: "сад без разрешения", hint: "цветы сами", en: "a garden unasked", enHint: "flowers on their own" },
+    { id: "reveal", ru: "туман признаётся", hint: "неоформленное вспыхивает", en: "the fog confesses", enHint: "the unformed flares up" }
   ];
+
+  function lawName(law) {
+    return G.Lang && G.Lang.id === "en" ? law.en || law.ru : law.ru;
+  }
+
+  function lawHint(law) {
+    return G.Lang && G.Lang.id === "en" ? law.enHint || law.hint : law.hint;
+  }
+
+  var LAW_WORD = { ru: "закон: ", en: "law: " };
 
   var VERSE_STEM = [
     "в паузе я услышала $trait",
@@ -320,8 +332,16 @@ var IGRA = IGRA || {};
     applyLaw: function (game, crack) {
       var id = crack.law.id;
       var w = game.world;
-      w.laws.push({ id: id, ru: crack.law.ru, t: game.time });
+      // временные законы держатся в w.active — их видно, пока они живы
+      w.laws.push({ id: id, ru: crack.law.ru, en: crack.law.en, t: game.time });
       if (w.laws.length > 8) w.laws.shift();
+      if (crack.law.lasts) {
+        w.active = w.active || [];
+        for (var ai = w.active.length - 1; ai >= 0; ai--) {
+          if (w.active[ai].id === id) w.active.splice(ai, 1);
+        }
+        w.active.push({ id: id, left: crack.law.lasts, full: crack.law.lasts });
+      }
       if (id === "tideSleep") w.tideFrozen = 32;
       if (id === "woundsSing") {
         for (var i = w.wounds.length - 1; i >= 0; i--) {
@@ -363,9 +383,12 @@ var IGRA = IGRA || {};
         }
       }
       crack.life = 0;
-      game.floaters.add(crack.x, crack.y - 14, "закон: " + crack.law.ru, G.TRAIT_COLOR.chaos);
-      G.Voice.sayText(crack.law.ru + ". " + crack.law.hint + ".", true);
-      G.UI.law(crack.law.ru + " — " + crack.law.hint);
+      var lw = G.Lang && G.Lang.id === "en" ? LAW_WORD.en : LAW_WORD.ru;
+      var lname = lawName(crack.law);
+      var lhint = lawHint(crack.law);
+      game.floaters.add(crack.x, crack.y - 14, lw + lname, G.TRAIT_COLOR.chaos);
+      G.Voice.sayText(lname + ". " + lhint + ".", true);
+      if (G.UI && G.UI.law) G.UI.law(lname + " — " + lhint);
       game.glitch = 1;
       game.fx.ring(crack.x, crack.y, 24, G.TRAIT_COLOR.chaos, 20, 0.8);
       G.Audio.tone(140, 0.4, 0.08, "sawtooth");

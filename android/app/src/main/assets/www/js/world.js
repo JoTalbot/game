@@ -148,6 +148,7 @@ var IGRA = IGRA || {};
     this.anchorCap = 3;
     this.tideFrozen = 0;
     this.invertMove = 0;
+    this.active = [];
     this.toneChain = [];
     // зов: у берега всегда есть тяга вдаль
     this.call = null;
@@ -273,6 +274,17 @@ var IGRA = IGRA || {};
     this.updateCall(dt, player, dna, game);
     if (this.tideFrozen > 0) this.tideFrozen -= dt;
     if (this.invertMove > 0) this.invertMove -= dt;
+    // действующие законы тикают вслух: человек видит, сколько мир ещё такой
+    if (this.active && this.active.length) {
+      for (var la = this.active.length - 1; la >= 0; la--) {
+        this.active[la].left -= dt;
+        if (this.active[la].left <= 0) {
+          var gone = this.active[la];
+          this.active.splice(la, 1);
+          if (G.Voice && G.lawEnded) G.Voice.sayText(G.lawEnded(gone.id), false);
+        }
+      }
+    }
     var tideMul = (G.Memory && G.Memory.climate) ? G.Memory.climate().tide : 1;
     if (this.age < 75) {
       /* first shore is allowed to exist */
@@ -500,6 +512,25 @@ var IGRA = IGRA || {};
   G.companionLine = function () {
     var arr = COMPANION[lang()];
     return arr[companionSaid++ % arr.length];
+  };
+
+  // закон кончился — берег возвращается к себе, и это слышно
+  var LAW_END = {
+    ru: {
+      tideSleep: "прилив проснулся.",
+      invert: "тяжесть вернулась на место.",
+      _: "закон отпустил."
+    },
+    en: {
+      tideSleep: "the tide woke up.",
+      invert: "weight is back in place.",
+      _: "the law let go."
+    }
+  };
+
+  G.lawEnded = function (id) {
+    var m = LAW_END[lang()];
+    return m[id] || m._;
   };
 
   G.World.prototype.makeCall = function (player, dna) {
