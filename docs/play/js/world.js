@@ -333,6 +333,17 @@ var IGRA = IGRA || {};
       var temper = b.temper || "shy";
       var want = 0.15;
       var spd = 26 + b.bond * 22;
+      // Спутник: привязанное существо физически не могло угнаться за
+      // игроком (48 против ~85) — привязанность была видна только на
+      // стоянке. Отставший спутник прибавляет шаг, но догоняет не мгновенно:
+      // видно, как он спешит.
+      var companion = b.bond > 0.55 && b.fear < 0.5;
+      if (companion && d > 100) {
+        spd = 58 + Math.min(80, (d - 100) * 0.7) + b.bond * 30;
+        b.hurry = Math.min(1, (b.hurry || 0) + dt * 1.6);
+      } else {
+        b.hurry = Math.max(0, (b.hurry || 0) - dt * 1.2);
+      }
       if (b.isYesterday) {
         want = 0.55;
         if (d < 42) want = 0;
@@ -350,14 +361,26 @@ var IGRA = IGRA || {};
         want = d < 50 ? 0 : 0.45;
       }
       if (b.fear > 0.6) want = -1;
+      // но преданность сильнее характера: отставший спутник идёт следом,
+      // даже если он застенчивый. Рядом — снова становится собой.
+      if (companion && d > 110) {
+        var pull = Math.min(1, 0.8 + (d - 110) / 200);
+        if (want < pull) want = pull;
+      }
       b.vx = G.lerp(b.vx, (dx / d) * spd * want, 1 - Math.pow(0.08, dt));
       b.vy = G.lerp(b.vy, (dy / d) * spd * want, 1 - Math.pow(0.08, dt));
       b.x += b.vx * dt;
       b.y += b.vy * dt;
       if (d < 56) {
+        var was = b.bond;
         b.bond = Math.min(1, b.bond + dt * 0.1);
         b.fear = Math.max(0, b.fear - dt * 0.1);
         b.debt = Math.max(0, (b.debt || 0) - dt * 0.08);
+        // порог спутника пройден — Игра называет это вслух, один раз
+        if (was <= 0.55 && b.bond > 0.55 && !b.saidCompanion) {
+          b.saidCompanion = true;
+          if (G.Voice) G.Voice.sayText(G.companionLine(b), true);
+        }
       } else if (b.bond > 0.3) {
         b.debt = (b.debt || 0) + dt * 0.015;
       }
@@ -458,6 +481,25 @@ var IGRA = IGRA || {};
   G.callText = function (trait) {
     var t = CALL_TEXT[lang()];
     return t[trait] || t.curiosity;
+  };
+
+  var COMPANION = {
+    ru: [
+      "оно пошло за тобой. не потому что должно.",
+      "теперь вас двое. это меняет вес шага.",
+      "у тебя спутник. он не спросит, куда."
+    ],
+    en: [
+      "it followed you. not because it must.",
+      "now you are two. that changes the weight of a step.",
+      "you have a companion. it will not ask where."
+    ]
+  };
+
+  var companionSaid = 0;
+  G.companionLine = function () {
+    var arr = COMPANION[lang()];
+    return arr[companionSaid++ % arr.length];
   };
 
   G.World.prototype.makeCall = function (player, dna) {

@@ -238,6 +238,30 @@ var IGRA = IGRA || {};
         ctx.stroke();
       }
 
+      // нить спутника: тонкая связь к тем, кто идёт за тобой
+      for (var ki = 0; ki < game.world.beings.length; ki++) {
+        var kb = game.world.beings[ki];
+        if (kb.bond <= 0.55 || kb.fear >= 0.5) continue;
+        var kp = this.worldToScreen(cam, kb.x, kb.y);
+        var pp = this.worldToScreen(cam, game.player.x, game.player.y);
+        var kd = G.dist(kb.x, kb.y, game.player.x, game.player.y);
+        if (kd > 460) continue;
+        var kc = G.TRAIT_COLOR[kb.hue] || G.TRAIT_COLOR.empathy;
+        var fade = (1 - kd / 460) * (0.1 + (kb.bond - 0.55) * 0.5);
+        ctx.strokeStyle = G.rgb(kc[0], kc[1], kc[2], fade * (0.7 + 0.3 * Math.sin(t * 2 + kb.phase)));
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pp.x, pp.y);
+        var sag = 10 + (kb.hurry || 0) * 14;
+        ctx.quadraticCurveTo(
+          (pp.x + kp.x) / 2 + Math.sin(t * 1.4 + kb.phase) * 6,
+          (pp.y + kp.y) / 2 + sag,
+          kp.x,
+          kp.y
+        );
+        ctx.stroke();
+      }
+
       // player
       this.drawPlayer(ctx, cam, game, t, col);
 

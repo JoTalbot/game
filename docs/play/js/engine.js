@@ -694,7 +694,7 @@ var IGRA = IGRA || {};
 
   G.Game.prototype.save = function () {
     G.Save.write({
-      v: 1,
+      v: 2,
       time: this.time,
       dna: this.dna.toJSON(),
       player: { x: this.player.x, y: this.player.y, energy: this.player.energy },
@@ -704,8 +704,7 @@ var IGRA = IGRA || {};
       named: G.Director.named,
       lastMeta: G.Director.lastMeta,
       fate: { offered: G.Fate.offered, chosen: G.Fate.chosen },
-      state: this.state === "title" ? "title" : "play",
-      v: 2
+      state: this.state === "title" ? "title" : "play"
     });
   };
 
@@ -754,8 +753,20 @@ var IGRA = IGRA || {};
         b.bond = sb.bond || 0;
         b.fear = sb.fear || 0.2;
         b.name = sb.name || b.name;
+        // характер, истинное имя и долг раньше терялись при выходе:
+        // существо возвращалось чужим. Память существа — тоже память.
+        if (sb.temper) b.temper = sb.temper;
+        if (sb.trueName) b.trueName = sb.trueName;
+        b.named = !!sb.named;
+        b.debt = sb.debt || 0;
+        b.isYesterday = !!sb.isYesterday;
         this.world.beings.push(b);
       }
+      // сад, законы и расширенный предел якорей — то, что человек вырастил
+      this.world.blooms = data.world.blooms || [];
+      this.world.forgotten = data.world.forgotten || [];
+      this.world.laws = data.world.laws || [];
+      this.world.anchorCap = data.world.anchorCap || 3;
       if (this.world.nodes.length < 5) this.world.scatter(this.player.x, this.player.y, 8, 360);
     }
     G.Voice.fromJSON(data.voice);
