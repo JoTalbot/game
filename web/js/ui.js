@@ -213,6 +213,8 @@ var IGRA = IGRA || {};
           game.world.saved +
           "</span><span>существ " +
           game.world.beings.length +
+          "</span><span>дорог " +
+          (game.world.arrived || 0) +
           "</span>";
       }
       var verses = document.getElementById("sigil-verses");

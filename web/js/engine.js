@@ -478,7 +478,7 @@ var IGRA = IGRA || {};
     );
     if (this.player.pulseT > 0) this.player.pulseT -= dt;
 
-    this.world.update(dt, this.player, this.dna, this.fx);
+    this.world.update(dt, this.player, this.dna, this.fx, this);
     G.Director.observe(dt, this);
     if (G.Fate.ready(this) && this.state === "play" && this.dna.age > 8) {
       G.Fate.offer(this);
@@ -729,6 +729,10 @@ var IGRA = IGRA || {};
       this.world.verses = data.world.verses || [];
       this.world.stars = data.world.stars || [];
       this.world.anchors = data.world.anchors || [];
+      this.world.call = data.world.call || null;
+      this.world.callT = data.world.callT != null ? data.world.callT : 12;
+      this.world.arrived = data.world.arrived || 0;
+      if (this.world.call && this.world.call.phase == null) this.world.call.phase = 0;
       this.world.nodes = [];
       var nodes = data.world.nodes || [];
       for (var i = 0; i < nodes.length; i++) {

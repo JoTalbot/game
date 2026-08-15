@@ -149,6 +149,10 @@ var IGRA = IGRA || {};
     this.tideFrozen = 0;
     this.invertMove = 0;
     this.toneChain = [];
+    // зов: у берега всегда есть тяга вдаль
+    this.call = null;
+    this.callT = 12;
+    this.arrived = 0;
   };
 
   G.World.prototype.spawnNode = function (x, y, kind) {
@@ -264,8 +268,9 @@ var IGRA = IGRA || {};
     return "star";
   };
 
-  G.World.prototype.update = function (dt, player, dna, fx) {
+  G.World.prototype.update = function (dt, player, dna, fx, game) {
     this.age += dt;
+    this.updateCall(dt, player, dna, game);
     if (this.tideFrozen > 0) this.tideFrozen -= dt;
     if (this.invertMove > 0) this.invertMove -= dt;
     var tideMul = (G.Memory && G.Memory.climate) ? G.Memory.climate().tide : 1;
@@ -404,6 +409,135 @@ var IGRA = IGRA || {};
     }
   };
 
+  // Зов: далёкая точка, которая всегда тянет вдаль. Не квест и не маркер
+  // задания — обещание берега, что путь не кончается. Приход награждает
+  // рождением уголка мира под доминантную ось.
+  var CALL_TEXT = {
+    ru: {
+      curiosity: "там что-то не названо",
+      aggression: "там что-то сопротивляется",
+      contemplation: "там тише, чем здесь",
+      empathy: "там кто-то один",
+      chaos: "там край порвался",
+      harmony: "там держат ноту"
+    },
+    en: {
+      curiosity: "something unnamed is there",
+      aggression: "something resists over there",
+      contemplation: "it is quieter there than here",
+      empathy: "someone is alone there",
+      chaos: "the edge tore over there",
+      harmony: "a note is being held there"
+    }
+  };
+
+  var CALL_OPEN = {
+    ru: "что-то зовёт с той стороны. иди на свет.",
+    en: "something calls from over there. walk to the light."
+  };
+
+  var CALL_ARRIVE = {
+    ru: [
+      "ты дошёл. здесь начинается то, чего не было.",
+      "путь был настоящий. смотри, что он вырастил.",
+      "берег отдал за дорогу. это честная плата."
+    ],
+    en: [
+      "you arrived. what was not here begins here.",
+      "the path was real. look what it grew.",
+      "the shore paid for the walk. that is a fair price."
+    ]
+  };
+
+  var CALL_MARK = { ru: "дошёл", en: "arrived" };
+
+  function lang() {
+    return G.Lang && G.Lang.id === "en" ? "en" : "ru";
+  }
+
+  G.callText = function (trait) {
+    var t = CALL_TEXT[lang()];
+    return t[trait] || t.curiosity;
+  };
+
+  G.World.prototype.makeCall = function (player, dna) {
+    var trait = dna ? dna.dominant() : "curiosity";
+    var a = this.rng.range(0, G.TAU);
+    var d = 900 + this.rng.range(0, 700);
+    var lim = this.bounds - 200;
+    var x = G.clamp(player.x + Math.cos(a) * d, -lim, lim);
+    var y = G.clamp(player.y + Math.sin(a) * d, -lim, lim);
+    this.call = {
+      x: x,
+      y: y,
+      trait: trait,
+      phase: this.rng.range(0, G.TAU),
+      born: this.age,
+      said: false
+    };
+    return this.call;
+  };
+
+  G.World.prototype.updateCall = function (dt, player, dna, game) {
+    if (this.age < 30) return;
+    if (!this.call) {
+      this.callT -= dt;
+      if (this.callT > 0) return;
+      this.callT = 0;
+      this.makeCall(player, dna);
+      if (G.Voice) G.Voice.sayText(CALL_OPEN[lang()], true);
+      return;
+    }
+    var c = this.call;
+    c.phase += dt * 0.9;
+    var d = G.dist(player.x, player.y, c.x, c.y);
+    if (!c.said && d < 620) {
+      c.said = true;
+      if (G.Voice) G.Voice.sayText(G.callText(c.trait) + ".", true);
+    }
+    if (d < 120) {
+      this.arrive(player, dna, game);
+    }
+  };
+
+  G.World.prototype.arrive = function (player, dna, game) {
+    var c = this.call;
+    if (!c) return;
+    this.call = null;
+    this.arrived++;
+    this.callT = 22 + this.rng.range(0, 20);
+    var col = G.TRAIT_COLOR[c.trait] || [200, 220, 255];
+
+    // берег отвечает на приход: рождается гнездо своей природы
+    var kindByTrait = {
+      curiosity: "relic",
+      aggression: "thorn",
+      contemplation: "still",
+      empathy: "echo",
+      chaos: "shard",
+      harmony: "tone"
+    };
+    var kind = kindByTrait[c.trait] || "relic";
+    for (var i = 0; i < 5; i++) {
+      var a = (i / 5) * G.TAU + this.rng.range(0, 1);
+      var n = this.spawnNode(c.x + Math.cos(a) * (70 + this.rng.range(0, 90)), c.y + Math.sin(a) * (70 + this.rng.range(0, 90)), "spark");
+      n.hint = kind;
+      n.r = 17 + this.rng.range(0, 8);
+    }
+    this.scatter(c.x, c.y, 4, 320);
+    if (dna) dna.feed(c.trait, 0.05);
+    if (game) {
+      game.fx.ring(c.x, c.y, 34, col, 40, 1.1);
+      game.fx.burst(c.x, c.y, 30, col, 130, 1);
+      game.floaters.add(c.x, c.y - 26, CALL_MARK[lang()], col);
+      G.Shake.add(6);
+      if (G.Haptic) G.Haptic.play("crystal");
+    }
+    G.Audio.chord([G.TRAIT_NOTE[c.trait] || 440, (G.TRAIT_NOTE[c.trait] || 440) * 1.5], 1.2, 0.05);
+    var LINES = CALL_ARRIVE[lang()];
+    if (G.Voice) G.Voice.sayText(LINES[this.arrived % LINES.length], true);
+  };
+
   G.World.prototype.hitWound = function (x, y, r, dmg, fx) {
     var hit = 0;
     for (var i = 0; i < this.wounds.length; i++) {
@@ -520,6 +654,9 @@ var IGRA = IGRA || {};
     }
     this.tide = 0;
     this.tideT = 36;
+    // после метаморфозы зов рождается заново: новый мир — новая даль
+    this.call = null;
+    this.callT = 16;
   };
 
   G.World.prototype.toJSON = function () {
@@ -534,6 +671,9 @@ var IGRA = IGRA || {};
       verses: this.verses,
       stars: this.stars,
       anchors: this.anchors,
+      call: this.call,
+      callT: this.callT,
+      arrived: this.arrived,
       nodes: this.nodes.map(function (n) {
         return {
           id: n.id,

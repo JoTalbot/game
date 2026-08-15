@@ -195,6 +195,9 @@ var IGRA = IGRA || {};
         }
       }
 
+      // зов: свет вдали и компас на краю — путь виден всегда
+      if (game.world.call && !sky) this.drawCall(ctx, cam, game, t);
+
       // garden
       for (var gi = 0; gi < game.world.blooms.length; gi++) {
         this.drawBloom(ctx, cam, game.world.blooms[gi], t);
@@ -280,6 +283,71 @@ var IGRA = IGRA || {};
         ctx.stroke();
       }
 
+      ctx.restore();
+    },
+
+    // Зов рисуется дважды: как маяк в мире и как тяга у кромки экрана,
+    // если маяк за спиной. Без стрелки «идти дальше» остаётся догадкой.
+    drawCall: function (ctx, cam, game, t) {
+      var c = game.world.call;
+      var col = G.TRAIT_COLOR[c.trait] || [200, 220, 255];
+      var p = this.worldToScreen(cam, c.x, c.y);
+      var beat = 0.6 + 0.4 * Math.sin(t * 1.6 + c.phase);
+      var w = cam.w;
+      var h = cam.h;
+      var onScreen = p.x > -40 && p.y > -40 && p.x < w + 40 && p.y < h + 40;
+
+      if (onScreen) {
+        glow(ctx, p.x, p.y, (60 + beat * 26) * cam.z, col, 0.16);
+        ctx.strokeStyle = G.rgb(col[0], col[1], col[2], 0.35 + beat * 0.3);
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, (26 + beat * 12) * cam.z, 0, G.TAU);
+        ctx.stroke();
+        ctx.fillStyle = G.rgb(col[0], col[1], col[2], 0.8);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.4 * cam.z, 0, G.TAU);
+        ctx.fill();
+        ctx.save();
+        ctx.fillStyle = G.rgb(col[0], col[1], col[2], 0.85);
+        ctx.font = "italic 19px 'Cormorant Garamond', serif";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,0.9)";
+        ctx.shadowBlur = 6;
+        ctx.fillText(G.callText(c.trait), p.x, p.y - 34 * cam.z);
+        ctx.restore();
+        return;
+      }
+
+      // компас: тяга к зову у кромки экрана
+      var ps = this.worldToScreen(cam, game.player.x, game.player.y);
+      var ang = Math.atan2(p.y - ps.y, p.x - ps.x);
+      var m = 46;
+      var rx = Math.min(w / 2 - m, h / 2 - m);
+      var ex = w / 2 + Math.cos(ang) * rx;
+      var ey = h / 2 + Math.sin(ang) * rx;
+      ctx.save();
+      ctx.translate(ex, ey);
+      ctx.rotate(ang);
+      glow(ctx, 0, 0, 26, col, 0.18 * (0.6 + beat * 0.6));
+      ctx.fillStyle = G.rgb(col[0], col[1], col[2], 0.42 + beat * 0.34);
+      ctx.beginPath();
+      ctx.moveTo(11, 0);
+      ctx.lineTo(-7, -6.5);
+      ctx.lineTo(-4, 0);
+      ctx.lineTo(-7, 6.5);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      var dw = G.dist(game.player.x, game.player.y, c.x, c.y);
+      ctx.save();
+      ctx.fillStyle = G.rgb(col[0], col[1], col[2], 0.5 + beat * 0.25);
+      ctx.font = "600 13px Manrope, sans-serif";
+      ctx.textAlign = "center";
+      ctx.shadowColor = "rgba(0,0,0,0.9)";
+      ctx.shadowBlur = 5;
+      ctx.fillText(Math.round(dw) + "", ex - Math.cos(ang) * 18, ey - Math.sin(ang) * 18 + 4);
       ctx.restore();
     },
 
