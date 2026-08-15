@@ -195,7 +195,7 @@ var IGRA = IGRA || {};
       };
       w.bossSaid = true;
       G.Voice.say("boss", true);
-      G.UI.hint(w.boss.name + " собралась из брошенного");
+      G.UI.hint(w.boss.name + " " + G.Lang.t("bossGathered"));
       setTimeout(function () {
         G.UI.hint("");
       }, 4200);
@@ -255,7 +255,7 @@ var IGRA = IGRA || {};
         boss.weak = 3;
       } else if (style === "curiosity") {
         boss.weak = 3.5;
-        G.Voice.sayText("шов. бей сюда — или сядь рядом.", true);
+        G.Voice.sayText(G.Lang.t("seamHit"), true);
       } else if (style === "chaos") {
         boss.lunge = -1;
         boss.hp -= dmg * 0.4;
@@ -277,8 +277,8 @@ var IGRA = IGRA || {};
       var part = boss.parts.pop();
       var b = this.birthBeing(boss.x + G.rand(-30, 30), boss.y + G.rand(-30, 30), "empathy", game.world.rng);
       b.temper = "wounded";
-      b.name = "осколок " + (G.KIND_RU[part.kind] || "");
-      b.trueName = "Было брошено";
+      b.name = G.Lang.t("shardOf") + " " + G.kindName(part.kind);
+      b.trueName = G.Lang.t("wasAbandoned");
       b.bond = 0.25;
       game.world.beings.push(b);
       G.Voice.say("peel");
@@ -290,8 +290,8 @@ var IGRA = IGRA || {};
       if (mercy) {
         var b = this.birthBeing(boss.x, boss.y, "empathy", game.world.rng);
         b.temper = "wounded";
-        b.name = "то, что ты бросил";
-        b.trueName = "то, что ты бросил";
+        b.name = G.Lang.t("whatYouLeft");
+        b.trueName = G.Lang.t("whatYouLeft");
         b.named = true;
         b.bond = 0.55;
         game.world.beings.push(b);
@@ -510,7 +510,7 @@ var IGRA = IGRA || {};
     toggleSky: function (game, force) {
       var on = force == null ? !game.sky : force;
       if (on && game.world.stars.length < 2) {
-        G.UI.hint("небу не из чего состоять. отпусти что-нибудь.");
+        G.UI.hint(G.Lang.t("skyEmpty"));
         setTimeout(function () {
           G.UI.hint("");
         }, 3200);
@@ -519,7 +519,7 @@ var IGRA = IGRA || {};
       game.sky = on;
       if (on) {
         G.Voice.say("sky");
-        G.UI.hint("коснись звезды — вспомнить");
+        G.UI.hint(G.Lang.t("skyTouch"));
       } else {
         G.UI.hint("");
       }

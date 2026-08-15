@@ -632,7 +632,7 @@ var IGRA = IGRA || {};
     if (this.gazeTarget && this.gazeTarget.maxHp) {
       this.player.gazeT += dt;
       if (this.player.gazeT > 1.2) {
-        G.Voice.sayText(this.gazeTarget.name + " помнит каждый отказ.", true);
+        G.Voice.sayText(this.gazeTarget.name + " " + G.Lang.t("refuseMem"), true);
         this.gazeTarget.weak = 2.5;
         this.player.gazeT = 0;
       }
@@ -709,7 +709,7 @@ var IGRA = IGRA || {};
         this.fx.ring(n.x, n.y, 10, n.color(), n.r, 0.5);
         if (!G.Director._regazeHinted) {
           G.Director._regazeHinted = true;
-          G.Voice.sayText("живое тоже слышит взгляд — и возвращает тепло.", true);
+          G.Voice.sayText(G.Lang.t("aliveWarmth"), true);
         }
         this.player.gazeT = 0;
       }
@@ -849,7 +849,7 @@ var IGRA = IGRA || {};
         this.ctx.fillRect(0, 0, this.w, this.h);
         this.ctx.fillStyle = "rgba(232,230,242,0.55)";
         this.ctx.font = "12px monospace";
-        this.ctx.fillText("берег продолжает дышать", 16, this.h - 36);
+        this.ctx.fillText(G.Lang.t("shoreBreathes"), 16, this.h - 36);
         var dbg = document.getElementById("fit-debug");
         if (dbg) dbg.textContent = "render: " + (err && err.message ? err.message : String(err)).slice(0, 120);
       } catch (fallbackErr) {}

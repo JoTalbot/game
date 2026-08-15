@@ -106,6 +106,25 @@ var cyr = Object.keys((G.UI_STR && G.UI_STR.en) || {}).filter(function (k) {
 ok(cyr.length === 0, "в английском интерфейсе нет кириллицы",
    cyr.length ? "русское: " + cyr.join(", ") : "чисто");
 
+// Раскладки должны быть равны по составу: ключ, забытый в en, молча
+// отдаёт русскую строку англоязычному игроку (G.Lang.t падает на ru).
+var uiMiss = Object.keys((G.UI_STR && G.UI_STR.ru) || {}).filter(function (k) {
+  return !(G.UI_STR.en && k in G.UI_STR.en);
+});
+ok(uiMiss.length === 0, "обе раскладки интерфейса одного состава",
+   uiMiss.length ? "нет в en: " + uiMiss.join(", ") : Object.keys(G.UI_STR.ru).length + " ключей");
+
+// Имена пород и осей — самые частые надписи в игре.
+var nameMiss = [];
+["spark", "relic", "thorn", "still", "echo", "shard", "tone", "wound", "memory"].forEach(function (k) {
+  if (!(G.KIND_EN && G.KIND_EN[k])) nameMiss.push("порода " + k);
+});
+["curiosity", "aggression", "contemplation", "empathy", "chaos", "harmony"].forEach(function (k) {
+  if (!(G.TRAIT_EN && G.TRAIT_EN[k])) nameMiss.push("ось " + k);
+});
+ok(nameMiss.length === 0, "у пород и осей есть английские имена",
+   nameMiss.length ? nameMiss.join(", ") : "15 имён");
+
 // Мало проверить, что игра поднялась: она может подняться и тут же быть
 // нерабочей. Первая версия этого стенда оставалась зелёной, когда
 // crystallize переименовали в crystallizeTYPO — потому что кристаллизация
