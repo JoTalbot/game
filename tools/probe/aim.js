@@ -278,6 +278,76 @@ function pad(G, r) {
   return miss;
 }
 
+// Метаморфоза случается, пока палец лежит на узле. Рука обязана
+// продолжать работать после смены кожи.
+//
+// Перерождение заменяет список узлов целиком, а взгляд оставался
+// прицеплен к узлу, которого больше нет в мире: он живой объект, просто
+// не принадлежит берегу. Кольцо на экране горело, время тикало — и не
+// рождалось ничего никогда, пока человек не отпустит палец. А он держал,
+// потому что игра показывала, что держит. Человек: «после отдаления
+// начинает срываться, а потом вообще не реагирует».
+function holdThroughMeta(G, opts) {
+  opts = opts || {};
+  var g = makeGame(G, opts.seed);
+  g.input.down = true;
+
+  function freshNode() {
+    for (var i = 0; i < g.world.nodes.length; i++) {
+      var c = g.world.nodes[i];
+      if (!c.dead && c.state === "unformed") return c;
+    }
+    return null;
+  }
+  function aimAt(node) {
+    var tx = 400 + (node.x - g.cam.x) * g.cam.z;
+    var ty = 300 + (node.y - g.cam.y) * g.cam.z;
+    g.input.x = tx; g.input.y = ty;
+    var w = g.screenToWorld(tx, ty);
+    g.input.wx = w.x; g.input.wy = w.y;
+  }
+
+  // Держим узел и посреди удержания ловим метаморфозу. Палец при этом
+  // НЕ ДВИГАЕТСЯ ни на пиксель — именно так и играет человек: смотрит на
+  // узел, ждёт рождения, а мир под ним меняет кожу. Если водить пальцем
+  // вслед за узлом, ловля на ходу перецепит взгляд сама и болезнь
+  // спрячется — первая версия этой проверки так и делала, и оба подлога
+  // прошли мимо неё.
+  var first = freshNode();
+  if (!first) return { error: "нет узла" };
+  aimAt(first);
+  var frozenX = g.input.x, frozenY = g.input.y;
+  g.time += 2;
+  try { g.onDown(); } catch (e) {}
+  g.beginMeta();
+  for (var f = 0; f < 60 * 6; f++) {
+    g.time += 1 / 60;
+    g.input.x = frozenX; g.input.y = frozenY;
+    var wf = g.screenToWorld(frozenX, frozenY);
+    g.input.wx = wf.x; g.input.wy = wf.y;
+    try { g.update(1 / 60); } catch (e) {}
+  }
+  // Призрак: взгляд держится за узел, которого нет на берегу.
+  var ghost = g.player.gaze ? g.world.nodes.indexOf(g.player.gaze) < 0 : false;
+
+  // а теперь — работает ли рука ВООБЩЕ, не отпуская палец
+  var born = 0, tried = 0;
+  for (var round = 0; round < 5; round++) {
+    var m = freshNode();
+    if (!m) { for (var k = 0; k < 120; k++) { g.time += 1 / 60; g.update(1 / 60); } continue; }
+    tried++;
+    for (var q = 0; q < 300; q++) {
+      g.time += 1 / 60;
+      aimAt(m);
+      if (q === 0) { try { g.onDown(); } catch (e) {} }
+      try { g.update(1 / 60); } catch (e) {}
+      if (m.state !== "unformed") { born++; break; }
+      if (m.dead || g.world.nodes.indexOf(m) < 0) { born++; break; }  // унесло — законно
+    }
+  }
+  return { tried: tried, born: born, ghost: ghost };
+}
+
 // Сколько ЭКРАННЫХ точек прощает палец при данном отдалении камеры.
 // Прицел мерился в мировых единицах жёстким числом, а палец живёт на
 // стекле: на отдалении 0.38 те же 58 мировых — это 26 точек экрана,
@@ -319,7 +389,7 @@ function reach(G, opts) {
 
 module.exports = { bootEngine: bootEngine, hold: hold, reach: reach, pad: pad, makeGame: makeGame,
                    walkAndHold: walkAndHold, walkThrough: walkThrough, growMany: growMany,
-                   screenPad: screenPad };
+                   screenPad: screenPad, holdThroughMeta: holdThroughMeta };
 
 if (require.main === module) {
   var G = bootEngine();
