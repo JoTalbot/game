@@ -317,6 +317,42 @@ var IGRA = IGRA || {};
     return "star";
   };
 
+  // Существо, которое ждало и не дождалось. Двойник forget() для живого:
+  // узел, брошенный под приливом, уходит звездой или встаёт раной — и с
+  // тем, кто к тебе привязался, должно быть то же самое, иначе
+  // привязанность ничего не стоит.
+  // Исход решает не случай, а то, каким ты был. Злой берег (агрессия
+  // выражена) отпускает голодным — существо встаёт раной и идёт за тобой.
+  // Тихий отпускает светом: оно уходит на небо, и долг оплачен. Это
+  // «редкая милость» из реплики, написанной задолго до этого органа.
+  G.World.prototype.abandon = function (being, dna) {
+    if (being.dead) return "none";
+    being.dead = true;
+    var bitter = dna && dna.get("aggression") > 0.28;
+    if (bitter && this.rng.chance(0.5)) {
+      var u = new G.Wound(being.x, being.y, being.hue || "spark");
+      u.hp = 2;
+      this.wounds.push(u);
+      if (G.Audio && G.Audio.wound) G.Audio.wound();
+      if (G.Voice) G.Voice.say("debtWound");
+      return "wound";
+    }
+    this.stars.push({
+      x: being.x * 0.15,
+      y: being.y * 0.15,
+      c: (G.TRAIT_COLOR && G.TRAIT_COLOR[being.hue]) || [200, 210, 255],
+      kind: being.hue || "spark",
+      tw: Math.random() * G.TAU,
+      ox: being.x,
+      oy: being.y,
+      verse: being.trueName || being.name || ""
+    });
+    if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
+    if (G.Audio && G.Audio.forget) G.Audio.forget("empathy");
+    if (G.Voice) G.Voice.say("debtStar");
+    return "star";
+  };
+
   // Один вход для стихов: сигила читает три последних, а сейв не должен
   // пухнуть. За полчаса набегало 600 строк — держим 60.
   G.World.prototype.addVerse = function (verse) {
@@ -528,8 +564,23 @@ var IGRA = IGRA || {};
           b.saidCompanion = true;
           if (G.Voice) G.Voice.sayText(G.companionLine(b), true);
         }
-      } else if (b.bond > 0.3) {
-        b.debt = (b.debt || 0) + dt * 0.015;
+      } else if (b.bond > 0.3 && !b.isYesterday) {
+        // Долг памяти. Он копился здесь с самого начала, сохранялся между
+        // сессиями, у него были написаны две реплики на двух языках — и
+        // ни одного исхода в коде. Существо могло голодать вечно и ничего
+        // с ним не случалось: замер показал пик долга 0.08 при пороге 1.2,
+        // потому что порога никто не проверял.
+        // Долг растёт только у того, кто успел привязаться (bond > 0.3):
+        // чужому нечего терять.
+        // Первая версия ускоряла голод пропорционально привязанности —
+        // и замер сразу показал знакомую беду: тот, кто возвращался к
+        // существам, терял их ЧАЩЕ брошенного берега (4 раны против 1).
+        // Ровно ловушка «забота наказуема», которую чинили в 0.4.39.
+        // Перевёрнуто: крепкая связь — это запас терпения. Кого ты
+        // действительно приручил, тот ждёт дольше; едва знакомый уходит
+        // первым.
+        b.debt = (b.debt || 0) + dt * 0.015 * (1.4 - b.bond);
+        if (b.debt > 1.2) this.abandon(b, dna);
       }
     }
 

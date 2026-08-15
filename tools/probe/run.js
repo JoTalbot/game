@@ -638,5 +638,105 @@ group("слабый телефон: обещанное послабление и
      lo.stars + " звёзд, " + lo.arc + " кругов в кадре");
 })();
 
+// ——— долг памяти ———
+// Долг существа копился в world.js, сохранялся между сессиями и имел две
+// написанные реплики на двух языках — а исхода не имел НИ ОДНОГО: замер
+// показал пик 0.08 при пороге 1.2. Орган, выращенный наполовину.
+// Теперь брошенная привязанность разрешается: звездой или раной.
+group("долг памяти: брошенная привязанность разрешается");
+(function () {
+  var Aim3 = require("./aim.js");
+
+  // Две повадки: берег, где к существам не возвращаются, и берег, где
+  // человек время от времени приходит к тому, кто ждёт.
+  function live(seed, mins, tend) {
+    var G3 = Aim3.bootEngine();
+    var g3 = Aim3.makeGame(G3, seed);
+    var stars = 0, wounds = 0, peak = 0, seen = {};
+    var orig = G3.World.prototype.abandon;
+    G3.World.prototype.abandon = function (b, d) {
+      var r = orig.call(this, b, d);
+      if (r === "star") stars++;
+      if (r === "wound") wounds++;
+      return r;
+    };
+    for (var f = 0; f < mins * 60 * 60; f++) {
+      g3.time += 1 / 60;
+      if (f % 180 === 0) {
+        var n = null;
+        for (var i = 0; i < g3.world.nodes.length; i++) {
+          var c = g3.world.nodes[i];
+          if (!c.dead && c.state === "unformed") { n = c; break; }
+        }
+        if (n) {
+          g3.input.x = 400 + (n.x - g3.cam.x);
+          g3.input.y = 300 + (n.y - g3.cam.y);
+          var w = g3.screenToWorld(g3.input.x, g3.input.y);
+          g3.input.wx = w.x; g3.input.wy = w.y; g3.input.down = true;
+          try { g3.onDown(); } catch (e) {}
+        }
+      }
+      if (f % 180 === 120) { g3.input.down = false; try { g3.onUp && g3.onUp(); } catch (e) {} }
+      if (tend && f % 420 === 0 && g3.world.beings.length) {
+        var b2 = g3.world.beings[0];
+        g3.player.x = b2.x; g3.player.y = b2.y;
+      }
+      try { g3.update(1 / 60); } catch (e) {}
+      if (f % 60 === 0) {
+        for (var k = 0; k < g3.world.beings.length; k++) {
+          var b3 = g3.world.beings[k];
+          seen[b3.id] = 1;
+          if ((b3.debt || 0) > peak) peak = b3.debt;
+        }
+      }
+    }
+    G3.World.prototype.abandon = orig;
+    return { stars: stars, wounds: wounds, peak: peak,
+             left: g3.world.beings.length, seen: Object.keys(seen).length };
+  }
+
+  var seeds = [3, 7, 11, 19, 23];
+  var cold = { stars: 0, wounds: 0, left: 0, peak: 0, seen: 0 };
+  var warm = { stars: 0, wounds: 0, left: 0, peak: 0, seen: 0 };
+  seeds.forEach(function (sd) {
+    var a = live(sd, 45, false), b = live(sd, 45, true);
+    cold.stars += a.stars; cold.wounds += a.wounds; cold.left += a.left; cold.seen += a.seen;
+    warm.stars += b.stars; warm.wounds += b.wounds; warm.left += b.left; warm.seen += b.seen;
+    if (a.peak > cold.peak) cold.peak = a.peak;
+    if (b.peak > warm.peak) warm.peak = b.peak;
+  });
+  var coldGone = cold.stars + cold.wounds;
+  cold.gone2 = coldGone;
+  var warmGone = warm.stars + warm.wounds;
+
+  // Порог зреет. До этого органа пик долга по всем сидам был 0.08 —
+  // механика молчала. Здоровый берег доводит его до порога 1.2.
+  ok(cold.peak > 1.1, "долг памяти дозревает до исхода, а не копится впустую",
+     "пик долга на брошенном берегу " + cold.peak.toFixed(2) + " (порог исхода 1.2)");
+
+  // Исход случается. Не раз в жизни: за 45 минут на пяти сидах брошенный
+  // берег отпускает около десяти существ.
+  ok(coldGone >= 4, "брошенная привязанность действительно разрешается",
+     "ушло звездой " + cold.stars + ", встало раной " + cold.wounds + " (5 сидов по 45 мин)");
+
+  // Главная проверка. Первая версия ускоряла голод пропорционально связи —
+  // и заботливый берег терял существ ЧАЩЕ брошенного (4 раны против 1).
+  // Это ловушка «забота наказуема» из 0.4.39, и она обязана краснеть.
+  ok(warmGone < coldGone, "возвращение спасает, а не наказывает",
+     "брошено " + coldGone + " существ, у возвращающегося " + warmGone);
+
+  // И обратная крайность: голод, который выкашивает берег. Существа —
+  // не расходник, у берега должно оставаться, к кому возвращаться.
+  // Первая версия считала ОСТАТОК, и подлог «порог долга почти в ноль»
+  // прошёл мимо: берег рождает новых быстрее, чем голод забирает, — на
+  // выкошенном берегу существ оставалось столько же. Считать надо долю
+  // от всех, кого человек вообще видел. Здоровый берег теряет 10%,
+  // выкашивание даёт 70%.
+  var share = cold.seen ? cold.gone2 / cold.seen : 0;
+  ok(share < 0.35, "долг не выкашивает берег досуха",
+     "ушло " + cold.gone2 + " из " + cold.seen + " виденных = " +
+     Math.round(share * 100) + "% (здоровый берег теряет около десятой части)");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
