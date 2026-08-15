@@ -156,6 +156,13 @@ var IGRA = IGRA || {};
       // Чужое движение — не наше дело: без этого прокрутка экрана
       // рассказа и поля «рот» подёргивалась вслед за камерой берега.
       if (!self.input.down) return;
+      // Своё — обязаны занять, иначе Android через ~300 мс решит, что это
+      // прокрутка, и оборвёт жест системным touchcancel. Именно так
+      // умирало удержание: взгляд рвался на полпути к рождению (1.35 с),
+      // и человек второй релиз подряд говорил «новые точки не
+      // обводятся». `touch-action: none` на холсте тут не спасает —
+      // touchmove слушается на ОКНЕ, где правило холста не действует.
+      if (e.cancelable) e.preventDefault();
       var p = pos(e);
       self.input.x = p.x;
       self.input.y = p.y;
@@ -188,7 +195,26 @@ var IGRA = IGRA || {};
     el.addEventListener("touchstart", down, { passive: false });
     window.addEventListener("touchmove", move, { passive: false });
     window.addEventListener("touchend", up, { passive: false });
-    window.addEventListener("touchcancel", up, { passive: false });
+    // touchcancel — не отпускание. Система шлёт его, когда САМА решила
+    // забрать жест (звонок, шторка, ложно распознанная прокрутка). Вести
+    // его в onUp значило считать, что человек убрал палец: удержание
+    // обрывалось, узел не рождался, а по коду всё выглядело исправно.
+    // Гасим тихо, без побочных действий onUp.
+    window.addEventListener("touchcancel", function (e) {
+      // Если палец ещё на стекле — жест продолжается. Android иногда
+      // шлёт cancel по своим соображениям (ложно распознал прокрутку,
+      // мигнула шторка), а рука никуда не делась: обрывать удержание
+      // из-за системного сомнения — значит терять узел на 1.2 секунде
+      // из 1.35. Проверяем факт, а не намерение системы.
+      var stillDown = e && e.touches && e.touches.length > 0;
+      if (stillDown) return;
+      self.input.down = false;
+      self.player.gaze = null;
+      self.gazeTarget = null;
+      self.player.gazeT = 0;
+      self.input.hold = 0;
+      self.input.hx = null;
+    }, { passive: true });
     window.addEventListener("keydown", function (e) {
       self.input.keys[e.code] = true;
       if (e.code === "Space") {
