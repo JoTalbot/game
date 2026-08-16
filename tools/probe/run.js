@@ -411,6 +411,10 @@ group("раны: голод гонит, но не приковывает");
     var px = probe.x, py = probe.y;
     try { g5.update(1 / 60); } catch (e) {}
     if (g5.world.wounds.indexOf(probe) < 0) break;
+    // Меряем ПОГОНЮ, а не отскок: насытившаяся рана отлетает прочь на
+    // 150+ единиц, и это не скорость преследования, а бегство от
+    // человека. Считать её погоней — значит краснеть на здоровом мире.
+    if (probe.full > 0) continue;
     var spd = Math.hypot(probe.x - px, probe.y - py) * 60;
     if (spd > maxWound) maxWound = spd;
   }
@@ -458,6 +462,32 @@ group("раны: голод гонит, но не приковывает");
   ok(g7.player.energy < 30, "стоять под ранами больно",
      "через 12 с неподвижности энергия " + Math.round(g7.player.energy));
 
+  // Но СТАЯ не умножает боль без предела. Каждая рана ела 22/с
+  // независимо: полторы разом — уже 33/с против восстановления 7-14,
+  // шесть — 132/с, энергия обнулялась за секунду. Отчёт с телефона:
+  // раны съели 3426 силы за 108 секунд игры — больше, чем длилась
+  // сессия. Взгляд умирал не от одной раны, а от их ЧИСЛА, которое
+  // человек не контролирует: они рождаются сами.
+  function biteFor(count) {
+    var gg = Aim5.makeGame(G5, 7);
+    for (var i = 0; i < count; i++) {
+      gg.world.wounds.push(new G5.Wound(gg.player.x + 4 * i, gg.player.y, "thorn"));
+    }
+    var before = gg.player.energy;
+    for (var f = 0; f < 60; f++) {
+      gg.time += 1 / 60;
+      gg.player.vx = 0; gg.player.vy = 0;
+      try { gg.update(1 / 60); } catch (e) {}
+    }
+    return before - gg.player.energy;
+  }
+  var one = biteFor(1);
+  var six = biteFor(6);
+  ok(six < one * 3, "стая ран не умножает боль без предела",
+     "одна рана берёт " + Math.round(one) + " за секунду, шесть — " + Math.round(six));
+  ok(six < 60, "под стаей ран человек не обнуляется мгновенно",
+     "шесть ран берут " + Math.round(six) + " из 100 за секунду");
+
   // 4. И всё же под раной можно смотреть: узел рождается.
   var g8 = Aim5.makeGame(G5, 7);
   var node = null;
@@ -483,6 +513,49 @@ group("раны: голод гонит, но не приковывает");
   }
   ok(node.state !== "unformed", "под раной всё ещё можно вырастить узел",
      node.state !== "unformed" ? "вырос" : "не вырос — взгляд задушен голодом");
+
+  // И на ИСХОДЕ сил тоже. Взгляд отключался при энергии ниже 4 — под
+  // стаей ран она стоит в нуле, и человек не мог НИЧЕГО: ни вырастить,
+  // ни понять, за что наказан. Отчёт: «нет сил ×95» из 113 срывов,
+  // замер давал 213. Смотреть без сил можно, просто вдвое медленнее:
+  // голод забирает скорость, а не саму способность жить.
+  var g9 = Aim5.makeGame(G5, 7);
+  var node9 = null;
+  for (var k9 = 0; k9 < g9.world.nodes.length; k9++) {
+    var c9 = g9.world.nodes[k9];
+    if (!c9.dead && c9.state === "unformed") { node9 = c9; break; }
+  }
+  g9.player.x = node9.x; g9.player.y = node9.y;
+  g9.cam.x = node9.x; g9.cam.y = node9.y;
+  for (var i9 = 0; i9 < 6; i9++) {
+    g9.world.wounds.push(new G5.Wound(node9.x + 4 * i9, node9.y, "thorn"));
+  }
+  for (var f9 = 0; f9 < 60 * 20; f9++) {
+    g9.time += 1 / 60;
+    g9.player.vx = 0; g9.player.vy = 0;
+    try { g9.update(1 / 60); } catch (e) {}
+  }
+  var drained = g9.player.energy;
+  g9.input.x = 400; g9.input.y = 300;
+  var wd9 = g9.screenToWorld(400, 300);
+  g9.input.wx = wd9.x; g9.input.wy = wd9.y;
+  g9.input.down = true; g9.time += 2;
+  try { g9.onDown(); } catch (e) {}
+  var bornAt = -1;
+  for (var q9 = 0; q9 < 400; q9++) {
+    g9.time += 1 / 60;
+    g9.input.x = 400; g9.input.y = 300;
+    var w9 = g9.screenToWorld(400, 300);
+    g9.input.wx = w9.x; g9.input.wy = w9.y;
+    try { g9.update(1 / 60); } catch (e) {}
+    if (node9.state !== "unformed") { bornAt = q9 / 60; break; }
+  }
+  ok(drained < 5 && bornAt > 0, "без сил взгляд работает, просто медленнее",
+     drained < 5 ? (bornAt > 0 ? "энергия " + Math.round(drained) + ", узел вырос за " +
+       bornAt.toFixed(2) + " с" : "энергия в нуле — узел НЕ вырос")
+       : "не удалось истощить (энергия " + Math.round(drained) + ")");
+  ok(bornAt < 0 || bornAt > 2, "но голод заметно замедляет",
+     bornAt > 0 ? bornAt.toFixed(2) + " с против обычных 1.35" : "—");
 })();
 
 // ——— первая смена кожи ———
@@ -1323,11 +1396,16 @@ group("слабый телефон: обещанное послабление и
   var Aim2 = require("./aim.js");
 
   // Кадр берега на 15-й минуте: сколько работы уходит холсту.
-  function frame(low) {
+  //
+  // Мир растят ОДИН раз, а рисуют дважды. Прежде поднимали два отдельных
+  // мира и сравнивали их кадры — но мир недетерминирован, и доля
+  // экономии плыла вместе с населённостью: правка ран (они стали слабее,
+  // берег живёт иначе) уронила её с 21% до 20%, и проверка покраснела,
+  // хотя холста никто не касался. Качество — свойство КАДРА, а не мира.
+  function grow() {
     var G2 = Aim2.bootEngine();
     var g2 = Aim2.makeGame(G2, 7);
     G2.Quality.ready = true;
-    G2.Quality.glow = !low;
     for (var f = 0; f < 15 * 60 * 60; f++) {
       g2.time += 1 / 60;
       if (f % 180 === 0) {
@@ -1347,23 +1425,61 @@ group("слабый телефон: обещанное послабление и
       if (f % 180 === 120) { g2.input.down = false; try { g2.onUp && g2.onUp(); } catch (e) {} }
       try { g2.update(1 / 60); } catch (e) {}
     }
+    return { G: G2, g: g2 };
+  }
+
+  function frame(shore, low) {
+    shore.G.Quality.glow = !low;
     var ctx = H2.ctxStub();
     ctx.canvas = { width: 800, height: 600 };
-    G2.Renderer.draw(ctx, g2);
+    shore.G.Renderer.draw(ctx, shore.g);
     var tally = {};
     ctx.calls.forEach(function (c) { tally[c] = (tally[c] || 0) + 1; });
     return { ops: ctx.calls.length, grad: tally.gradient || 0,
              arc: tally.arc || 0, fill: tally.fill || 0,
-             stars: g2.world.stars.length };
+             stars: shore.g.world.stars.length };
   }
 
-  var hi = frame(false), lo = frame(true);
+  // Кто вообще назначает послабление. Проверки ниже ставят `glow`
+  // руками — они стерегут РИСОВАНИЕ. А сам выбор («этот телефон
+  // слабый») не стерёг никто: подлог «init всегда включает свет»
+  // прошёл мимо всего стенда. Слабый телефон мог не получить
+  // послабления вовсе, и никто бы не заметил.
+  (function () {
+    var Q = Aim2.bootEngine().Quality;
+    var nav = global.navigator;
+    global.navigator = { deviceMemory: 2, hardwareConcurrency: 2 };
+    Q.ready = false; Q.glow = true;
+    Q.init();
+    ok(!Q.glow && Q.particles <= 160, "слабый телефон получает послабление при старте",
+       "память 2 ГБ, 2 ядра → glow=" + Q.glow + ", частиц " + Q.particles);
+
+    var Q2 = Aim2.bootEngine().Quality;
+    global.navigator = { deviceMemory: 8, hardwareConcurrency: 8 };
+    Q2.ready = false; Q2.glow = false;
+    Q2.init();
+    ok(Q2.glow, "сильный телефон остаётся красивым",
+       "память 8 ГБ, 8 ядер → glow=" + Q2.glow);
+    global.navigator = nav;
+  })();
+
+  var shore = grow();
+  var hi = frame(shore, false), lo = frame(shore, true);
 
   ok(lo.grad < hi.grad * 0.35, "слабому телефону достаётся заметно меньше градиентов",
      "сильный " + hi.grad + " за кадр, слабый " + lo.grad);
-  ok(lo.ops <= hi.ops * 0.8, "кадр слабого телефона дешевле хотя бы на пятую часть",
-     "сильный " + hi.ops + " операций, слабый " + lo.ops +
-     " (−" + Math.round(100 * (hi.ops - lo.ops) / hi.ops) + "%)");
+  // Мерим то, что качество ВПРАВДУ убирает, а не долю от всего кадра.
+  // Доля плывёт вместе с населённостью берега: правка ран (они стали
+  // слабее, мир живёт иначе) уронила её с 21% до 20%, и проверка
+  // краснела, хотя холста никто не касался. Экономия должна считаться
+  // от украшений, а не от общей работы: сколько бы ни было узлов,
+  // погашено должно быть большинство ореолов.
+  var saved = hi.ops - lo.ops;
+  ok(saved > 300 && lo.grad < hi.grad * 0.35,
+     "слабому телефону достаётся заметно более дешёвый кадр",
+     "сэкономлено " + saved + " операций из " + hi.ops +
+     " (−" + Math.round(100 * saved / hi.ops) + "%), градиентов " +
+     hi.grad + " → " + lo.grad);
 
   // Экономить можно было бы и погасив всё — но тогда это уже не игра.
   // Первая версия этой проверки считала круги и заливки, и подлог

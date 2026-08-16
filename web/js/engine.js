@@ -934,15 +934,18 @@ var IGRA = IGRA || {};
       this.player.gaze = null;
       return;
     }
-    if (this.player.energy < 4) {
-      if (G.Report) G.Report.gestureTorn("energy", this.player.gazeT);
-      G.Voice.say("lowEnergy");
-      this.player.gaze = null;
-      return;
-    }
-    this.player.energy -= 6 * dt;
+    // Взгляд — не роскошь, а единственный способ говорить с миром.
+    //
+    // Он отключался при энергии ниже 4, и это делало игру неиграбельной
+    // там, где её ели раны: отчёт с телефона дал «нет сил ×95» из 113
+    // срывов, замер — 213. Под стаей ран энергия стоит в нуле, и человек
+    // не может НИЧЕГО: ни вырастить, ни уйти, ни понять, за что наказан.
+    // Смотреть без сил можно — просто медленно: рождение растягивается
+    // вдвое. Голод забирает скорость, а не саму способность жить.
+    var weak = this.player.energy < 8;
+    this.player.energy = Math.max(0, this.player.energy - (weak ? 1 : 6) * dt);
     if (G.Report) { G.Report.noteDrain("gaze", 6 * dt); G.Report.noteEnergy(this.player.energy); }
-    this.player.gazeT += dt;
+    this.player.gazeT += weak ? dt * 0.5 : dt;
     n.care = Math.min(1, n.care + dt * 0.4);
 
     var gest = n.gesture;
