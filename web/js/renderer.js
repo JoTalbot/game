@@ -595,6 +595,17 @@ var IGRA = IGRA || {};
       var p = this.worldToScreen(cam, b.x, b.y);
       var c = G.TRAIT_COLOR[b.hue] || G.TRAIT_COLOR.empathy;
       var r = (b.r + Math.sin(t * 2 + b.phase) * 1.5) * cam.z;
+      // Голод виден глазом. Существо, которое ждёт и не дождалось, копит
+      // долг (world.js: bond > 0.3 и дальше 56 — debt растёт до порога 1.2,
+      // где уходит звездой или встаёт раной). Раньше долг был невидим до
+      // самого исхода: человек терял существо, не понимая, что оно всё это
+      // время гасло от разлуки. Теперь голодное существо тускнеет — как
+      // остывающий узел (0.4.55) — чтобы «вернись к тому, кто ждёт» было
+      // видно, а не только в числах. Не гаснет в ноль: на грани исхода его
+      // ещё можно спасти.
+      var debt = b.debt != null ? G.clamp(b.debt, 0, 1.2) : 0;
+      var hunger = debt / 1.2;
+      var dim = 1 - 0.55 * hunger;
       if (b.isYesterday) {
         glow(ctx, p.x, p.y, r * 5, [255, 230, 180], 0.16);
         ctx.strokeStyle = "rgba(255,230,180,0.35)";
@@ -602,21 +613,32 @@ var IGRA = IGRA || {};
         ctx.arc(p.x, p.y, r * 1.4, 0, G.TAU);
         ctx.stroke();
       }
-      glow(ctx, p.x, p.y, r * 3, c, 0.14 + b.bond * 0.15);
-      ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.75);
+      glow(ctx, p.x, p.y, r * 3, c, (0.14 + b.bond * 0.15) * dim);
+      ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.75 * dim);
       ctx.beginPath();
       ctx.arc(p.x, p.y, r * 0.45, 0, G.TAU);
       ctx.fill();
-      // имя видно всегда: безымянное — призрачно, своё — ярко
+      // голодное существо дрожит — тихо, чтобы взгляд его ловил
+      if (hunger > 0.4) {
+        ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.25 * hunger);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        var tr = Math.sin(t * 6 + b.phase) * hunger * 2;
+        ctx.arc(p.x + tr, p.y, r * 0.75, 0, G.TAU);
+        ctx.stroke();
+      }
+      // имя видно всегда: безымянное — призрачно, своё — ярко. Голод
+      // тускнит и имя: существо, которое забыли, теряет не только свет,
+      // но и себя — в духе закона «имена лгут».
       ctx.save();
       ctx.shadowColor = "rgba(0,0,0,0.9)";
       ctx.shadowBlur = 5;
       ctx.textAlign = "center";
       if (b.named || b.bond > 0.4) {
-        ctx.fillStyle = G.rgb(255, 236, 236, 0.85);
+        ctx.fillStyle = G.rgb(255, 236, 236, 0.85 * dim);
         ctx.font = "italic 20px 'Cormorant Garamond', serif";
       } else {
-        ctx.fillStyle = G.rgb(220, 216, 236, 0.38);
+        ctx.fillStyle = G.rgb(220, 216, 236, 0.38 * dim);
         ctx.font = "italic 17px 'Cormorant Garamond', serif";
       }
       ctx.fillText(G.beingName(b), p.x, p.y + r + 14);
