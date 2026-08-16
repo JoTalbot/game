@@ -57,6 +57,11 @@ fi
 echo "— душа и её зеркало совпадают"
 # android/app/src/main/assets/www — третья копия, но она gitignored и
 # рождается самой сборкой. Стеречь надо то, что лежит в репозитории.
+if git -C "$ROOT" ls-files --error-unmatch android/app/src/main/assets/www >/dev/null 2>&1; then
+  say_bad "android/app/src/main/assets/www лежит в git: это сборочная копия, не источник правды"
+else
+  say_ok "сборочная копия Android не лежит в git"
+fi
 if diff -rq "$ROOT/web" "$ROOT/docs/play" >/tmp/igra-sync-diff 2>&1; then
   say_ok "docs/play повторяет web"
 else
