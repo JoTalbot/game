@@ -4,14 +4,32 @@
 // запасной берег на GitHub Pages должен открываться без сети: концепт
 // обещает оффлайн. Кэшируем только оболочку одной версией; данные в
 // localStorage и так живут на устройстве.
-var CACHE = "igra-shell-v1";
+var CACHE = "igra-shell-v2";
 var ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
   "./assets/img/icon.png",
   "./css/fonts.css",
-  "./css/game.css"
+  "./css/game.css",
+  "./js/math.js",
+  "./js/lang.js",
+  "./js/dna.js",
+  "./js/save.js",
+  "./js/audio.js",
+  "./js/fx.js",
+  "./js/igra.js",
+  "./js/report.js",
+  "./js/organs.js",
+  "./js/memory.js",
+  "./js/fate.js",
+  "./js/world.js",
+  "./js/director.js",
+  "./js/renderer.js",
+  "./js/webgl-renderer.js",
+  "./js/engine.js",
+  "./js/ui.js",
+  "./js/main.js"
 ];
 
 self.addEventListener("install", function (event) {
