@@ -218,7 +218,14 @@ var IGRA = IGRA || {};
       function line(a, b) { L.push(a + ": " + b); }
 
       L.push("— " + (en ? "IGRA" : "ИГРА") + " " + (G.VERSION || "?") + " —");
-      line(en ? "played" : "сыграно", mins + (en ? " min" : " мин"));
+      // Возраст мира рядом со временем сессии: без него отчёт выглядел
+      // так, будто за две минуты выросло сто узлов и сменилось четыре
+      // берега.
+      var worldMin = Math.round((game.time || 0) / 6) / 10;
+      line(en ? "played" : "сыграно", mins + (en ? " min" : " мин") +
+        (worldMin > mins + 0.5
+          ? (en ? ", world is " : ", миру ") + worldMin + (en ? " min old" : " мин")
+          : ""));
       // Размер спрашиваем у окна, а не только у игры: в отчёте с телефона
       // это первое, по чему видно «сага экрана вернулась». Стенд ловил
       // тут NaN×NaN — подставная игра без холста, и в живой игре до
@@ -293,12 +300,17 @@ var IGRA = IGRA || {};
       }
 
       var a = this.acts;
-      line(en ? "grown" : "выращено", w.discovered + " (" + (en ? "alive " : "живых ") +
+      // Эти числа — за ВСЮ жизнь мира, а не за сессию: они приходят из
+      // сейва вместе с берегом. Отчёт «сыграно 2.5 мин / выращено 105 /
+      // берегов 4» читался как безумие, пока не стало видно, что счёт
+      // идёт с первого дня. Помечаем прямо в строке.
+      line(en ? "grown (all time)" : "выращено за всю жизнь", w.discovered +
+        " (" + (en ? "alive " : "живых ") +
         w.nodes.filter(function (n) { return n.state === "alive"; }).length + ")");
       line(en ? "returns" : "возвращений", a.returns + (en ? ", anchors " : ", якорей ") + a.anchors);
-      line(en ? "lost to tide" : "забрал прилив", w.lost +
+      line(en ? "lost to tide (all time)" : "забрал прилив за всю жизнь", w.lost +
         (en ? ", carried by rebirth " : ", унесла метаморфоза ") + (w.carried || 0));
-      line(en ? "shores" : "берегов", w.meta + (en ? ", roads " : ", дорог ") + (w.arrived || 0) +
+      line(en ? "shores (all time)" : "берегов за всю жизнь", w.meta + (en ? ", roads " : ", дорог ") + (w.arrived || 0) +
         (en ? ", beings " : ", существ ") + w.beings.length);
       line(en ? "laws touched" : "законов тронуто", a.laws +
         (en ? ", pulses " : ", пульсов ") + a.pulses);

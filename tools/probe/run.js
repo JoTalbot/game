@@ -2212,5 +2212,69 @@ group("отчёт: шаг — не промах");
      "в пустоту " + ge.empty + ", шагов " + ge.walk);
 })();
 
+
+// ——— ночь не стирает берег ———
+group("ночь: берег редеет, но остаётся твоим");
+(function () {
+  // Человек написал «не сохранилось» — при том, что сейв грузился
+  // исправно (отчёт показал сессию 5). Мир исчезал не при сохранении, а
+  // при ВОЗВРАЩЕНИИ: сон берега щадил только якоря (их всего три), а
+  // корни — то, за что плачено возвратами, — не значили ничего. Сутки
+  // без игры убивали 19 живых узлов из 20. Это и есть «не сохранилось»
+  // глазами человека.
+  var Aim9 = require("./aim.js");
+  var Gn = Aim9.bootEngine();
+  require("./dom.js").install();
+
+  function shoreAfter(hours) {
+    var g = Aim9.makeGame(Gn, 4242);
+    Gn.Memory.sessions = 1;
+    Gn.Memory.firstAt = Date.now();
+    Gn.Memory.setFromDna(g.dna, true);
+    var made = [];
+    for (var i = 0; i < 20; i++) {
+      var n = new Gn.Node(g.player.x + Math.cos(i) * 200, g.player.y + Math.sin(i) * 200, "spark");
+      n.state = "alive"; n.growth = 1; n.hp = 1; n.care = 0.9; n.age = 60;
+      if (i < 3) n.roots = 0.8;      // три узла человек укоренил возвратами
+      g.world.nodes.push(n);
+      made.push(n);
+    }
+    g.world.anchors = [made[0].id];
+    g.save();
+    var raw = JSON.parse(Gn._store["igra.save.v1"]);
+    raw.memory.leftAt = Date.now() - hours * 3600000;
+    Gn._store["igra.save.v1"] = JSON.stringify(raw);
+    Gn.Memory.sessions = 1; Gn.Memory.leftAt = 0; Gn.Memory.days = 1;
+    var g2 = Aim9.makeGame(Gn, 4242);
+    var st = Gn.Voice.sayText;
+    Gn.Voice.sayText = function () {};
+    g2.load();
+    Gn.Voice.sayText = st;
+    var alive = 0, rooted = 0;
+    for (var j = 0; j < g2.world.nodes.length; j++) {
+      var q = g2.world.nodes[j];
+      if (q.state === "alive" && !q.dead) {
+        alive++;
+        if ((q.roots || 0) > 0.3) rooted++;
+      }
+    }
+    return { alive: alive, rooted: rooted };
+  }
+
+  var night = shoreAfter(9);
+  ok(night.alive >= 15, "после ночи берег на месте",
+     night.alive + " живых из 20");
+
+  // Трое суток — самый долгий сон, какой игра вообще считает.
+  var week = shoreAfter(72);
+  ok(week.alive >= 10, "даже после трёх суток есть куда вернуться",
+     week.alive + " живых из 20");
+  ok(week.rooted >= 2, "укоренённое переживает любую разлуку",
+     week.rooted + " из 3 с корнями");
+  // И всё же забвение — угроза, а не декорация: что-то ночь забирает.
+  ok(week.alive < 20, "ночь всё-таки что-то забирает",
+     "потеряно " + (20 - week.alive));
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
