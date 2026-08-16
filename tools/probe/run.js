@@ -2160,6 +2160,22 @@ group("память: берег помнит, что ты уже приходи�
      Math.round(Ge.Memory.sleptHours) + " ч");
   ok(g2.world.beings.length > beingsBefore, "вчерашний ты выходит навстречу",
      beingsBefore + " → " + g2.world.beings.length);
+  // Каждая ночь рождала нового «вчерашнего тебя», а прежний не уходил
+  // никогда: за три возвращения на берегу стояло трое призраков. Гость
+  // должен быть один — вчерашний день сменяется новым вчера.
+  g2.save();
+  var raw2 = JSON.parse(Ge._store["igra.save.v1"]);
+  raw2.memory.leftAt = Date.now() - 9 * 3600000;
+  Ge._store["igra.save.v1"] = JSON.stringify(raw2);
+  var g3 = Aim7.makeGame(Ge, 5150);
+  Ge.Voice.sayText = function () {};
+  g3.load();
+  var ycount = 0;
+  for (var yi = 0; yi < g3.world.beings.length; yi++) {
+    if (g3.world.beings[yi].isYesterday) ycount++;
+  }
+  ok(ycount <= 1, "вчерашний ты приходит один, а не толпой",
+     ycount + " вчерашних на берегу");
   // Час ухода обязан стать «сейчас»: иначе та же ночь съедала бы берег
   // заново при каждом сворачивании окна.
   ok(Date.now() - Ge.Memory.leftAt < 60000, "ночь не засчитывается дважды");

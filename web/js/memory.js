@@ -173,6 +173,29 @@ var IGRA = IGRA || {};
 
     spawnYesterday: function (game, prevDna, prevName) {
       if (!prevDna) return null;
+      // «Вчерашний ты» — один гость, а не толпа призраков. Каждая ночь
+      // без человека рождала новую копию, а прежняя не уходила никогда:
+      // за три возвращения на берегу стояло трое «вчерашних тебя». Новый
+      // гость приходит один — старый тихо уходит звездой, как и положено
+      // вчерашнему дню.
+      var w = game.world;
+      for (var yi = w.beings.length - 1; yi >= 0; yi--) {
+        var old = w.beings[yi];
+        if (old.isYesterday) {
+          if (!old.dead) {
+            old.dead = true;
+            w.stars.push({
+              x: old.x * 0.15, y: old.y * 0.15,
+              c: (G.TRAIT_COLOR && G.TRAIT_COLOR[old.hue]) || [200, 210, 255],
+              kind: old.hue || "spark", tw: Math.random() * G.TAU,
+              ox: old.x, oy: old.y
+            });
+            if (w.stars.length > 160) w.stars.splice(0, w.stars.length - 160);
+            if (G.Audio && G.Audio.forget) G.Audio.forget("empathy");
+          }
+          w.beings.splice(yi, 1);
+        }
+      }
       var trait = "empathy";
       var best = -1;
       for (var i = 0; i < G.TRAITS.length; i++) {
