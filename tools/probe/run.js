@@ -464,6 +464,41 @@ group("мир: портрет дышит, а не упирается в пото
   }
   ok(!missing.length, "у дальних вех есть слова на обоих языках",
      missing.length ? missing.join(", ") : "40, 70, 120");
+
+  // Сезон обязан идти за доминантой. Отчёт: природа «сбой», сезон
+  // «тишина» — они разошлись и не сходились тринадцать минут. Осыпь
+  // считалась от суммы шести осей, а упирались в потолок две: у самого
+  // верха она была почти нулевой (0.007 за кристалл), и перевес между
+  // насыщенными осями не набирал даже порога смены сезона.
+  var g9 = Aim6.makeGame(G6, 7);
+  G6.now = function () { return g9.time; };
+  var mismatch = 0, checks = 0;
+  for (var f9 = 0; f9 < 13 * 60 * 60; f9++) {
+    g9.time += 1 / 60;
+    if (f9 % 150 === 0) {
+      var q9 = null;
+      for (var n9 = 0; n9 < g9.world.nodes.length; n9++) {
+        var c9 = g9.world.nodes[n9];
+        if (!c9.dead && c9.state === "unformed") { q9 = c9; break; }
+      }
+      if (q9) {
+        g9.input.x = 400 + (q9.x - g9.cam.x) * g9.cam.z;
+        g9.input.y = 300 + (q9.y - g9.cam.y) * g9.cam.z;
+        var w9 = g9.screenToWorld(g9.input.x, g9.input.y);
+        g9.input.wx = w9.x; g9.input.wy = w9.y; g9.input.down = true;
+        try { g9.onDown(); } catch (e) {}
+      }
+    }
+    if (f9 % 150 === 130) { g9.input.down = false; try { g9.onUp && g9.onUp(); } catch (e) {} }
+    try { g9.update(1 / 60); } catch (e) {}
+    if (f9 % (60 * 60) === 0 && f9 > 60 * 120) {
+      checks++;
+      if (G6.Memory.seasonTrait !== g9.dna.dominant()) mismatch++;
+    }
+  }
+  ok(checks > 0 && mismatch === 0, "сезон идёт за характером, а не отстаёт навсегда",
+     mismatch + " расхождений из " + checks + " замеров, сейчас «" +
+     G6.Memory.climate().id + "» при доминанте «" + g9.dna.dominant() + "»");
 })();
 
 // ——— раны ———
@@ -807,6 +842,26 @@ group("судьба: финал приходит в конце, а не в на�
     }
     return { at: at, meta: g2.world.meta, grown: g2.world.discovered };
   }
+
+  // Новая жизнь начинается с нуля. `game.time` не обнулялся при
+  // рождении — приходил из прошлого сейва и копился между жизнями.
+  // Отчёт человека: «сыграно 13.1 мин» и при этом «судьба: become»,
+  // хотя порог развилки 20 минут. Он начал новую игру, а часы шли из
+  // старой. Всё, что меряется временем мира, считало его старше.
+  (function () {
+    var Gb = Aim.bootEngine();
+    var gb = Aim.makeGame(Gb, 7);
+    gb.time = 3000;
+    gb.dna.age = 1500;
+    Gb.Fate.chosen = "become";
+    Gb.Fate.offered = true;
+    gb.state = "title";
+    try { gb.startBirth(); } catch (e) {}
+    ok(gb.time === 0 && gb.dna.age === 0 && !Gb.Fate.chosen,
+       "рождение обнуляет часы мира, а не наследует чужие",
+       "время " + gb.time + ", возраст " + gb.dna.age + ", судьба «" + Gb.Fate.chosen + "»");
+    ok(!Gb.Fate.ready(gb), "новорождённому не предлагают финал");
+  })();
 
   var r = firstOffer(45);
   ok(r.at < 0 || r.at >= 1200, "финал не приходит к тому, кто только начал",
