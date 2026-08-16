@@ -1135,6 +1135,9 @@ var IGRA = IGRA || {};
         n.r = G.clamp(G.num(src.r, 16), 4, 80);
         n.verse = src.verse || "";
         n.tone = G.num(src.tone, 330);
+        // обещанная природа переживает выход: гнездо после зова и метки
+        // берега не должны вырастать чужими после перезапуска.
+        if (src.hint) n.hint = src.hint;
         this.world.nodes.push(n);
       }
       this.world.beings = [];

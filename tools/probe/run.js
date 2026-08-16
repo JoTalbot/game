@@ -2378,6 +2378,34 @@ group("память: прилив помнит свою фазу");
 })();
 
 
+// Обещанная природа узла жила только в поле `hint` — метка первого
+// берега, гнездо после зова, «эхо» органа эмпатии. В сейв оно не
+// клалось: обещанное после зова гнездо нужной природы после перезапуска
+// вырастало из жеста, а не из награды за дорогу.
+group("память: обещанная природа переживает выход");
+(function () {
+  var Aim = require("./aim.js");
+  var Gh = Aim.bootEngine();
+  require("./dom.js").install();
+  var g = Aim.makeGame(Gh, 8181);
+  // узел, которому мир уже пообещал природу — как в гнезде после зова
+  var n = g.world.nodes[0];
+  n.state = "unformed";
+  n.hint = "thorn";
+  var id = n.id;
+  g.save();
+  var g2 = Aim.makeGame(Gh, 8181);
+  Gh.Voice.sayText = function () {};
+  g2.load();
+  var back = null;
+  for (var i = 0; i < g2.world.nodes.length; i++) {
+    if (g2.world.nodes[i].id === id) back = g2.world.nodes[i];
+  }
+  ok(back && back.hint === "thorn",
+     "обещанная природа узла не теряется при выходе",
+     back ? "hint=" + back.hint : "узел не найден");
+})();
+
 // ——— отчёт не клевещет на руку ———
 group("отчёт: шаг — не промах");
 (function () {
