@@ -11,8 +11,8 @@ android {
         applicationId = "world.igra.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 68
-        versionName = "0.4.64"
+        versionCode = 69
+        versionName = "0.4.65"
     }
 
     buildTypes {

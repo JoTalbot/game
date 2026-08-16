@@ -965,6 +965,23 @@ var IGRA = IGRA || {};
 
     var gest = n.gesture;
     var spd = Math.sqrt(this.player.vx * this.player.vx + this.player.vy * this.player.vy);
+    // Сколько человек держит УЖЕ РОДИВШИЙСЯ узел. Отдельный счётчик, а
+    // не `gest.still`: тот копит жест рождения и к этому мигу давно
+    // перевалил любой порог.
+    if (n.state === "alive" && spd < 12) {
+      n.holdT = (n.holdT || 0) + dt;
+      // Якорь проверяем КАЖДЫЙ кадр, а не раз в 1.35 с. Ветка жила
+      // внутри блока «взгляд дозрел», и порог 1.5 с срабатывал только на
+      // следующем круге — якорь брался на четвёртой секунде вместо
+      // третьей. Человек к этому времени давно отпускает палец.
+      if (n.holdT > 1.5 && this.world.anchors.indexOf(n.id) < 0) {
+        if (this.world.anchor(n)) {
+          this.floaters.add(n.x, n.y - 22, G.Lang ? G.Lang.t("anchor") : "якорь", n.color());
+          G.Audio.chord([330, 495], 0.8, 0.05);
+        }
+        n.holdT = 0;
+      }
+    } else if (spd >= 12) n.holdT = 0;
     if (spd < 12) gest.still += dt * 0.8;
     else gest.explore += dt * 0.5;
     if (this.input.rhythm > 0.5) gest.rhythm += dt;
@@ -1003,12 +1020,6 @@ var IGRA = IGRA || {};
         // Якорь — отдельное намерение: не отпустить то, что уже родилось.
         // Кто продолжает держать палец, доходит до второго круга ниже и
         // получает якорь честно, за 2.7 с вместо 1.35.
-        this.player.gazeT = 0;
-      } else if (gest.still > 0.7) {
-        if (this.world.anchor(n)) {
-          this.floaters.add(n.x, n.y - 22, G.Lang ? G.Lang.t("anchor") : "якорь", n.color());
-          G.Audio.chord([330, 495], 0.8, 0.05);
-        }
         this.player.gazeT = 0;
       } else {
         // взгляд по живому не пустой жест: берег возвращает тепло
