@@ -60,6 +60,11 @@ var IGRA = IGRA || {};
       this.gestures.taps++;
       this._gT = 0;
       this._gHeld = false;
+      // Исход жеста записывается один раз. Без этого флага срыв посреди
+      // жеста (палец ушёл, узел исчез, смена кожи) гасил взгляд, а на
+      // отпускании onUp засчитывал тот же жест ещё раз как «шаг» или
+      // «в пустоту»: один тык давал два исхода, и воронка не сходилась.
+      this._gDone = false;
     },
 
     gestureHold: function (dt, hasGaze) {
@@ -119,6 +124,7 @@ var IGRA = IGRA || {};
     slips: [],
     gestureTorn: function (why, t, slip) {
       this.gestures.torn++;
+      this._gDone = true;
       var key = String(why || "?");
       this.tornBy[key] = (this.tornBy[key] || 0) + 1;
       if (t != null && this.tornAt.length < 60) this.tornAt.push(Math.round(t * 100) / 100);
@@ -126,7 +132,7 @@ var IGRA = IGRA || {};
       if (this.playT - this.lastCallAt < 20) this.tornAfterCall++;
     },
 
-    gestureBorn: function () { this.gestures.born++; },
+    gestureBorn: function () { this.gestures.born++; this._gDone = true; },
     gestureEmpty: function () { this.gestures.empty++; },
     gestureWalk: function () { this.gestures.walk++; },
     noteCall: function () { this.lastCallAt = this.playT; },

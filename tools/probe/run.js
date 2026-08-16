@@ -2431,6 +2431,73 @@ group("отчёт: шаг — не промах");
 })();
 
 
+// ——— воронка жестов сходится ———
+// Один тык обязан давать ОДИН исход. Срыв посреди жеста (палец ушёл,
+// узел исчез, смена кожи) гасил взгляд, а onUp засчитывал тот же тык
+// ещё раз как «шаг» или «в пустоту»: сорвавшаяся рука выглядела ещё и
+// гуляющей, и воронка «касаний / выросло / сорвалось / шагов / в
+// пустоту» не сходилась.
+group("отчёт: один жест — один исход");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+
+  function node() {
+    var g = Aim.makeGame(AG, 7);
+    for (var i = 0; i < g.world.nodes.length; i++) {
+      var c = g.world.nodes[i];
+      if (!c.dead && c.state === "unformed") return { g: g, n: c };
+    }
+    return null;
+  }
+
+  // 1. Срыв по «палец ушёл»: взгляд берём, потом уводим палец за порог.
+  var r1 = node();
+  var g1 = r1.g, n1 = r1.n;
+  g1.player.x = n1.x; g1.player.y = n1.y; g1.cam.x = n1.x; g1.cam.y = n1.y;
+  AG.Report.reset();
+  AG.Report.gestureStart();
+  g1.input.x = 400; g1.input.y = 300;
+  var w1 = g1.screenToWorld(400, 300);
+  g1.input.wx = w1.x; g1.input.wy = w1.y;
+  g1.input.down = true; g1.time += 2;
+  g1.onDown();
+  for (var f = 0; f < 200 && g1.player.gaze; f++) {
+    g1.time += 1 / 60;
+    g1.input.x = 400 + 3 * f;
+    var w2 = g1.screenToWorld(g1.input.x, g1.input.y);
+    g1.input.wx = w2.x; g1.input.wy = w2.y;
+    try { g1.update(1 / 60); } catch (e) {}
+  }
+  g1.input.down = false;
+  g1.onUp();
+  ok(AG.Report.tornBy.slip === 1, "срыв по «палец ушёл» записан один раз",
+     "slip=" + AG.Report.tornBy.slip);
+  ok(AG.Report.gestures.walk + AG.Report.gestures.empty === 0,
+     "и тот же жест не засчитан шагом или пустотой",
+     "шаг=" + AG.Report.gestures.walk + " пустота=" + AG.Report.gestures.empty);
+
+  // 2. Обратная крайность: честный тык в пустоту всё ещё «пустота».
+  var r2 = node();
+  var g2 = r2.g;
+  AG.Report.reset();
+  AG.Report.gestureStart();
+  g2.input.x = 700; g2.input.y = 520;
+  var w3 = g2.screenToWorld(g2.input.x, g2.input.y);
+  g2.input.wx = w3.x; g2.input.wy = w3.y;
+  g2.time += 2; g2.input.down = true;
+  g2.onDown();
+  g2.player.gaze = null; g2.gazeTarget = null;
+  for (var j = 0; j < 6; j++) AG.Game.prototype.update.call(g2, 1 / 60);
+  g2.input.down = false;
+  g2.onUp();
+  ok(AG.Report.gestures.empty === 1,
+     "тык в пустоту остаётся пустотой, а не теряется",
+     "пустота=" + AG.Report.gestures.empty + " шаг=" + AG.Report.gestures.walk +
+     " срывов=" + AG.Report.gestures.torn);
+})();
+
 // ——— ночь не стирает берег ———
 group("ночь: берег редеет, но остаётся твоим");
 (function () {
