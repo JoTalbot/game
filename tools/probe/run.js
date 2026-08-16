@@ -2434,6 +2434,42 @@ group("память: вернувшееся существо не роняет �
   ok(!remember, "вернувшееся существо помнит касания", remember || "remember жив");
 })();
 
+// ——— босс переживает выход ———
+// Босс — крупнейшее существо игры, собранное из брошенного сада. Сейв его
+// не клал: человек в разгар боя сворачивал игру — босс исчезал молча, а
+// раны, которые он успел получить, обнулялись. Босс должен возвращаться
+// собой, как любое существо.
+group("память: босс переживает выход");
+(function () {
+  var Aim = require("./aim.js");
+  var GB = Aim.bootEngine();
+  require("./dom.js").install();
+  var g = Aim.makeGame(GB, 8181);
+  // босс, собранный из брошенного — как его рождает maybeBoss
+  g.world.boss = {
+    x: g.player.x + 200, y: g.player.y, vx: 0, vy: 0,
+    r: 28, hp: 5, maxHp: 17, phase: 1.2, lunge: 0.4, stun: 0, weak: 1.5,
+    parts: [{ kind: "thorn", c: [255, 70, 80] }, { kind: "echo", c: [1, 2, 3] }],
+    nameKey: 2
+  };
+  g.world.bossSaid = true;
+  g.world.lostGate = 9;
+  var idName = GB.bossName(g.world.boss);
+  g.save();
+  var g2 = Aim.makeGame(GB, 8181);
+  GB.Voice.sayText = function () {};
+  g2.load();
+  var b = g2.world.boss;
+  ok(!!b, "босс возвращается на берег, а не исчезает");
+  ok(b && b.hp === 5 && b.maxHp === 17 && b.parts.length === 2,
+     "раны босса и снятые осколки переживают выход",
+     b ? "hp=" + b.hp + "/" + b.maxHp + ", осколков " + b.parts.length : "—");
+  ok(b && GB.bossName(b) === idName, "имя босса остаётся тем же",
+     b ? GB.bossName(b) : "—");
+  ok(g2.world.lostGate === 9, "порог нового босса переживает выход",
+     "lostGate=" + g2.world.lostGate);
+})();
+
 // ——— отчёт не клевещет на руку ———
 group("отчёт: шаг — не промах");
 (function () {

@@ -1147,7 +1147,21 @@ var IGRA = IGRA || {};
       laws: this.laws,
       active: this.active,
       tideFrozen: this.tideFrozen,
-      invertMove: this.invertMove
+      invertMove: this.invertMove,
+      // Босс — крупнейшее существо игры, и он не переживал выход: сейв
+      // его не клал, load не поднимал. Человек в разгар боя сворачивал
+      // игру — босс исчезал молча, а раны, которые он успел получить,
+      // обнулялись. Босс — не рана-однодневка, он собран из брошенного
+      // сада и должен возвращаться собой, как любое существо.
+      boss: this.boss ? {
+        x: this.boss.x, y: this.boss.y, vx: this.boss.vx, vy: this.boss.vy,
+        r: this.boss.r, hp: this.boss.hp, maxHp: this.boss.maxHp,
+        parts: this.boss.parts || [], phase: this.boss.phase,
+        lunge: this.boss.lunge, stun: this.boss.stun, weak: this.boss.weak,
+        nameKey: this.boss.nameKey
+      } : null,
+      bossSaid: this.bossSaid,
+      lostGate: this.lostGate
     };
   };
 })(IGRA);

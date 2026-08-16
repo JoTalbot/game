@@ -1180,6 +1180,24 @@ var IGRA = IGRA || {};
       // выпрямиться, пока человека нет. active уже нормализован выше.
       this.world.tideFrozen = data.world.tideFrozen || 0;
       this.world.invertMove = data.world.invertMove || 0;
+      // Босс возвращается собой, а не исчезает: раны, которые человек успел
+      // ему нанести, и снятые осколки — часть его. Нормализуем числа —
+      // битый сейв не должен родить босса с NaN вместо координат.
+      if (data.world.boss) {
+        var bo = data.world.boss;
+        this.world.boss = {
+          x: G.num(bo.x, this.player.x), y: G.num(bo.y, this.player.y),
+          vx: G.num(bo.vx, 0), vy: G.num(bo.vy, 0),
+          r: G.clamp(G.num(bo.r, 28), 8, 120),
+          hp: Math.max(1, G.num(bo.hp, 10)), maxHp: Math.max(1, G.num(bo.maxHp, 10)),
+          parts: Array.isArray(bo.parts) ? bo.parts : [],
+          phase: G.num(bo.phase, 0), lunge: G.num(bo.lunge, 0),
+          stun: G.num(bo.stun, 0), weak: G.num(bo.weak, 0),
+          nameKey: G.num(bo.nameKey, 0)
+        };
+      }
+      this.world.bossSaid = !!data.world.bossSaid;
+      if (data.world.lostGate != null) this.world.lostGate = G.num(data.world.lostGate, 0);
       if (this.world.nodes.length < 5) this.world.scatter(this.player.x, this.player.y, 8, 360);
     }
     G.Voice.fromJSON(data.voice);
