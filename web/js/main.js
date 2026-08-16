@@ -3,6 +3,11 @@ var IGRA = IGRA || {};
   "use strict";
 
   function boot() {
+    if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js").catch(function () {});
+      });
+    }
     G.Lang.init();
     G.Quality.init();
     var game = new G.Game();
