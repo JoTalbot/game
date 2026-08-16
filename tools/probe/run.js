@@ -384,6 +384,80 @@ group("язык: мир не вмерзает в раскладку");
   G.Lang.id = prev;
 })();
 
+// ——— первая смена кожи ———
+// Отчёт с телефона: «выращено 15, живых 1» — человек три минуты растил
+// сад, и перерождение стёрло его целиком. Тут порочный круг: чтобы сад
+// пережил смену кожи, нужны корни; чтобы захотеть возвращаться, надо
+// увидеть, что возвращение окупается; чтобы увидеть — нужен сад, который
+// дожил. На укоренение одного узла нужно 90 секунд, первая мета приходит
+// на 190-й. Первое, что человек узнавал о мире: труд бессмыслен.
+group("первая смена кожи щадит незнающего");
+(function () {
+  var Aim4 = require("./aim.js");
+  var G4 = Aim4.bootEngine();
+  var g4 = Aim4.makeGame(G4, 7);
+  G4.now = function () { return g4.time; };
+
+  // Считаем ФАКТ, а не повторяем формулу игры: сколько живых узлов было
+  // до смены кожи и сколько осталось после. Первая версия дублировала
+  // условие милости у себя — и подлог «милости нет» прошёл мимо неё,
+  // потому что проверка считала милость сама. Проверка, повторяющая код,
+  // ничего не проверяет; спрашивать надо мир.
+  var shots = [];
+  var W4 = Object.getPrototypeOf(g4.world);
+  var origMeta = W4.metamorphose;
+  W4.metamorphose = function (p, d) {
+    var before = 0;
+    for (var i = 0; i < this.nodes.length; i++) {
+      if (this.nodes[i].state === "alive") before++;
+    }
+    var r = origMeta.call(this, p, d);
+    var after = 0;
+    for (var j = 0; j < this.nodes.length; j++) {
+      if (this.nodes[j].state === "alive") after++;
+    }
+    shots.push({ n: this.meta, kept: after, gone: Math.max(0, before - after) });
+    return r;
+  };
+
+  for (var f = 0; f < 15 * 60 * 60; f++) {
+    g4.time += 1 / 60;
+    if (f % 180 === 0) {
+      var q = null;
+      for (var i2 = 0; i2 < g4.world.nodes.length; i2++) {
+        var c = g4.world.nodes[i2];
+        if (!c.dead && c.state === "unformed") { q = c; break; }
+      }
+      if (q) {
+        g4.input.x = 400 + (q.x - g4.cam.x);
+        g4.input.y = 300 + (q.y - g4.cam.y);
+        var w = g4.screenToWorld(g4.input.x, g4.input.y);
+        g4.input.wx = w.x; g4.input.wy = w.y; g4.input.down = true;
+        try { g4.onDown(); } catch (e) {}
+      }
+    }
+    if (f % 180 === 120) { g4.input.down = false; try { g4.onUp && g4.onUp(); } catch (e) {} }
+    try { g4.update(1 / 60); } catch (e) {}
+  }
+  W4.metamorphose = origMeta;
+
+  var first = shots[0];
+  ok(first && first.kept >= 4,
+     "первое перерождение не стирает сад подчистую",
+     first ? "уцелело " + first.kept + " из " + (first.kept + first.gone) : "меты не было");
+
+  // Но милость ровно одна. Дальше закон суров: держится укоренённое и
+  // удержанное, иначе прилив и забвение перестают что-либо значить.
+  // Мера — по большим берегам: на маленьком (6 узлов) все шесть могут
+  // оказаться укоренёнными честно, и это не милость, а заслуга. Милость
+  // видна там, где сада много, а уносит его мало.
+  var later = shots.slice(1).filter(function (x) { return x.kept + x.gone >= 10; });
+  var soft = later.filter(function (x) { return x.kept > (x.kept + x.gone) * 0.5; });
+  ok(later.length > 0 && soft.length === 0,
+     "дальше мир прощать перестаёт",
+     later.map(function (x) { return x.kept + "/" + (x.kept + x.gone); }).join(", "));
+})();
+
 // ——— видно ли заботу ———
 // Сердце игры: «вернись к тому, что остывает». Но живой узел рисовался
 // с ПОСТОЯННОЙ яркостью — care на его вид не влиял вовсе, менялась лишь
