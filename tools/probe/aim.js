@@ -278,6 +278,103 @@ function pad(G, r) {
   return miss;
 }
 
+// Обводим точки ПОДРЯД, как после прилёта по зову: палец на узле,
+// игрок сам бежит к нему, вырос — переносим палец на соседний, не
+// отрывая. Так и играет человек на плотном берегу.
+//
+// Взгляд, однажды взятый, держался намертво до порога срыва в 96
+// экранных точек. Но после прилёта рождается девять точек рядом, и
+// соседняя лежит уже в 60 точках: человек переносит палец на неё, игра
+// видит его точно на новом узле — и продолжает греть СТАРЫЙ. Для
+// человека это «не все точки срабатывают».
+function growInPlace(G, opts) {
+  opts = opts || {};
+  var g = makeGame(G, opts.seed);
+  var grown = 0, tried = 0;
+  var rounds = opts.rounds || 12;
+  for (var round = 0; round < rounds; round++) {
+    var n = null;
+    for (var i = 0; i < g.world.nodes.length; i++) {
+      var c = g.world.nodes[i];
+      if (!c.dead && c.state === "unformed") { n = c; break; }
+    }
+    if (!n) break;
+    tried++;
+    // Палец НЕ ОТРЫВАЕТСЯ между узлами: onDown зовём один раз, в самом
+    // начале. Первая версия дёргала onDown на каждом узле — а он берёт
+    // взгляд заново, и болезнь пряталась: подлог «переноса нет» проходил
+    // мимо. На телефоне человек ведёт палец от точки к точке, не поднимая.
+    if (!g.input.down) {
+      var t0 = 400 + (n.x - g.cam.x) * g.cam.z;
+      var u0 = 300 + (n.y - g.cam.y) * g.cam.z;
+      g.input.x = t0; g.input.y = u0;
+      var w0 = g.screenToWorld(t0, u0);
+      g.input.wx = w0.x; g.input.wy = w0.y;
+      g.input.down = true; g.time += 0.3;
+      try { g.onDown(); } catch (e) {}
+    }
+    for (var f = 0; f < 600; f++) {
+      g.time += 1 / 60;
+      var tx = 400 + (n.x - g.cam.x) * g.cam.z;
+      var ty = 300 + (n.y - g.cam.y) * g.cam.z;
+      tx = Math.max(20, Math.min(780, tx));
+      ty = Math.max(20, Math.min(580, ty));
+      g.input.x = tx; g.input.y = ty;
+      var w = g.screenToWorld(tx, ty);
+      g.input.wx = w.x; g.input.wy = w.y;
+      try { g.update(1 / 60); } catch (e) {}
+      if (n.state !== "unformed") break;
+    }
+    if (n.state !== "unformed") grown++;
+  }
+  return { grown: grown, tried: tried };
+}
+
+// Два узла рядом, как в кучке после прилёта по зову. Палец берёт
+// первый, потом переносится на второй НЕ ОТРЫВАЯСЬ. Второй обязан
+// вырасти.
+//
+// Взгляд держался за первый мёртвой хваткой: «ещё мой» означало «в зоне
+// прицела», а сосед лежит в 60 единицах при пороге 76 — палец точно на
+// нём, а растёт (вернее, не растёт) старый. Человек: «после перелёта по
+// стрелке не все точки срабатывают».
+function twoInARow(G, opts) {
+  opts = opts || {};
+  var g = makeGame(G, opts.seed);
+  var ns = [];
+  for (var i = 0; i < g.world.nodes.length && ns.length < 2; i++) {
+    var c = g.world.nodes[i];
+    if (!c.dead && c.state === "unformed") ns.push(c);
+  }
+  if (ns.length < 2) return { error: "мало узлов" };
+  ns[1].x = ns[0].x + (opts.gap || 60);
+  ns[1].y = ns[0].y;
+  g.player.x = ns[0].x; g.player.y = ns[0].y;
+  g.cam.x = ns[0].x; g.cam.y = ns[0].y;
+  for (var q = 0; q < 5; q++) g.update(1 / 60);
+
+  g.input.x = 400; g.input.y = 300;
+  var w = g.screenToWorld(400, 300);
+  g.input.wx = w.x; g.input.wy = w.y;
+  g.input.down = true; g.time += 2;
+  try { g.onDown(); } catch (e) {}
+  var tookFirst = g.player.gaze === ns[0];
+
+  for (var f = 0; f < 300; f++) {
+    g.time += 1 / 60;
+    var tx = 400 + (ns[1].x - g.cam.x) * g.cam.z;
+    var ty = 300 + (ns[1].y - g.cam.y) * g.cam.z;
+    g.input.x = tx; g.input.y = ty;
+    var w2 = g.screenToWorld(tx, ty);
+    g.input.wx = w2.x; g.input.wy = w2.y;
+    try { g.update(1 / 60); } catch (e) {}
+    if (ns[1].state !== "unformed") {
+      return { tookFirst: tookFirst, second: true, at: f / 60 };
+    }
+  }
+  return { tookFirst: tookFirst, second: false };
+}
+
 // Метаморфоза случается, пока палец лежит на узле. Рука обязана
 // продолжать работать после смены кожи.
 //
@@ -389,7 +486,8 @@ function reach(G, opts) {
 
 module.exports = { bootEngine: bootEngine, hold: hold, reach: reach, pad: pad, makeGame: makeGame,
                    walkAndHold: walkAndHold, walkThrough: walkThrough, growMany: growMany,
-                   screenPad: screenPad, holdThroughMeta: holdThroughMeta };
+                   screenPad: screenPad, holdThroughMeta: holdThroughMeta,
+                   growInPlace: growInPlace, twoInARow: twoInARow };
 
 if (require.main === module) {
   var G = bootEngine();

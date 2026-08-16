@@ -92,6 +92,20 @@ var IGRA = IGRA || {};
       return G.Lang && G.Lang.id === "en" ? w.en : w.ru;
     },
 
+    // Куда девалась сила. Отчёт показал «нет сил ×3» — а взгляд почти
+    // бесплатен (ест 6/с при восстановлении 7-14/с). Значит энергию ели
+    // раны (22/с при касании) или пульс (-16). Без разбивки это снова
+    // гадание: пишем, кто именно.
+    drain: { gaze: 0, wound: 0, pulse: 0 },
+    noteDrain: function (who, amount) {
+      if (this.drain[who] == null) return;
+      this.drain[who] += amount || 0;
+    },
+    lowest: 100,
+    noteEnergy: function (e) {
+      if (e < this.lowest) this.lowest = Math.round(e);
+    },
+
     slips: [],
     gestureTorn: function (why, t, slip) {
       this.gestures.torn++;
@@ -117,6 +131,8 @@ var IGRA = IGRA || {};
       this.slips = [];
       this.tornAfterCall = 0;
       this.lastCallAt = -999;
+      this.drain = { gaze: 0, wound: 0, pulse: 0 };
+      this.lowest = 100;
       this.zoom = { min: 9, max: 0, sum: 0, n: 0 };
       for (var k in this.acts) if (this.acts.hasOwnProperty(k)) this.acts[k] = 0;
     },
@@ -257,6 +273,14 @@ var IGRA = IGRA || {};
       if (this.tornAfterCall) {
         line(en ? "broke after a call" : "срыв сразу после зова",
           this.tornAfterCall + (en ? " (within 20s of arrival)" : " (в первые 20с после прилёта)"));
+      }
+
+      if (this.drain.gaze + this.drain.wound + this.drain.pulse > 1) {
+        line(en ? "strength spent on" : "сила ушла на",
+          (en ? "gaze " : "взгляд ") + Math.round(this.drain.gaze) +
+          (en ? ", wounds " : ", раны ") + Math.round(this.drain.wound) +
+          (en ? ", pulses " : ", пульсы ") + Math.round(this.drain.pulse) +
+          (en ? "; lowest " : "; падала до ") + this.lowest);
       }
 
       if (this.zoom.n) {

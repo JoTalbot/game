@@ -437,6 +437,7 @@ var IGRA = IGRA || {};
     }
     if (this.player.pulseT > 0) return;
     this.player.energy -= 16;
+    if (G.Report) { G.Report.noteDrain("pulse", 16); G.Report.noteEnergy(this.player.energy); }
     this.player.pulseT = 0.55;
     this.dna.pulses++;
     if (G.Report) G.Report.act("pulses");
@@ -865,6 +866,66 @@ var IGRA = IGRA || {};
     // точки ЭКРАНА, где он лёг. Сцена под пальцем вольна уезжать.
     var gsx = this.input.gsx != null ? this.input.gsx : this.input.x;
     var gsy = this.input.gsy != null ? this.input.gsy : this.input.y;
+    // Палец ушёл на ДРУГОЙ узел — значит человек передумал.
+    //
+    // Взгляд, однажды взятый, держался намертво до порога срыва в 96
+    // экранных точек. Но берег плотный: после прилёта по зову рождается
+    // девять точек рядом, и уже в 60 точках лежит соседняя. Человек
+    // переносит палец на неё, игра честно видит его точно на новом узле
+    // (расстояние 0) — и продолжает греть СТАРЫЙ, потому что 60 меньше
+    // 96. Для человека это «не все точки срабатывают»: он держит палец
+    // на узле, а тот не растёт. Замер поймал ровно это — палец на узле,
+    // gaze на другом.
+    //
+    // Ушёл на чужой узел — переносим взгляд туда. Это не срыв, а смена
+    // намерения: время удержания начинается заново, и растёт то, что под
+    // пальцем.
+    // Переносим только на ЖИВОЙ соседний узел и только если старый
+    // из-под пальца ушёл. Без этих двух условий игра становится липкой:
+    // палец, ведущий игрока сквозь берег, перецепляется на каждый
+    // встречный сгусток, игрок перестаёт ходить, и берег выкашивается
+    // (замер: 1 живой узел вместо 28, взгляд захвачен 32% кадров).
+    // Переносим на соседа только когда палец ЗАМЕР над ним. Иначе
+    // жест ходьбы (палец ведёт игрока сквозь берег) перецепляется на
+    // каждый встречный сгусток, игрок перестаёт ходить и берег
+    // выкашивается: замер дал 1 живой узел вместо 28 при взгляде,
+    // захваченном 33% кадров. Замирание — то же условие, что у ловли на
+    // ходу: человек не «пронёс палец мимо», а «положил на другое».
+    // Свой счётчик замирания: `input.hold` копится только пока взгляда
+    // нет (см. ловлю на ходу), при захваченном он мёртв.
+    // «Ещё мой» — не «в зоне прицела», а «ближе всех». Прежнее условие
+    // (в пределах прицела) держало старый узел мёртвой хваткой: соседний
+    // в 60 единицах — а порог 76, значит старый всё ещё «мой», и палец,
+    // лежащий ТОЧНО на соседе, ничего не растил. Именно это человек и
+    // видел после прилёта по зову, где точки рождаются кучкой.
+    var mineDist = G.dist(this.input.wx, this.input.wy, n.x, n.y) - (n.r || 12);
+    var nearest = this.world.nearestNode(this.input.wx, this.input.wy, this.aimRadius(58));
+    var stillMine = !nearest || nearest === n ||
+      mineDist <= G.dist(this.input.wx, this.input.wy, nearest.x, nearest.y) - (nearest.r || 12);
+    if (this.input.rx == null || !isFinite(this.input.rx) ||
+        G.dist(this.input.x, this.input.y, this.input.rx, this.input.ry) > 12) {
+      this.input.rx = this.input.x;
+      this.input.ry = this.input.y;
+      this.input.rest = 0;
+    } else {
+      this.input.rest = (this.input.rest || 0) + dt;
+    }
+    // Полсекунды, а не треть: перенос — редкое событие «я передумал»,
+    // а не постоянная перецепка. При 0.3 с замер дал 146 переносов за
+    // прогон, игра пошла иначе и долг памяти перестал дозревать.
+    // И только на узел, который ЯВНО под пальцем (в его радиусе), а не
+    // просто ближайший в зоне прицела.
+    var restingHere = (this.input.rest || 0) > 0.5;
+    var underFinger = (stillMine || !restingHere) ? null : nearest;
+    if (underFinger && underFinger !== n && !underFinger.dead) {
+      this.input.rest = 0;
+      this.player.gaze = underFinger;
+      this.player.gazeT = 0;
+      this.input.gsx = this.input.x;
+      this.input.gsy = this.input.y;
+      return;
+    }
+
     var slip = G.dist(this.input.x, this.input.y, gsx, gsy);
     if (slip > 96) {
       // Имя причины — общее, а расстояние копится отдельно: иначе каждый
@@ -880,6 +941,7 @@ var IGRA = IGRA || {};
       return;
     }
     this.player.energy -= 6 * dt;
+    if (G.Report) { G.Report.noteDrain("gaze", 6 * dt); G.Report.noteEnergy(this.player.energy); }
     this.player.gazeT += dt;
     n.care = Math.min(1, n.care + dt * 0.4);
 

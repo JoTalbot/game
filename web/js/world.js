@@ -650,6 +650,7 @@ var IGRA = IGRA || {};
       u.y += u.vy * dt;
       if (wd < player.r + u.r) {
         player.energy = Math.max(0, player.energy - 22 * dt);
+        if (G.Report) { G.Report.noteDrain("wound", 22 * dt); G.Report.noteEnergy(player.energy); }
         if (fx && G.chance(0.2)) fx.spawn({
           x: player.x,
           y: player.y,
