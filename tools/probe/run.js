@@ -874,6 +874,144 @@ group("судьба: финал приходит в конце, а не в на�
      r.at >= 0 ? "на " + (r.at / 60).toFixed(1) + " мин, берегов " + r.meta : "НЕ предложена за 45 минут");
 })();
 
+// ——— интерфейс ———
+// `ui.js` — 452 строки, 41 обращение к документу — не грузился НИ В
+// ОДНОМ стенде: подставной DOM возвращал null на всё, и bind() упал бы
+// на первой кнопке. Сигила, небо, рассказ, поле рта — ничего из этого не
+// проверялось никогда. Всплыло, когда человек сказал «небо и сигилу
+// открывал», а отчёт писал 0: счётчики были немыми, и увидеть это можно
+// было только чтением исходника.
+//
+// Теперь есть живой макет DOM (tools/probe/dom.js), и стенд жмёт кнопки
+// как палец: узлы помнят классы и текст, события зовут обработчики.
+group("интерфейс: кнопки отвечают на палец");
+(function () {
+  // Ставим макет заново: aim.js подменяет getElementById своими немыми
+  // заглушками, и к этому месту документ уже чужой. Стенды делят один
+  // глобальный DOM — кто последний, того и тапки.
+  var doc = require("./dom.js").install();
+  var game = H.makeWorld(G, 7);
+  G.app = game;
+
+  // 1. Сама привязка. Она зовётся при старте игры и не проверялась ни
+  // разу: любая опечатка в id ломала бы интерфейс молча.
+  var bound = true;
+  try { G.UI.bind(game); } catch (e) { bound = e.message; }
+  ok(bound === true, "интерфейс привязывается без падений",
+     bound === true ? "bind() прошёл" : String(bound));
+
+  // 2. Кнопки живые и делают, что обещают.
+  G.Report.reset();
+  game.world.stars.push({ x: 0, y: 0, c: [1, 1, 1], kind: "spark", tw: 0 });
+  game.world.stars.push({ x: 1, y: 1, c: [1, 1, 1], kind: "spark", tw: 0 });
+  var skyFired = doc.getElementById("sky-btn").fire("click");
+  ok(skyFired > 0 && G.Report.acts.sky === 1,
+     "кнопка неба открывает небо и попадает в рассказ",
+     "обработчиков " + skyFired + ", счётчик " + G.Report.acts.sky);
+
+  var sigFired = doc.getElementById("sigil-btn").fire("click");
+  ok(sigFired > 0 && doc.getElementById("sigil-screen").classList.contains("on") &&
+     G.Report.acts.sigil === 1,
+     "кнопка сигилы открывает сигилу и попадает в рассказ",
+     "экран " + doc.getElementById("sigil-screen").classList.contains("on") +
+     ", счётчик " + G.Report.acts.sigil);
+
+  // 3. Сигила рисуется и подписывается — это лицо игры.
+  ok(doc.getElementById("sigil-name").textContent.length > 0 &&
+     doc.getElementById("sigil-stats").innerHTML.indexOf("<span>") >= 0,
+     "сигила подписана именем и числами",
+     "имя «" + doc.getElementById("sigil-name").textContent + "»");
+
+  // 4. Рассказ: весь путь, которым человек шлёт мне отчёт.
+  G.Report.reset();
+  G.Report.gestureStart();
+  G.Report.gestureTorn("slip", 0.4, 120);
+  for (var i = 0; i < 600; i++) G.Report.frame(1 / 60);
+  G.UI.openReport(game);
+  ok(doc.getElementById("report-screen").classList.contains("on"),
+     "рассказ открывается");
+
+  var asks = doc.getElementById("report-asks");
+  ok(asks.children.length === G.Report.ASKS.length,
+     "все вопросы нарисованы", asks.children.length + " из " + G.Report.ASKS.length);
+
+  var row = asks.children[0];
+  var btn = row && row.children[1];
+  if (btn) btn.fire("click");
+  ok(btn && G.Report.answers[G.Report.ASKS[0].id],
+     "ответ записывается одним касанием",
+     JSON.stringify(G.Report.answers));
+
+  // Второе касание по тому же — снять ответ: человек не должен
+  // застревать в случайно нажатом.
+  var asks2 = doc.getElementById("report-asks");
+  var same = asks2.children[0] && asks2.children[0].children[1];
+  if (same) same.fire("click");
+  ok(!G.Report.answers[G.Report.ASKS[0].id],
+     "повторное касание снимает ответ",
+     JSON.stringify(G.Report.answers));
+
+  ok(doc.getElementById("report-text").textContent.split("\n").length > 8,
+     "текст рассказа виден человеку до отправки",
+     doc.getElementById("report-text").textContent.split("\n").length + " строк");
+
+  // 5. Копирование: WebView без https не всегда даёт clipboard, и без
+  // запасного пути кнопка молча ничего не делала бы.
+  G.UI.copyReport(game);
+  var label = doc.getElementById("report-copy").textContent;
+  ok(/скопирован|copied/i.test(label), "копирование срабатывает и говорит об этом",
+     "кнопка: «" + label + "»");
+
+  // 6. И всё остальное, до чего стенд не доставал никогда: подсказки,
+  // надпись закона, сезон, тишина, сигила «унести», поле рта, кнопки
+  // рождения и забвения. Двенадцать органов интерфейса, каждый из
+  // которых мог быть сломан молча — узнали бы только от человека.
+  var broken = [];
+  function touch(name, fn) {
+    try { fn(); } catch (e) { broken.push(name + " → " + e.message); }
+  }
+  touch("подсказка", function () {
+    G.UI.hint("проба");
+    if (doc.getElementById("hint").textContent !== "проба") throw new Error("текст не встал");
+  });
+  touch("надпись закона", function () {
+    G.UI.law("закон: проба");
+    if (!doc.getElementById("law").classList.contains("on")) throw new Error("не зажглась");
+  });
+  touch("сезон", function () {
+    G.UI.paintSeason();
+    if (!doc.getElementById("season").textContent) throw new Error("пусто");
+  });
+  touch("тишина", function () { G.UI.setMute(true); G.UI.setMute(false); });
+  touch("унести сигилу", function () { G.UI.shareSigil(game); });
+  touch("кнопка рассказать", function () {
+    if (!doc.getElementById("btn-report").fire("click")) throw new Error("нет обработчика");
+  });
+  touch("кнопка забыть", function () {
+    if (!doc.getElementById("btn-forget")._listeners.click) throw new Error("нет обработчика");
+  });
+  touch("кнопка родиться", function () {
+    if (!doc.getElementById("btn-born")._listeners.click) throw new Error("нет обработчика");
+  });
+  touch("смена языка", function () {
+    var was = G.Lang.id;
+    doc.getElementById("lang-btn").fire("click");
+    if (!G.Report.acts.lang) throw new Error("счётчик молчит");
+    if (G.Lang.id === was) throw new Error("язык не сменился");
+    // Вернуть как было: язык глобален, и проверки ниже читают отчёт
+    // по-русски. Стенд обязан убирать за собой — иначе он ломает не
+    // игру, а соседние проверки, и полдня уходит на поиск призрака.
+    G.Lang.set(was);
+  });
+  touch("поле рта", function () {
+    var m = doc.getElementById("mouth-url");
+    m.value = "https://x";
+    m.fire("change");
+  });
+  ok(!broken.length, "все органы интерфейса отвечают",
+     broken.length ? broken.join("; ") : "12 органов живы");
+})();
+
 // ——— рассказ с телефона ———
 // Человек играет с APK, а я его игру не вижу. Обратная связь шла через
 // чат по памяти, спустя сутки, и половина вопросов была про то, что

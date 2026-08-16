@@ -22,7 +22,9 @@ var ORDER = [
   "fate",
   "world",
   "director",
-  "renderer"
+  "renderer",
+  // ui грузится последним, как в index.html: он трогает всё остальное
+  "ui"
 ];
 
 function boot(opts) {
@@ -47,23 +49,11 @@ function boot(opts) {
     language: "ru",
     userAgent: "probe"
   };
-  global.document = {
-    getElementById: function () {
-      return null;
-    },
-    querySelector: function () {
-      return null;
-    },
-    querySelectorAll: function () {
-      return [];
-    },
-    documentElement: { style: {} },
-    body: { classList: { add: function () {}, remove: function () {} } },
-    addEventListener: function () {},
-    createElement: function () {
-      return { getContext: function () { return null; }, style: {}, classList: { add: function () {}, remove: function () {} } };
-    }
-  };
+  // Живой подставной DOM: без него не поднять ui.js — 452 строки
+  // интерфейса, которые не проверялись ни разу за всю историю игры.
+  // Заглушка возвращала null на любой getElementById, и bind() падал бы
+  // на первой кнопке.
+  require("./dom.js").install();
   global.localStorage = {
     getItem: function (k) {
       return store[k] != null ? store[k] : null;
