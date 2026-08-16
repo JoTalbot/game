@@ -2,12 +2,15 @@
   "name": "ИГРА",
   "short_name": "ИГРА",
   "description": "Онтогенетическая игра. Она растёт из тебя.",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["games", "entertainment"],
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#05060a",
   "theme_color": "#05060a",
-  "lang": "ru",
   "icons": [
     {
       "src": "assets/img/icon.png",
@@ -15,5 +18,7 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [],
+  "shortcuts": []
 }
