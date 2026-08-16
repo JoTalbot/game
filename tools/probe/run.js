@@ -958,6 +958,35 @@ group("рассказ: Игра докладывает о себе честно"
   R.noteZoom(1.0); R.noteZoom(0.42);
   ok(/отдаление камеры/.test(R.text(game)), "в отчёте видно отдаление камеры");
 
+  // Мёртвые счётчики. Человек: «небо и сигилу открывал» — а в отчёте
+  // стояло 0. Пять полей из одиннадцати не вызывались НИГДЕ: sky, sigil,
+  // lang, taps, gazes, crystals. Отчёт врал мне пять релизов подряд, и я
+  // по этим нулям делал выводы («он ни разу не открыл небо») и правил
+  // игру. Счётчик, который никто не увеличивает, хуже отсутствующего:
+  // он выглядит как факт.
+  //
+  // Проверка читает исходники и требует, чтобы у каждого поля был хотя
+  // бы один вызов. Списка полей тут НЕТ намеренно — он спрашивается у
+  // самого Report, иначе новое поле снова окажется немым.
+  (function () {
+    var fs2 = require("fs");
+    var path2 = require("path");
+    var dir = path2.join(__dirname, "..", "..", "web", "js");
+    var src = "";
+    fs2.readdirSync(dir).forEach(function (f) {
+      if (/\.js$/.test(f) && f !== "report.js") {
+        src += fs2.readFileSync(path2.join(dir, f), "utf8");
+      }
+    });
+    var dead = [];
+    for (var key in R.acts) {
+      if (!R.acts.hasOwnProperty(key)) continue;
+      if (src.indexOf('act("' + key + '")') < 0) dead.push(key);
+    }
+    ok(!dead.length, "каждый счётчик поступков кто-то увеличивает",
+       dead.length ? "немые: " + dead.join(", ") : Object.keys(R.acts).length + " живых");
+  })();
+
   var text = R.text(game);
   ok(text.indexOf(G.VERSION) >= 0, "в отчёте есть версия сборки", G.VERSION);
   // NaN в отчёте — это не косметика: размер экрана первое, по чему видно

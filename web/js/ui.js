@@ -43,6 +43,7 @@ var IGRA = IGRA || {};
         langBtn.textContent = G.Lang.id === "en" ? "RU" : "EN";
         langBtn.addEventListener("click", function () {
           G.Lang.set(G.Lang.id === "en" ? "ru" : "en");
+          if (G.Report) G.Report.act("lang");
           langBtn.textContent = G.Lang.id === "en" ? "RU" : "EN";
           G.Audio.ui();
         });
@@ -151,6 +152,8 @@ var IGRA = IGRA || {};
       if (!scr) return;
       var on = force == null ? !scr.classList.contains("on") : force;
       scr.classList.toggle("on", on);
+      // Считаем ОТКРЫТИЕ, а не переключение: закрыть — не поступок.
+      if (on && G.Report) G.Report.act("sigil");
       if (on) this.drawSigil(game);
       G.Audio.ui();
     },

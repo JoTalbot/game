@@ -294,6 +294,7 @@ var IGRA = IGRA || {};
     this.input.taps.push(now);
     if (this.input.taps.length > 8) this.input.taps.shift();
     this.dna.taps++;
+    if (G.Report) G.Report.act("taps");
 
     if (dtap < 0.28 && this.state === "play") {
       this.doPulse();
@@ -359,6 +360,7 @@ var IGRA = IGRA || {};
         this.player.gazeT = 0;
       } else if (node) {
         this.gazeTarget = null;
+        if (G.Report) G.Report.act("gazes");
         this.player.gaze = node;
         this.player.gazeT = 0;
         this.input.gsx = this.input.x;
@@ -975,7 +977,7 @@ var IGRA = IGRA || {};
 
     if (this.player.gazeT >= 1.35) {
       if (n.state !== "alive") {
-        if (G.Report) G.Report.gestureBorn();
+        if (G.Report) { G.Report.gestureBorn(); G.Report.act("crystals"); }
         this.dna.gazes++;
         n.state = "crystallizing";
         var kind = this.world.crystallize(n, gest, this.dna);

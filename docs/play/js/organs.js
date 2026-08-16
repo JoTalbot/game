@@ -698,6 +698,7 @@ var IGRA = IGRA || {};
       }
       game.sky = on;
       if (on) {
+        if (G.Report) G.Report.act("sky");
         G.Voice.say("sky");
         G.UI.hint(G.Lang.t("skyTouch"));
       } else {
