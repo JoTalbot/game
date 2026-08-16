@@ -384,6 +384,107 @@ group("язык: мир не вмерзает в раскладку");
   G.Lang.id = prev;
 })();
 
+// ——— раны ———
+// Отчёт с телефона назвал это прямо: «сила ушла на: взгляд 581, раны
+// 4349» и «нет сил ×95» из 113 срывов. Две трети сессии человек провёл
+// под касанием раны — потому что рана была БЫСТРЕЕ игрока (86 против 83)
+// и бессмертна (hp 3, умирает только от удара). Голод, от которого
+// нельзя уйти, — не голод, а налог: взгляд переставал работать вовсе.
+group("раны: голод гонит, но не приковывает");
+(function () {
+  var Aim5 = require("./aim.js");
+  var G5 = Aim5.bootEngine();
+
+  // 1. От раны можно убежать. Иначе всё остальное не имеет значения.
+  // Скорость раны спрашиваем У МИРА, а не считаем по формуле из кода:
+  // первая версия повторяла `40 + min(24, age*1.4)` у себя, и подлог
+  // «рана снова быстрее» прошёл мимо — обе стороны врали одинаково.
+  // Третий раз наступаю на эти грабли: проверка, дублирующая формулу,
+  // ничего не проверяет. Даём ране состариться в живом мире и смотрим,
+  // как быстро она реально движется.
+  var g5 = Aim5.makeGame(G5, 7);
+  var probe = new G5.Wound(g5.player.x + 900, g5.player.y, "thorn");
+  g5.world.wounds.push(probe);
+  var maxWound = 0;
+  for (var t = 0; t < 60 * 90; t++) {
+    g5.time += 1 / 60;
+    var px = probe.x, py = probe.y;
+    try { g5.update(1 / 60); } catch (e) {}
+    if (g5.world.wounds.indexOf(probe) < 0) break;
+    var spd = Math.hypot(probe.x - px, probe.y - py) * 60;
+    if (spd > maxWound) maxWound = spd;
+  }
+  g5 = Aim5.makeGame(G5, 7);
+  g5.input.down = true; g5.input.x = 700; g5.input.y = 300;
+  var w5 = g5.screenToWorld(700, 300);
+  g5.input.wx = w5.x; g5.input.wy = w5.y;
+  for (var f = 0; f < 600; f++) {
+    g5.time += 1 / 60;
+    var w6 = g5.screenToWorld(700, 300);
+    g5.input.wx = w6.x; g5.input.wy = w6.y;
+    try { g5.update(1 / 60); } catch (e) {}
+  }
+  var run = Math.hypot(g5.player.vx, g5.player.vy);
+  // Запас по СМЫСЛУ: убегать надо заметно, а не на волосок. При отрыве
+  // в 11 единиц (87 против 76) рана висит на пятках всю сессию — именно
+  // это и дало 4349 съеденной силы. Четверть скорости игрока — тот
+  // запас, при котором уход чувствуется уходом.
+  ok(run > maxWound * 1.25, "от раны можно уйти",
+     "игрок " + Math.round(run) + ", рана до " + Math.round(maxWound) +
+     " (нужен отрыв в четверть)");
+
+  // 2. Рана истлевает сама. Иначе они копятся всю сессию.
+  var g6 = Aim5.makeGame(G5, 7);
+  g6.world.wounds.push(new G5.Wound(g6.player.x + 400, g6.player.y, "thorn"));
+  for (var f2 = 0; f2 < 60 * 130; f2++) {
+    g6.time += 1 / 60;
+    try { g6.update(1 / 60); } catch (e) {}
+  }
+  ok(g6.world.wounds.length === 0, "рана истлевает, если её не кормить",
+     "через 130 с ран осталось " + g6.world.wounds.length);
+
+  // 3. Но пока жива — кусает больно. Смягчение до 9/с сломало долг
+  // памяти: игрок переставал убегать, существа всегда были рядом, и
+  // голод не дозревал ни у кого. Рана обязана гнать с места.
+  var g7 = Aim5.makeGame(G5, 7);
+  for (var i = 0; i < 4; i++) {
+    g7.world.wounds.push(new G5.Wound(g7.player.x + 8 * i, g7.player.y, "thorn"));
+  }
+  for (var f3 = 0; f3 < 60 * 12; f3++) {
+    g7.time += 1 / 60;
+    g7.player.vx = 0; g7.player.vy = 0;
+    try { g7.update(1 / 60); } catch (e) {}
+  }
+  ok(g7.player.energy < 30, "стоять под ранами больно",
+     "через 12 с неподвижности энергия " + Math.round(g7.player.energy));
+
+  // 4. И всё же под раной можно смотреть: узел рождается.
+  var g8 = Aim5.makeGame(G5, 7);
+  var node = null;
+  for (var k = 0; k < g8.world.nodes.length; k++) {
+    var c = g8.world.nodes[k];
+    if (!c.dead && c.state === "unformed") { node = c; break; }
+  }
+  g8.world.wounds.push(new G5.Wound(node.x + 6, node.y, "thorn"));
+  g8.player.x = node.x; g8.player.y = node.y;
+  g8.cam.x = node.x; g8.cam.y = node.y;
+  g8.input.x = 400; g8.input.y = 300;
+  var w8 = g8.screenToWorld(400, 300);
+  g8.input.wx = w8.x; g8.input.wy = w8.y;
+  g8.input.down = true; g8.time += 2;
+  try { g8.onDown(); } catch (e) {}
+  for (var f4 = 0; f4 < 300; f4++) {
+    g8.time += 1 / 60;
+    g8.input.x = 400; g8.input.y = 300;
+    var w9 = g8.screenToWorld(400, 300);
+    g8.input.wx = w9.x; g8.input.wy = w9.y;
+    try { g8.update(1 / 60); } catch (e) {}
+    if (node.state !== "unformed") break;
+  }
+  ok(node.state !== "unformed", "под раной всё ещё можно вырастить узел",
+     node.state !== "unformed" ? "вырос" : "не вырос — взгляд задушен голодом");
+})();
+
 // ——— первая смена кожи ———
 // Отчёт с телефона: «выращено 15, живых 1» — человек три минуты растил
 // сад, и перерождение стёрло его целиком. Тут порочный круг: чтобы сад
