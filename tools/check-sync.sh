@@ -84,10 +84,33 @@ fi
 echo "— браузерный берег носит оффлайн"
 if [ -f "$ROOT/web/sw.js" ] && grep -q "igra-shell" "$ROOT/web/sw.js"; then
   say_ok "service worker есть"
-  if grep -q "./js/engine.js" "$ROOT/web/sw.js"; then
-    say_ok "душа игры в offline-кэше"
+  # Все ассеты, на которые ссылается index.html и css, обязаны лежать в
+  # кэше SW — иначе оффлайн поднимет игру без шрифтов/скриптов.
+  missing=$(python3 - "$ROOT" <<'PY'
+import os, re, sys
+root = sys.argv[1]
+sw = open(os.path.join(root, "web", "sw.js"), encoding="utf-8").read()
+cached = set(re.findall(r'"\./([^"]+)"', sw))
+refs = set()
+html = open(os.path.join(root, "web", "index.html"), encoding="utf-8").read()
+for m in re.findall(r'(?:src|href)="([^"]+)"', html):
+    if m.startswith(("http", "data:", "#", "?", "//")): continue
+    refs.add(m)
+for css in ("css/fonts.css", "css/game.css"):
+    p = os.path.join(root, "web", css)
+    if os.path.exists(p):
+        for m in re.findall(r'url\(([^)]+)\)', open(p, encoding="utf-8").read()):
+            m = m.strip("'\" ")
+            if m.startswith(".."):
+                refs.add(os.path.normpath(os.path.join(os.path.dirname(css), m)))
+missing = sorted(r for r in refs if r and r not in cached)
+print("\n".join(missing))
+PY
+)
+  if [ -z "$missing" ]; then
+    say_ok "все ассеты оболочки и шрифты в offline-кэше"
   else
-    say_bad "в service worker не положен engine.js — оффлайн не поднимет игру"
+    say_bad "service worker не кэширует: $missing"
   fi
 else
   say_bad "нет service worker — браузерный берег не оффлайн"

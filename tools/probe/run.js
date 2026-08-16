@@ -2474,5 +2474,50 @@ group("ночь: берег редеет, но остаётся твоим");
      stillThere ? "существо всё ещё на берегу" : "существо ушло до первого кадра");
 })();
 
+// Отчёт — мерка одной сессии. Раньше Report.reset() звался только в
+// тестах: если в той же вкладке начать новую жизнь или нажать
+// «продолжить», жесты и плавность прошлого берега подмешивались к
+// новому. Сбрасываем при рождении и при загрузке.
+group("отчёт: одна жизнь — один отчёт");
+(function () {
+  var Aim = require("./aim.js");
+  var Ge = Aim.bootEngine();
+  require("./dom.js").install();
+
+  function freshGame(seed) {
+    var g = Aim.makeGame(Ge, seed);
+    g.state = "title";
+    return g;
+  }
+
+  var g1 = freshGame(11);
+  Ge.Report.act("taps");
+  Ge.Report.frame(0.2);
+  ok(Ge.Report.acts.taps === 1 && Ge.Report.stall === 1,
+     "в первой жизни что-то насчитано",
+     "taps=" + Ge.Report.acts.taps + " stall=" + Ge.Report.stall);
+
+  // рождение новой жизни обнуляет счётчики
+  g1.startBirth();
+  ok(Ge.Report.acts.taps === 0 && Ge.Report.stall === 0 && Ge.Report.frames === 0,
+     "новая жизнь начинает отчёт с нуля",
+     "taps=" + Ge.Report.acts.taps + " frames=" + Ge.Report.frames);
+
+  // загрузка сейва тоже: накопим в одной игре, сохраним, загрузим в
+  // новую — счётчики должны быть пустыми, но ночь, досыпанная при
+  // загрузке, попасть в отчёт обязана.
+  var g2 = Aim.makeGame(Ge, 22);
+  g2.state = "play";
+  for (var i = 0; i < 60; i++) Ge.Report.frame(1 / 60);
+  Ge.Report.act("pulses");
+  g2.save();
+  var g3 = Aim.makeGame(Ge, 22);
+  Ge.Voice.sayText = function () {};
+  g3.load();
+  ok(Ge.Report.acts.pulses === 0 && Ge.Report.frames === 0,
+     "продолжение не тащит жест прошлой сессии",
+     "pulses=" + Ge.Report.acts.pulses + " frames=" + Ge.Report.frames);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

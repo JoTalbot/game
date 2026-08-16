@@ -462,6 +462,9 @@ var IGRA = IGRA || {};
     if (this.state !== "title") return;
     this.state = "birth";
     this.birthT = 0;
+    // Новая жизнь — новый отчёт. Иначе касания и жесты из предыдущего
+    // сеанса в той же вкладке перетекали бы в свежую берег.
+    if (G.Report) G.Report.reset();
     document.body.classList.remove("title-mode");
     var screen = document.getElementById("title-screen");
     if (screen) screen.classList.add("out");
@@ -1076,6 +1079,11 @@ var IGRA = IGRA || {};
   G.Game.prototype.load = function () {
     var data = G.Save.load();
     if (!data || !data.dna) return false;
+    // Отчёт — мерка ЭТОЙ сессии. Без сброса жесты и плавность из
+    // предыдущей жизни в том же сеансе страницы подмешивались бы к
+    // загруженному сейву (титул → новая жизнь → «продолжить»). Сбрасываем
+    // до onReturn, чтобы ночь берега, которую он досыпает, попала в отчёт.
+    if (G.Report) G.Report.reset();
     this.dna = G.Dna.fromJSON(data.dna);
     if (data.player) {
       this.player.x = data.player.x || 0;

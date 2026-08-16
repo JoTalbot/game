@@ -4,7 +4,7 @@
 // запасной берег на GitHub Pages должен открываться без сети: концепт
 // обещает оффлайн. Кэшируем только оболочку одной версией; данные в
 // localStorage и так живут на устройстве.
-var CACHE = "igra-shell-v2";
+var CACHE = "igra-shell-v3";
 // Список должен покрывать все <script src="js/..."> из index.html.
 // check-sync.sh стережёт engine.js как индикатор: если список протух,
 // сборка покраснеет до того, как оффлайн-берег перестанет подниматься.
@@ -13,6 +13,15 @@ var ASSETS = [
   "./index.html",
   "./manifest.json",
   "./assets/img/icon.png",
+  "./assets/fonts/f0.ttf",
+  "./assets/fonts/f1.ttf",
+  "./assets/fonts/f2.ttf",
+  "./assets/fonts/f3.ttf",
+  "./assets/fonts/f4.ttf",
+  "./assets/fonts/f5.ttf",
+  "./assets/fonts/f6.ttf",
+  "./assets/fonts/f7.ttf",
+  "./assets/fonts/f8.ttf",
   "./css/fonts.css",
   "./css/game.css",
   "./js/math.js",
