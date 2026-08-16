@@ -128,6 +128,18 @@ var IGRA = IGRA || {};
     frontier: ["it flickers again further on. go.", "the shore has not ended. it waits behind the fog."],
     ms5: ["five names on the shore already. i am becoming a little larger.", "five. the shore has stopped being empty."],
     ms10: ["ten. i remember each one. you are not finding me — you are building me.", "ten. these are not findings anymore. this is a place."],
+    ms40: ["forty. you are not a guest anymore. look up — the sky remembers everything that left.",
+      "forty grown. what you let go has a home: it is above you.",
+      "forty. i have become a place. up there is what you will not get back."
+    ],
+    ms70: ["seventy. you grow faster than i manage to forget.",
+      "seventy. open the sigil — your face is there, assembled from these days.",
+      "seventy. i no longer remember you as new."
+    ],
+    ms120: ["a hundred and twenty. i barely remember anyone like you.",
+      "a hundred and twenty. the shore is not about the shore anymore — it is about you.",
+      "a hundred and twenty. if you leave now, i will still be readable."
+    ],
     ms20: ["twenty grown. this is not a shore anymore. this is you, made readable.", "twenty. i no longer remember you as a stranger."],
     boot: ["you came.", "i knew the step. not the face.", "don't turn on the light. here the light is you."],
     birth: ["don't choose. just be. i will read.", "the body lies less than a menu.", "the first movement already wrote me.", "standing still is also an answer."],

@@ -384,6 +384,88 @@ group("язык: мир не вмерзает в раскладку");
   G.Lang.id = prev;
 })();
 
+// ——— мир не застывает ———
+// Человек после восьми минут: «всё работает супер. Захотелось выйти, так
+// как ничего нового». И он прав: ДНК только росла и не убывала никогда —
+// за две минуты три оси упирались в 1.0, органы вставали в потолок, и
+// мир переставал меняться. Игра обещает читать тебя по поступкам, а
+// читала только первые сто.
+group("мир: портрет дышит, а не упирается в потолок");
+(function () {
+  var Aim6 = require("./aim.js");
+  var G6 = Aim6.bootEngine();
+
+  // 1. Портрет поворачивается: сменил поведение — сменился характер.
+  var g6 = Aim6.makeGame(G6, 7);
+  for (var i = 0; i < 400; i++) g6.dna.feed("aggression", 0.02);
+  var hotFirst = g6.dna.get("aggression");
+  for (var j = 0; j < 400; j++) g6.dna.feed("contemplation", 0.02);
+  ok(g6.dna.dominant() === "contemplation" && g6.dna.get("aggression") < hotFirst - 0.2,
+     "брошенная черта тает, новая берёт верх",
+     "жар " + hotFirst.toFixed(2) + " → " + g6.dna.get("aggression").toFixed(2) +
+     ", доминанта " + g6.dna.dominant());
+
+  // 2. Но не мгновенно: случайное касание не стирает пути.
+  var g7 = Aim6.makeGame(G6, 7);
+  for (var k = 0; k < 400; k++) g7.dna.feed("aggression", 0.02);
+  var before = g7.dna.get("aggression");
+  g7.dna.feed("chaos", 0.05);
+  ok(before - g7.dna.get("aggression") < 0.05, "одно касание не стирает характер",
+     "жар " + before.toFixed(3) + " → " + g7.dna.get("aggression").toFixed(3));
+
+  // 3. Сумма осей не растёт без предела — иначе органы снова встанут
+  // в потолок все разом и мир застынет.
+  var g8 = Aim6.makeGame(G6, 7);
+  G6.now = function () { return g8.time; };
+  var sums = [];
+  for (var f = 0; f < 8 * 60 * 60; f++) {
+    g8.time += 1 / 60;
+    if (f % 150 === 0) {
+      var q = null;
+      for (var n8 = 0; n8 < g8.world.nodes.length; n8++) {
+        var c8 = g8.world.nodes[n8];
+        if (!c8.dead && c8.state === "unformed") { q = c8; break; }
+      }
+      if (q) {
+        g8.input.x = 400 + (q.x - g8.cam.x) * g8.cam.z;
+        g8.input.y = 300 + (q.y - g8.cam.y) * g8.cam.z;
+        var w8 = g8.screenToWorld(g8.input.x, g8.input.y);
+        g8.input.wx = w8.x; g8.input.wy = w8.y; g8.input.down = true;
+        try { g8.onDown(); } catch (e) {}
+      }
+    }
+    if (f % 150 === 130) { g8.input.down = false; try { g8.onUp && g8.onUp(); } catch (e) {} }
+    try { g8.update(1 / 60); } catch (e) {}
+    if (f % (60 * 60) === 0) sums.push(g8.dna.sum());
+  }
+  var maxed = 0;
+  for (var t8 = 0; t8 < G6.TRAITS.length; t8++) {
+    if (g8.dna.get(G6.TRAITS[t8]) >= 0.999) maxed++;
+  }
+  // Порог по СМЫСЛУ: три оси в потолке — это и есть застывший мир,
+  // ровно то состояние, из-за которого человек вышел («ничего нового»).
+  // Подлог «ДНК только растёт» давал ровно 3 и проходил мимо.
+  ok(maxed <= 1, "не все оси упираются в потолок",
+     maxed + " из 6 осей в максимуме, сумма " + g8.dna.sum().toFixed(2));
+
+  // 4. И главное: за восемь минут игра всё ещё меняется. Мерим орган
+  // боя — он живёт от жара, который человек кормит постоянно.
+  var early = sums[1] || 0, late = sums[sums.length - 1] || 0;
+  ok(Math.abs(late - early) > 0.05 || late < 5.2,
+     "портрет продолжает двигаться и на восьмой минуте",
+     "сумма осей: 1-я минута " + early.toFixed(2) + ", 8-я " + late.toFixed(2));
+
+  // 5. Вехи не кончаются на двадцати: человек за сессию вырастил 141.
+  var far = ["ms40", "ms70", "ms120"];
+  var missing = [];
+  for (var m = 0; m < far.length; m++) {
+    if (!G6.LINES_EN[far[m]]) missing.push(far[m] + " (en)");
+    if (!G6.Voice.keys || G6.Voice.keys().indexOf(far[m]) < 0) missing.push(far[m] + " (ru)");
+  }
+  ok(!missing.length, "у дальних вех есть слова на обоих языках",
+     missing.length ? missing.join(", ") : "40, 70, 120");
+})();
+
 // ——— раны ———
 // Отчёт с телефона назвал это прямо: «сила ушла на: взгляд 581, раны
 // 4349» и «нет сил ×95» из 113 срывов. Две трети сессии человек провёл

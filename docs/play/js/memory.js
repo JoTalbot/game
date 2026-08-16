@@ -98,9 +98,19 @@ var IGRA = IGRA || {};
       return G.Lang && G.Lang.id === "en" ? c.enHint || c.hint : c.hint;
     },
 
+    // Сезон меняется от смены СУТИ, а не от дрожи.
+    //
+    // Пока ДНК только росла, доминанта была высечена в камне и сезон
+    // менялся раз в жизни. Теперь портрет дышит (оси оседают, если их
+    // не кормить) — и две близкие оси начали меняться местами каждый
+    // кадр: замер поймал 376 «сезон сменился» за двадцать минут, по
+    // 19 в минуту. Требуем ощутимого перевеса: новая доминанта должна
+    // обойти прежнюю на 0.06, иначе это не смена характера, а рябь.
     setFromDna: function (dna, force) {
       var t = dna.dominant();
       if (!force && this.seasonTrait === t) return false;
+      if (!force && this.seasonTrait &&
+          dna.get(t) - dna.get(this.seasonTrait) < 0.06) return false;
       this.seasonTrait = t;
       this.season = SEASONS[t] || SEASONS.contemplation;
       return true;
