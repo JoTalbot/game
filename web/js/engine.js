@@ -987,6 +987,10 @@ var IGRA = IGRA || {};
         if (this.world.anchor(n)) {
           this.floaters.add(n.x, n.y - 22, G.Lang ? G.Lang.t("anchor") : "якорь", n.color());
           G.Audio.chord([330, 495], 0.8, 0.05);
+          // Якорь — самый дорогой жест (долгий взгляд уже родившего
+          // узла), и раньше он был нем: только аккорд и надпись. Первое
+          // удержание Игра признаёт отдельно, дальнейшие — короче.
+          if (G.Voice) G.Voice.say(this.world.anchors.length === 1 ? "anchorFirst" : "anchor");
         }
         n.holdT = 0;
       }

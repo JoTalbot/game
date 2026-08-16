@@ -165,6 +165,16 @@ var IGRA = IGRA || {};
       "it dims not as a reproach. that is the shore asking for a second look."
     ],
     rooted: ["you came back to it. now it holds on its own.", "a second time is not chance. it is a root."],
+    anchorFirst: [
+      "you said: do not let this go. i heard.",
+      "the first anchor. the shore has a middle now.",
+      "you truly hold this. i will remember."
+    ],
+    anchor: [
+      "one more thing stays.",
+      "and this you hold.",
+      "an anchor. the shore grew heavier."
+    ],
     lost: ["it became a star. you can still see.", "what left will shine more honestly."],
     woundBorn: ["the abandoned returns hungry.", "this is yours. only angry."],
     meta: ["i am shedding my skin. do not fear the face.", "you are already someone else. i must become someone else."],

@@ -1613,6 +1613,67 @@ group("рука: взгляд держится, пока держит палец
   })();
 })();
 
+// Самый дорогой жест был нем: аккорд и надпись были, слово — нет.
+// Первый якорь Игра признаёт отдельно, дальнейшие — короче.
+group("якорь: удержание услышано");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+
+  var heard = [];
+  var real = AG.Voice.say.bind(AG.Voice);
+  AG.Voice.say = function (key, force) {
+    var was = AG.Voice.lastAt;
+    var r = real(key, force);
+    if (AG.Voice.lastAt !== was) heard.push(key);
+    return r;
+  };
+
+  // одна игра, два якоря подряд на свободных живых узлах
+  var g = Aim.makeGame(AG, 31);
+  AG.now = function () { return g.time; };
+  function setOneAnchor() {
+    for (var i = 0; i < g.world.nodes.length; i++) {
+      var c = g.world.nodes[i];
+      if (!c.dead && c.state === "unformed") { c.state = "alive"; c.growth = 1; c.hp = 1; c.care = 1; }
+    }
+    var n = g.world.nodes.filter(function (x) {
+      return x.state === "alive" && g.world.anchors.indexOf(x.id) < 0;
+    })[0];
+    g.player.x = n.x; g.player.y = n.y; g.player.vx = 0; g.player.vy = 0;
+    g.cam.x = n.x; g.cam.y = n.y;
+    g.input.x = 400; g.input.y = 300;
+    var w = g.screenToWorld(400, 300);
+    g.input.wx = w.x; g.input.wy = w.y; g.input.down = true; g.time += 2;
+    g.onDown();
+    g.player.gaze = n;
+    for (var f = 0; f < 210; f++) {
+      g.time += 1 / 60;
+      try { g.update(1 / 60); } catch (e) {}
+    }
+    g.input.down = false;
+    // дать очереди голоса проиграться в тишине
+    for (var s = 0; s < 500; s++) {
+      g.time += 0.1;
+      AG.Voice.update(0.1);
+    }
+  }
+  setOneAnchor();
+  setOneAnchor();
+  AG.Voice.say = real;
+
+  ok(g.world.anchors.length >= 2, "несколько якорей ставится подряд",
+     g.world.anchors.length + " якорей");
+  var firstIdx = heard.indexOf("anchorFirst");
+  ok(firstIdx >= 0, "первый якорь Игра называет вслух",
+     firstIdx >= 0 ? "anchorFirst прозвучал" : "услышано: " + heard.join(","));
+  ok(heard.indexOf("anchor") > firstIdx, "дальнейшие якоря слышны короче",
+     "anchor после anchorFirst");
+  ok(AG.LINES_EN && AG.LINES_EN.anchorFirst && AG.LINES_EN.anchor,
+     "голос якоря переведён", "есть en");
+})();
+
 // ——— оболочка: интерфейс должен отвечать на палец ———
 // Человек: «кнопки вообще не работают». Так и было, и виноват был не
 // интерфейс. Игра слушала touchend НА ОКНЕ и звала preventDefault для
