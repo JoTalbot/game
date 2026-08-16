@@ -101,21 +101,74 @@
         letter-spacing: 0.16em;
         color: rgba(232, 230, 242, 0.32);
       }
+      footer a { border: none; padding: 0; }
+      .lang {
+        position: absolute;
+        top: 24px;
+        right: 28px;
+        display: flex;
+        gap: 14px;
+        font-size: 11px;
+        letter-spacing: 0.2em;
+      }
+      .lang button {
+        background: none;
+        border: none;
+        color: rgba(232, 230, 242, 0.4);
+        cursor: pointer;
+        font: inherit;
+        letter-spacing: inherit;
+        padding: 4px 2px;
+      }
+      .lang button.on { color: rgba(232, 230, 242, 0.9); }
+      [lang="en"] [data-lang="ru"] { display: none; }
+      [lang="ru"] [data-lang="en"] { display: none; }
     </style>
   </head>
   <body>
+    <div class="lang">
+      <button type="button" data-setlang="ru">RU</button>
+      <button type="button" data-setlang="en">EN</button>
+    </div>
     <img class="icon" src="play/assets/img/icon.png" alt="ИГРА" />
     <h1>ИГРА</h1>
     <p class="tag">она растёт из тебя</p>
-    <p class="lead">
+    <p class="lead" data-lang="ru">
       Жанра нет. Есть внимание. Куда смотришь — становится настоящим.
       Что отпускаешь — уходит в небо или возвращается голодным.
     </p>
+    <p class="lead" data-lang="en">
+      There is no genre. There is attention. Where you look becomes real.
+      What you let go becomes a star — or comes back hungry.
+    </p>
     <div class="actions">
-      <a class="primary" href="https://github.com/JoTalbot/game/releases/latest/download/igra.apk">скачать APK</a>
-      <a href="play/">в браузере</a>
-      <a href="https://github.com/JoTalbot/game">исходник</a>
+      <a class="primary" href="https://github.com/JoTalbot/game/releases/latest/download/igra.apk"><span data-lang="ru">скачать APK</span><span data-lang="en">get APK</span></a>
+      <a href="play/"><span data-lang="ru">в браузере</span><span data-lang="en">in browser</span></a>
+      <a href="https://github.com/JoTalbot/game">source</a>
     </div>
-    <footer>рефлектум · оффлайн · без доната · <a href="https://github.com/JoTalbot/game/releases" style="border:none;padding:0;letter-spacing:0;text-transform:none;color:rgba(232,230,242,0.45)">последняя версия</a></footer>
+    <footer><span data-lang="ru">рефлектум · оффлайн · без доната</span><span data-lang="en">reflektum · offline · no iap</span> · <a href="https://github.com/JoTalbot/game/releases" style="letter-spacing:0;text-transform:none;color:rgba(232,230,242,0.45)"><span data-lang="ru">последняя версия</span><span data-lang="en">latest release</span></a></footer>
+
+    <script>
+      (function () {
+        var saved = null;
+        try { saved = localStorage.getItem("igra.site.lang"); } catch (e) {}
+        var nav = (navigator.language || "ru").toLowerCase();
+        var lang = saved || (nav.indexOf("ru") === 0 ? "ru" : "en");
+        function set(l) {
+          lang = l;
+          document.documentElement.lang = l;
+          try { localStorage.setItem("igra.site.lang", l); } catch (e) {}
+          var btns = document.querySelectorAll("[data-setlang]");
+          for (var i = 0; i < btns.length; i++) {
+            btns[i].className = btns[i].getAttribute("data-setlang") === l ? "on" : "";
+          }
+        }
+        var bs = document.querySelectorAll("[data-setlang]");
+        for (var j = 0; j < bs.length; j++) {
+          bs[j].addEventListener("click", function () { set(this.getAttribute("data-setlang")); });
+        }
+        set(lang);
+      })();
+    </script>
   </body>
 </html>

@@ -75,6 +75,11 @@ if grep -q "releases/latest/download/igra.apk" "$ROOT/docs/index.html"; then
 else
   say_bad "docs/index.html не ссылается на releases/latest/download/igra.apk — кнопка скачать может вести в никуда"
 fi
+if grep -q 'data-lang="ru"' "$ROOT/docs/index.html" && grep -q 'data-lang="en"' "$ROOT/docs/index.html"; then
+  say_ok "витрина говорит на двух языках"
+else
+  say_bad "на витрине отсутствует ru или en версия"
+fi
 
 echo
 if [ "$fail" = 0 ]; then
