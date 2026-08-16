@@ -2519,5 +2519,73 @@ group("отчёт: одна жизнь — один отчёт");
      "pulses=" + Ge.Report.acts.pulses + " frames=" + Ge.Report.frames);
 })();
 
+// Битый или очень старый сейв не должен ронять загрузку и не должен
+// оставлять NaN/бесконечности в мире. Человек может прервать запись,
+// словить сбой диска или прийти с версии двухгодичной давности.
+group("сейв: битые данные не ломают берег");
+(function () {
+  var Aim = require("./aim.js");
+  var Gs = Aim.bootEngine();
+  require("./dom.js").install();
+
+  function loadRaw(obj) {
+    Gs._store["igra.save.v1"] = JSON.stringify(obj);
+    var g = Aim.makeGame(Gs, 1);
+    var st = Gs.Voice.sayText; Gs.Voice.sayText = function () {};
+    var ok = false, err = null;
+    try { ok = g.load(); } catch (e) { err = e.message; }
+    Gs.Voice.sayText = st;
+    // 60 кадров БЕЗ долга на триггере: проверяем, что мир не падает
+    // в update и не уносит NaN в камеру. Параметры существа проверяем
+    // на отдельном спокойном сейве (без долга на пороге).
+    for (var f = 0; f < 60 && ok; f++) {
+      try { g.update(1 / 60); } catch (e) { err = e.message; break; }
+    }
+    return { ok: ok, g: g, err: err };
+  }
+
+  // мусор и отсутствие dna обязаны отвергаться, а не падать
+  Gs._store["igra.save.v1"] = "{не json";
+  var g0 = Aim.makeGame(Gs, 1);
+  ok(g0.load() === false, "мусорный JSON отклоняется");
+  Gs._store["igra.save.v1"] = JSON.stringify({ v: 2, time: 10 });
+  var g0b = Aim.makeGame(Gs, 1);
+  ok(g0b.load() === false, "сейв без dna отклоняется");
+
+  // строковые/битые координаты не конкатенируются и не дают NaN
+  var r1 = loadRaw({ v: 2, dna: { values: { curiosity: 1 } },
+    player: { x: "ой", y: null, energy: 1e9 },
+    world: { nodes: [{ x: "x", y: 1, kind: "relic", state: "alive" }], beings: [] } });
+  ok(r1.ok && !r1.err, "строковые координаты грузятся без падения", r1.err || "ok");
+  var p = r1.g.player;
+  ok(isFinite(p.x) && isFinite(p.y) && isFinite(p.energy) && p.energy <= p.maxEnergy,
+     "координаты и энергия игрока — конечные числа",
+     "x=" + p.x + " y=" + p.y + " e=" + p.energy);
+
+  // null в массивах пропускается, а не роняет разбор
+  var r2 = loadRaw({ v: 2, dna: { values: { curiosity: 1 } },
+    world: { nodes: [null, { x: 1, y: 2, kind: "relic", state: "alive" }],
+             beings: [null, { x: 1, y: 2, hue: "empathy" }],
+             blooms: "не массив", stars: null, laws: null, anchors: null } });
+  ok(r2.ok && !r2.err, "null в массивах сейва не роняют загрузку", r2.err || "ok");
+  ok(Array.isArray(r2.g.world.blooms), "сломанные массивы заменяются пустыми");
+
+  // дикие значения существа зажимаются. Проверяем сразу после load
+  // (без update): долг у порога может разрешиться по смыслу, а нас
+  // здесь интересует нормализация сырых чисел.
+  Gs._store["igra.save.v1"] = JSON.stringify({ v: 2, dna: { values: { curiosity: 1 } },
+    world: { nodes: [], beings: [{ x: 1e12, y: -1e12, hue: "empathy", bond: 50, fear: -9, debt: 999, temper: "shy" }] } });
+  var g3 = Aim.makeGame(Gs, 1);
+  var st3 = Gs.Voice.sayText; Gs.Voice.sayText = function () {};
+  var ok3 = false, err3 = null;
+  try { ok3 = g3.load(); } catch (e) { err3 = e.message; }
+  Gs.Voice.sayText = st3;
+  ok(ok3 && !err3, "сейв с дикими значениями грузится", err3 || "ok");
+  var b = g3.world.beings[0];
+  ok(b && b.bond <= 1 && b.fear >= 0 && b.debt <= 1.2 && isFinite(b.x) && isFinite(b.y),
+     "параметры существа зажаты в допустимые границы",
+     b ? "bond=" + b.bond + " fear=" + b.fear + " debt=" + b.debt : "существа нет");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

@@ -1086,22 +1086,19 @@ var IGRA = IGRA || {};
     if (G.Report) G.Report.reset();
     this.dna = G.Dna.fromJSON(data.dna);
     if (data.player) {
-      this.player.x = data.player.x || 0;
-      this.player.y = data.player.y || 0;
-      this.player.energy = data.player.energy != null ? data.player.energy : 100;
+      this.player.x = G.num(data.player.x, 0);
+      this.player.y = G.num(data.player.y, 0);
+      this.player.energy = G.clamp(G.num(data.player.energy, 100), 0, this.player.maxEnergy);
     }
     if (data.world) {
-      this.world.age = data.world.age || 0;
-      this.world.meta = data.world.meta || 0;
+      this.world.age = G.num(data.world.age, 0);
+      this.world.meta = G.num(data.world.meta, 0);
       this.world.biome = data.world.biome || "void";
       this.world.discovered = data.world.discovered || 0;
       this.world.lost = data.world.lost || 0;
       this.world.carried = data.world.carried || 0;
       this.world.killed = data.world.killed || 0;
       this.world.saved = data.world.saved || 0;
-      this.world.verses = data.world.verses || [];
-      this.world.stars = data.world.stars || [];
-      this.world.anchors = data.world.anchors || [];
       this.world.call = data.world.call || null;
       this.world.callT = data.world.callT != null ? data.world.callT : 12;
       this.world.arrived = data.world.arrived || 0;
@@ -1110,32 +1107,34 @@ var IGRA = IGRA || {};
       this.world.tideT = data.world.tideT != null ? data.world.tideT : this.world.tideT;
       if (this.world.call && this.world.call.phase == null) this.world.call.phase = 0;
       this.world.nodes = [];
-      var nodes = data.world.nodes || [];
+      var nodes = Array.isArray(data.world.nodes) ? data.world.nodes : [];
       for (var i = 0; i < nodes.length; i++) {
         var src = nodes[i];
-        var n = new G.Node(src.x, src.y, src.kind);
+        if (!src || typeof src !== "object") continue;
+        var n = new G.Node(G.num(src.x, 0), G.num(src.y, 0), src.kind);
         n.id = src.id || n.id;
         n.state = src.state || "unformed";
-        n.care = src.care != null ? src.care : 0.4;
-        n.roots = src.roots || 0;
-        n.returns = src.returns || 0;
+        n.care = G.clamp(G.num(src.care, 0.4), 0, 1);
+        n.roots = G.clamp(G.num(src.roots, 0), 0, 1);
+        n.returns = G.num(src.returns, 0);
         n.cooled = src.cooled || 0;
         n.rootTold = src.rootTold || 0;
-        n.hp = src.hp != null ? src.hp : 1;
-        n.age = src.age || 0;
-        n.growth = src.growth != null ? src.growth : (n.state === "alive" ? 1 : 0);
-        n.r = src.r || 16;
+        n.hp = G.clamp(G.num(src.hp, 1), 0, 1);
+        n.age = G.num(src.age, 0);
+        n.growth = src.growth != null ? G.num(src.growth, n.state === "alive" ? 1 : 0) : (n.state === "alive" ? 1 : 0);
+        n.r = G.clamp(G.num(src.r, 16), 4, 80);
         n.verse = src.verse || "";
-        n.tone = src.tone || 330;
+        n.tone = G.num(src.tone, 330);
         this.world.nodes.push(n);
       }
       this.world.beings = [];
-      var beings = data.world.beings || [];
+      var beings = Array.isArray(data.world.beings) ? data.world.beings : [];
       for (var j = 0; j < beings.length; j++) {
         var sb = beings[j];
-        var b = new G.Being(sb.x, sb.y, sb.hue);
-        b.bond = sb.bond || 0;
-        b.fear = sb.fear || 0.2;
+        if (!sb || typeof sb !== "object") continue;
+        var b = new G.Being(G.num(sb.x, 0), G.num(sb.y, 0), sb.hue);
+        b.bond = G.clamp(G.num(sb.bond, 0), 0, 1);
+        b.fear = G.clamp(G.num(sb.fear, 0.2), 0, 1);
         b.name = sb.name || b.name;
         // характер, истинное имя и долг раньше терялись при выходе:
         // существо возвращалось чужим. Память существа — тоже память.
@@ -1146,18 +1145,26 @@ var IGRA = IGRA || {};
         if (sb.healed) b.healed = true;
         if (sb.shardOf) b.shardOf = sb.shardOf;
         b.named = !!sb.named;
-        b.debt = sb.debt || 0;
+        // долг не бесконечен: битый сейв не должен навсегда оставлять
+        // существо на грани исхода.
+        b.debt = G.clamp(G.num(sb.debt, 0), 0, 1.2);
         b.isYesterday = !!sb.isYesterday;
         this.world.beings.push(b);
       }
-      // сад, законы и расширенный предел якорей — то, что человек вырастил
-      this.world.blooms = data.world.blooms || [];
-      this.world.forgotten = data.world.forgotten || [];
-      this.world.laws = data.world.laws || [];
+      // сад, законы и расширенный предел якорей — то, что человек вырастил.
+      // Каждый массив нормализуем: битый сейв может принести строку или
+      // null, а onReturn потом делает push/filter и падает.
+      function arr(v) { return Array.isArray(v) ? v : []; }
+      this.world.blooms = arr(data.world.blooms);
+      this.world.forgotten = arr(data.world.forgotten);
+      this.world.laws = arr(data.world.laws);
+      this.world.stars = arr(data.world.stars);
+      this.world.anchors = arr(data.world.anchors);
+      this.world.active = arr(data.world.active);
+      this.world.verses = arr(data.world.verses);
       this.world.anchorCap = data.world.anchorCap || 3;
       // действующий закон тоже ждёт возвращения: мир не должен тайком
-      // выпрямиться, пока человека нет
-      this.world.active = data.world.active || [];
+      // выпрямиться, пока человека нет. active уже нормализован выше.
       this.world.tideFrozen = data.world.tideFrozen || 0;
       this.world.invertMove = data.world.invertMove || 0;
       if (this.world.nodes.length < 5) this.world.scatter(this.player.x, this.player.y, 8, 360);

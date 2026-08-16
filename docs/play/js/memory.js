@@ -383,7 +383,8 @@ var IGRA = IGRA || {};
       this.sessions = (data.sessions || 0) + 1;
       this.lastDna = (data.dna && data.dna.values) || data.lastDna || null;
       this.lastName = data.lastName || "";
-      this.notes = data.notes || [];
+      // notes может прийти строкой из битого сейва — push потом упадёт
+      this.notes = Array.isArray(data.notes) ? data.notes : [];
       this.days = data.days || 1;
       this.firstAt = data.firstAt || data.leftAt || Date.now();
       var now = Date.now();

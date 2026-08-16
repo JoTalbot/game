@@ -5,12 +5,21 @@ var IGRA = IGRA || {};
   // Версия видна в отчёте с телефона: без неё нельзя понять, о какой
   // сборке говорит человек. Сверяется сторожем `tools/check-sync.sh`
   // вместе с build-apk.sh и gradle — три места, одно число.
-  G.VERSION = "0.4.75";
+  G.VERSION = "0.4.76";
 
   G.TAU = Math.PI * 2;
 
   G.clamp = function (v, a, b) {
     return v < a ? a : v > b ? b : v;
+  };
+
+  // Приведение к конечному числу. Сейв может повредиться или прийти
+  // из очень старой версии: строки, null, NaN ломали камеру и физику
+  // ("x" + 45 = "x45", NaN в координате игрока). Если значение не
+  // число — отдаём значение по умолчанию.
+  G.num = function (v, fallback) {
+    var n = Number(v);
+    return isFinite(n) ? n : (fallback === undefined ? 0 : fallback);
   };
 
   G.lerp = function (a, b, t) {

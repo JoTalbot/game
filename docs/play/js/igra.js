@@ -468,9 +468,9 @@ var IGRA = IGRA || {};
 
     fromJSON: function (data) {
       if (!data) return;
-      this.said = data.said || {};
+      this.said = data.said && typeof data.said === "object" ? data.said : {};
       this.relationship = data.relationship || 0.2;
-      this.history = data.history || [];
+      this.history = Array.isArray(data.history) ? data.history : [];
     }
   };
 })(IGRA);
