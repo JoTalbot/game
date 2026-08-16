@@ -223,12 +223,29 @@ var IGRA = IGRA || {};
       var c = dna ? dna.blendRgb() : [140, 180, 220];
       var warmth = (c[0] - c[2]) / 255;
       var base = 48 + (dna ? dna.get("harmony") * 18 + dna.get("curiosity") * 10 : 0);
+      // Лад берега. Четыре дрона всегда были одной квинтой с лёгким
+      // сдвигом от тепла; какой бы характер ты ни вырастил, фон звучал
+      // почти одинаково. Теперь сама структура интервалов несёт твою
+      // суть: гармония — чистые консонансы, хаос — расстроенный унисон,
+      // жар — тритон внизу, тишина — широкие открытые квинты, взгляд —
+      // подъём вверх, тепло — большая терция. Это меняет ВЫСОТЫ, а не
+      // громкости: граф не растёт, фон по-прежнему тише самого себя.
+      var mode = [1, 1.5, 2, 3];
+      if (dna) {
+        var dom = dna.dominant();
+        if (dom === "harmony")        mode = [1, 1.5, 2, 3];        // чистый строй
+        else if (dom === "chaos")     mode = [1, 1.02, 2.03, 2.97]; // биения, расстройка
+        else if (dom === "aggression") mode = [1, 1.41, 2, 2.34];   // тритон
+        else if (dom === "contemplation") mode = [1, 1.5, 2.25, 3.38]; // широкая тишина
+        else if (dom === "curiosity") mode = [1, 1.5, 2.25, 3.38];  // подъём
+        else if (dom === "empathy")   mode = [1, 1.25, 1.5, 2.5];   // большая терция
+      }
       if (this.drones[0]) {
-        this.drones[0].o.frequency.setTargetAtTime(base, t, 0.8);
-        this.drones[1].o.frequency.setTargetAtTime(base * 1.5 + warmth * 4, t, 0.8);
-        this.drones[2].o.frequency.setTargetAtTime(base * 2 + (dna ? dna.get("chaos") * 7 : 0), t, 0.6);
+        this.drones[0].o.frequency.setTargetAtTime(base * mode[0] + warmth * 1.5, t, 0.8);
+        this.drones[1].o.frequency.setTargetAtTime(base * mode[1] + warmth * 4, t, 0.8);
+        this.drones[2].o.frequency.setTargetAtTime(base * mode[2] + (dna ? dna.get("chaos") * 7 : 0), t, 0.6);
         this.drones[3].o.frequency.setTargetAtTime(
-          base * 3 + (dna ? dna.get("contemplation") * -8 : 0),
+          base * mode[3] + (dna ? dna.get("contemplation") * -8 : 0),
           t,
           0.9
         );

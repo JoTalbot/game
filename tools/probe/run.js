@@ -1368,6 +1368,52 @@ group("фон: тишина остаётся тишиной");
   ok(late.notes > 200, "нот при этом сыграно много", late.notes + " нот");
 })();
 
+// Лад берега: фон одного характера обязан отличаться от фона другого
+// на слух — иначе обещание «мир читает твою суть» не доходит до звука.
+// Меняем ВЫСОТЫ, а не громкости: граф не растёт, тишина цела.
+group("звук: у каждого характера свой лад");
+(function () {
+  var H = require("./harness.js");
+  var N = require("./noise.js");
+
+  function shoreFor(trait) {
+    // N.run поднимает собственный G с подставным Web Audio — берём его
+    var r = N.run(1, "idle");
+    var G = r.G;
+    var dna = new G.Dna();
+    // выставляем доминанту: одна ось на максимуме, прочие почти на нуле
+    for (var i = 0; i < G.TRAITS.length; i++) dna.values[G.TRAITS[i]] = 0.001;
+    dna.values[trait] = 1;
+    // world для update: аудио читает только alive/roots узлов и tide
+    var world = { nodes: [], tide: 0, active: [] };
+    // даём частотам сойтись (стаб применяет setTargetAtTime сразу)
+    for (var s = 0; s < 10; s++) G.Audio.update(1 / 30, dna, "play", 0, world);
+    var f = G.Audio.drones.map(function (d) { return d.o.frequency.value; });
+    return { f: f, drone: G.Audio.drones.reduce(function (a, d) { return a + d.g.gain.value; }, 0) };
+  }
+
+  var choir = shoreFor("harmony");
+  var glitch = shoreFor("chaos");
+  var heat = shoreFor("aggression");
+  var calm = shoreFor("contemplation");
+  var warm = shoreFor("empathy");
+
+  // гармония — чистая квинта 1.5, хаос — расстроенный унисон (почти 1)
+  var choirR = choir.f[1] / choir.f[0];
+  var glitchR = glitch.f[1] / glitch.f[0];
+  ok(Math.abs(choirR - 1.5) < 0.02, "у строя чистая квинта в фоне", "интервал " + choirR.toFixed(2));
+  ok(glitchR < 1.12, "у сбоя дроны расстроены в узкий биение", "интервал " + glitchR.toFixed(2));
+  // лады реально разные: интервалы второй ноты отличаются больше чем на четверть тона
+  ok(Math.abs(choirR - glitchR) > 0.25, "строй и сбой звучат по-разному", choirR.toFixed(2) + " против " + glitchR.toFixed(2));
+  ok(Math.abs(heat.f[2] / heat.f[0] - warm.f[2] / warm.f[0]) > 0.25,
+     "жар и тепло имеют разный лад", "жар " + (heat.f[2] / heat.f[0]).toFixed(2) + " / тепло " + (warm.f[2] / warm.f[0]).toFixed(2));
+  // тишина шире и выше строем — третий обертон дальше от основы
+  ok(calm.f[3] / calm.f[0] > 3.1, "тишина звучит широко", "интервал " + (calm.f[3] / calm.f[0]).toFixed(2));
+  // и главное — громкости не поехали: лад меняет высоту, а не напор
+  ok(Math.abs(choir.drone - glitch.drone) < 0.001, "смена лада не делает фон громче",
+     "гул " + choir.drone.toFixed(3) + " / " + glitch.drone.toFixed(3));
+})();
+
 // ——— рука ———
 // Человек: «не получается обводить сущности — сбивается после перелёта по
 // стрелочке, и в начале мелкие тоже не обводятся». Срыв взгляда мерили в

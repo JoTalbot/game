@@ -66,7 +66,7 @@ Android — нативный WebView (`world.igra.app`), оффлайн, пол�
 ## Играть сейчас
 
 **Так задумано: с телефона.**  
-Сейчас ставь **0.4.72**: [скачать APK](https://github.com/JoTalbot/game/releases/download/v0.4.72/igra-0.4.72.apk)
+Сейчас ставь **0.4.73**: [скачать APK](https://github.com/JoTalbot/game/releases/download/v0.4.73/igra-0.4.73.apk)
 Перед установкой удали старую ИГРУ.
 
 Агентам: `docs/STATUS.md` → `docs/HANDOFF.md`.
