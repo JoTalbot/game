@@ -1093,6 +1093,9 @@ var IGRA = IGRA || {};
       this.world.call = data.world.call || null;
       this.world.callT = data.world.callT != null ? data.world.callT : 12;
       this.world.arrived = data.world.arrived || 0;
+      // фаза прилива: сохраняется, чтобы короткие сессии не отодвигали его
+      this.world.tide = data.world.tide || 0;
+      this.world.tideT = data.world.tideT != null ? data.world.tideT : this.world.tideT;
       if (this.world.call && this.world.call.phase == null) this.world.call.phase = 0;
       this.world.nodes = [];
       var nodes = data.world.nodes || [];

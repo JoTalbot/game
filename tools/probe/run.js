@@ -121,6 +121,15 @@ group("память: что человек вырастил, не должно �
   var r = w2.beings[0];
   ok(r.temper === "singer" && r.trueName === "Шёпот" && r.named, "существо возвращается собой, а не чужим");
   ok(r.debt === 2, "долг существа помнится");
+
+  // Фаза прилива — тоже память. Раньше при перезапуске таймер
+  // откатывался к стартовым ~98 с, и человек, играющий короткими
+  // сессиями, почти не видел прилив вовсе.
+  w.tide = 0.42;
+  w.tideT = 31.5;
+  var d2 = JSON.parse(JSON.stringify(w.toJSON()));
+  ok(d2.tide === 0.42 && d2.tideT === 31.5, "фаза прилива кладётся в сейв",
+     "tide=" + d2.tide + " tideT=" + d2.tideT);
 })();
 
 // ——— рендер ———
@@ -2181,6 +2190,26 @@ group("память: берег помнит, что ты уже приходи�
   ok(Date.now() - Ge.Memory.leftAt < 60000, "ночь не засчитывается дважды");
 
   Ge.Voice.sayText = sayText;
+})();
+
+// Прилив перезапускался при каждом выходе: таймер не сохранялся, и
+// короткие мобильные сессии почти не видели прилив вовсе.
+group("память: прилив помнит свою фазу");
+(function () {
+  var AimT = require("./aim.js");
+  var Gt = AimT.bootEngine();
+  require("./dom.js").install();
+  var g = AimT.makeGame(Gt, 8181);
+  g.world.age = 200;
+  g.world.tide = 0.37;
+  g.world.tideT = 22.4;
+  g.save();
+  var g2 = AimT.makeGame(Gt, 8181);
+  Gt.Voice.sayText = function () {};
+  g2.load();
+  ok(Math.abs(g2.world.tide - 0.37) < 0.001 && Math.abs(g2.world.tideT - 22.4) < 0.01,
+     "фаза прилива поднимается из сейва",
+     "tide=" + g2.world.tide.toFixed(2) + " tideT=" + g2.world.tideT.toFixed(1));
 })();
 
 

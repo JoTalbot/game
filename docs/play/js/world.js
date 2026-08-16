@@ -1075,6 +1075,11 @@ var IGRA = IGRA || {};
       call: this.call,
       callT: this.callT,
       arrived: this.arrived,
+      // фаза прилива тоже память: иначе перезапуск приложения каждый раз
+      // откатывал отсчёт к стартовым ~98 с, и человек, играющий короткими
+      // сессиями, почти не видел прилив вовсе.
+      tide: this.tide,
+      tideT: this.tideT,
       nodes: this.nodes.map(function (n) {
         return {
           id: n.id,
