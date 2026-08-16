@@ -2276,5 +2276,32 @@ group("ночь: берег редеет, но остаётся твоим");
      "потеряно " + (20 - week.alive));
 })();
 
+// Ночь считала долг за каждый из 48 шагов сна, а не за всю разлуку:
+// существо получало 2.88 долга и разрешалось в первом же кадре после
+// загрузки. Сон готовит берег к возвращению, а не выкашивает его.
+(function () {
+  var Aim = require("./aim.js");
+  var Gn = Aim.bootEngine();
+  function peakDebt(hours, bond) {
+    var g = Aim.makeGame(Gn, 4242 + hours);
+    var b = new Gn.Being(g.player.x + 220, g.player.y, "empathy");
+    b.bond = bond;
+    b.debt = 0;
+    b.temper = "curious";
+    g.world.beings = [b];
+    Gn.Memory.sleepWorld(g, hours);
+    return b.debt || 0;
+  }
+  var afterNight = peakDebt(9, 0.9);
+  ok(afterNight < 1.2, "ночь не разрешает существо сразу после возвращения",
+     "долг после ночи " + afterNight.toFixed(2) + " при пороге 1.20");
+  ok(afterNight > 0, "ночь всё же оставляет след разлуки",
+     "долг после ночи " + afterNight.toFixed(2));
+
+  var afterThreeNights = peakDebt(72, 0.4);
+  ok(afterThreeNights <= 1.1, "долгая разлука помнит крепкую связь",
+     "долг после трёх суток " + afterThreeNights.toFixed(2));
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
