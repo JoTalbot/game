@@ -516,15 +516,27 @@ var IGRA = IGRA || {};
         ctx.arc(p.x, p.y, 2.2, 0, G.TAU);
         ctx.fill();
       } else {
-        glow(ctx, p.x, p.y, r * 3.2, c, 0.16);
+        // Тускнение видно ГЛАЗОМ. Живой узел светил одинаково всегда:
+        // care на его вид не влиял вовсе, менялась только дымка у
+        // неоформленных — на 0.05, то есть незаметно. Значит центральная
+        // механика игры («вернись к тому, что остывает») была невидима.
+        // Отчёты с телефона показывали это прямо: человек отвечает
+        // «возвращаться — да, видно», а возвращений ноль. Он не видел.
+        //
+        // Свежий узел горит полно, остывший — глуше и суше: гаснет
+        // ореол, тает заливка ядра, обводка становится тоньше. Ничего не
+        // подписано словами: берег меняется, а не отчитывается.
+        var warm = n.care != null ? G.clamp(n.care, 0, 1) : 1;
+        var lit = 0.34 + warm * 0.66;
+        glow(ctx, p.x, p.y, r * (2.2 + warm * 1.0), c, 0.05 + 0.11 * warm);
         ctx.globalCompositeOperation = "lighter";
-        glow(ctx, p.x, p.y, r * 1.4, c, 0.28);
+        glow(ctx, p.x, p.y, r * 1.4, c, 0.10 + 0.18 * warm);
         ctx.globalCompositeOperation = "source-over";
-        ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.85);
+        ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.30 + 0.55 * warm);
         ctx.beginPath();
         ctx.arc(p.x, p.y, Math.max(3, r * 0.28), 0, G.TAU);
         ctx.fill();
-        ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.35);
+        ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.35 * lit);
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(p.x, p.y, r * 0.85, 0, G.TAU);

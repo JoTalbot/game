@@ -275,8 +275,24 @@ function nearestUnformed(game) {
 }
 
 // Подставной 2D-контекст: считает вызовы, ничего не рисует.
+//
+// Он запоминает и ЯРКОСТЬ — альфу каждой заливки, обводки и градиента.
+// Без этого нельзя проверить то, что человек видит глазом: тускнеет ли
+// узел, к которому не возвращались. Число вызовов у яркого и у погасшего
+// узла одинаковое — меняются только цвета, и раньше стенд их не видел.
 function ctxStub() {
-  var o = { calls: [], _fill: "", _stroke: "" };
+  var o = { calls: [], alphas: [], _fill: "", _stroke: "" };
+  function noteAlpha(v) {
+    var m = /rgba?\([^)]*?,\s*([\d.]+)\s*\)/.exec(String(v));
+    if (m) o.alphas.push(parseFloat(m[1]));
+  }
+  // Суммарная яркость нарисованного — грубая, но честная мера «сколько
+  // света» ушло на объект.
+  o.light = function () {
+    var s = 0;
+    for (var i = 0; i < o.alphas.length; i++) s += o.alphas[i];
+    return Math.round(s * 1000) / 1000;
+  };
   [
     "save", "restore", "beginPath", "closePath", "arc", "moveTo", "lineTo",
     "fill", "stroke", "fillText", "strokeText", "translate", "rotate", "scale",
@@ -290,8 +306,16 @@ function ctxStub() {
   });
   o.createRadialGradient = o.createLinearGradient = function () {
     o.calls.push("gradient");
-    return { addColorStop: function () {} };
+    return { addColorStop: function (stop, color) { noteAlpha(color); } };
   };
+  Object.defineProperty(o, "fillStyle", {
+    get: function () { return o._fill; },
+    set: function (v) { o._fill = v; noteAlpha(v); }
+  });
+  Object.defineProperty(o, "strokeStyle", {
+    get: function () { return o._stroke; },
+    set: function (v) { o._stroke = v; noteAlpha(v); }
+  });
   o.measureText = function (s) {
     return { width: String(s).length * 6 };
   };
