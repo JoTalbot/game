@@ -69,6 +69,13 @@ else
   sed 's/^/      /' /tmp/igra-sync-diff | head -20
 fi
 
+echo "— витрина ссылается на актуальный релиз"
+if grep -q "releases/latest/download/igra.apk" "$ROOT/docs/index.html"; then
+  say_ok "кнопка APK ведёт на постоянную ссылку релиза"
+else
+  say_bad "docs/index.html не ссылается на releases/latest/download/igra.apk — кнопка скачать может вести в никуда"
+fi
+
 echo
 if [ "$fail" = 0 ]; then
   echo "✓ расхождений нет"

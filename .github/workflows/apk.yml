@@ -98,8 +98,17 @@ jobs:
           if-no-files-found: error
 
       # Метку ставит человек — значит это релиз, и APK нужен в нём.
+      # Кладём и версионный файл, и постоянное имя igra.apk: на него
+      # ссылается посадочная страница (кнопка «скачать»), и эта ссылка
+      # не должна устаревать с каждым релизом.
+      - name: Копия под постоянным именем
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: cp "dist/igra-${{ steps.ver.outputs.v }}.apk" dist/igra.apk
+
       - name: Прицепить к релизу
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/igra-${{ steps.ver.outputs.v }}.apk
+          files: |
+            dist/igra-${{ steps.ver.outputs.v }}.apk
+            dist/igra.apk
