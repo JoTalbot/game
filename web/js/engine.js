@@ -970,8 +970,13 @@ var IGRA = IGRA || {};
     // Смотреть без сил можно — просто медленно: рождение растягивается
     // вдвое. Голод забирает скорость, а не саму способность жить.
     var weak = this.player.energy < 8;
-    this.player.energy = Math.max(0, this.player.energy - (weak ? 1 : 6) * dt);
-    if (G.Report) { G.Report.noteDrain("gaze", 6 * dt); G.Report.noteEnergy(this.player.energy); }
+    // Отчёт обязан говорить правду о расходе: на исходе сил взгляд ест
+    // 1/с, а не 6/с, и в drain.gaze всегда писалось 6*dt — вшестеро
+    // больше реального. «Сила ушла на взгляд» врала именно там, где
+    // человек играет под стаей ран и сил почти нет.
+    var gazeCost = weak ? 1 : 6;
+    this.player.energy = Math.max(0, this.player.energy - gazeCost * dt);
+    if (G.Report) { G.Report.noteDrain("gaze", gazeCost * dt); G.Report.noteEnergy(this.player.energy); }
     this.player.gazeT += weak ? dt * 0.5 : dt;
     n.care = Math.min(1, n.care + dt * 0.4);
 

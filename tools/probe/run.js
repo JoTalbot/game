@@ -682,6 +682,39 @@ group("раны: голод гонит, но не приковывает");
        : "не удалось истощить (энергия " + Math.round(drained) + ")");
   ok(bornAt < 0 || bornAt > 2, "но голод заметно замедляет",
      bornAt > 0 ? bornAt.toFixed(2) + " с против обычных 1.35" : "—");
+
+  // И отчёт об этом расходе должен быть честным. На исходе сил взгляд
+  // ест 1/с вместо 6/с — а drain.gaze всегда писал 6*dt, завышая «силу,
+  // ушедшую на взгляд» вшестеро ровно там, где человек играет под
+  // стаей ран. Отчёт врал не молчанием, а числом — худший сорт.
+  // Спрашиваем мир: сколько ОТЧЁТ насчитал за кадр у полного и у
+  // истощённого — разница обязана быть, иначе «голод забирает скорость»
+  // в отчёте не виден вовсе.
+  function gazeDrainOneFrame(energy) {
+    var gg = Aim5.makeGame(G5, 7);
+    var nn = null;
+    for (var i = 0; i < gg.world.nodes.length; i++) {
+      var c = gg.world.nodes[i];
+      if (!c.dead && c.state === "unformed") { nn = c; break; }
+    }
+    gg.player.x = nn.x; gg.player.y = nn.y;
+    gg.cam.x = nn.x; gg.cam.y = nn.y;
+    gg.input.x = 400; gg.input.y = 300;
+    var w = gg.screenToWorld(400, 300);
+    gg.input.wx = w.x; gg.input.wy = w.y;
+    gg.player.energy = energy;
+    gg.input.down = true; gg.time += 2;
+    try { gg.onDown(); } catch (e) {}
+    G5.Report.reset();
+    try { gg.update(1 / 60); } catch (e) {}
+    return G5.Report.drain.gaze;
+  }
+  var fullDrain = gazeDrainOneFrame(100);
+  var weakDrain = gazeDrainOneFrame(5);
+  ok(weakDrain < fullDrain * 0.4,
+     "на исходе сил отчёт не завышает расход взгляда",
+     "полный " + fullDrain.toFixed(3) + " против слабого " + weakDrain.toFixed(3) +
+     " (взгляд ест 1/с, а не 6/с)");
 })();
 
 // ——— первая смена кожи ———
