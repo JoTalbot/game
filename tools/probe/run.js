@@ -2406,6 +2406,34 @@ group("память: обещанная природа переживает вы
      back ? "hint=" + back.hint : "узел не найден");
 })();
 
+// Существо, поднятое из сейва, обязано уметь говорить и помнить. Раньше
+// `memory` инициализировался только в birthBeing, а load() создаёт существо
+// через new G.Being — вернувшийся человек касался существа (remember) или
+// держал на нём взгляд (speakBeing) и кадр падал на `b.memory.length`
+// у undefined. Это не «существо вернулось чужим», это крах.
+group("память: вернувшееся существо не роняет кадр");
+(function () {
+  var Aim = require("./aim.js");
+  var Gb = Aim.bootEngine();
+  require("./dom.js").install();
+  var g = Aim.makeGame(Gb, 8181);
+  var b = Gb.Organs.birthBeing(g.player.x + 100, g.player.y, "empathy", g.world.rng);
+  g.world.beings.push(b);
+  g.save();
+  var g2 = Aim.makeGame(Gb, 8181);
+  Gb.Voice.sayText = function () {};
+  g2.load();
+  var back = g2.world.beings[0];
+  var speak = null, remember = null;
+  try { Gb.Organs.speakBeing(back); } catch (e) { speak = e.message; }
+  try { Gb.Organs.remember(back, "touched"); } catch (e) { remember = e.message; }
+  ok(back && Array.isArray(back.memory),
+     "поднятое существо несёт живую память, а не undefined",
+     back ? "memory=" + JSON.stringify(back.memory) : "существа нет");
+  ok(!speak, "вернувшееся существо умеет говорить", speak || "speakBeing жив");
+  ok(!remember, "вернувшееся существо помнит касания", remember || "remember жив");
+})();
+
 // ——— отчёт не клевещет на руку ———
 group("отчёт: шаг — не промах");
 (function () {
