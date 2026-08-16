@@ -81,6 +81,18 @@ else
   say_bad "на витрине отсутствует ru или en версия"
 fi
 
+echo "— браузерный берег носит оффлайн"
+if [ -f "$ROOT/web/sw.js" ] && grep -q "igra-shell" "$ROOT/web/sw.js"; then
+  say_ok "service worker есть"
+  if grep -q "./js/engine.js" "$ROOT/web/sw.js"; then
+    say_ok "душа игры в offline-кэше"
+  else
+    say_bad "в service worker не положен engine.js — оффлайн не поднимет игру"
+  fi
+else
+  say_bad "нет service worker — браузерный берег не оффлайн"
+fi
+
 echo
 if [ "$fail" = 0 ]; then
   echo "✓ расхождений нет"
