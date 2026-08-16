@@ -30,6 +30,16 @@ var IGRA = IGRA || {};
     },
     startedAt: 0,
     playT: 0,
+    night: { count: 0, hours: 0, lost: 0, blooms: 0, debt: 0 },
+
+    noteNight: function (report) {
+      if (!report || !report.hours || report.hours < 0.08) return;
+      this.night.count++;
+      this.night.hours += report.hours;
+      this.night.lost += report.lost || 0;
+      this.night.blooms += report.blooms || 0;
+      this.night.debt += report.debt || 0;
+    },
 
     // ЖЕСТЫ. Человек четыре релиза подряд говорит «срывается», а все
     // замеры зелёные: стенд дёргает игру напрямую и не воспроизводит
@@ -134,6 +144,7 @@ var IGRA = IGRA || {};
       this.lastCallAt = -999;
       this.drain = { gaze: 0, wound: 0, pulse: 0 };
       this.lowest = 100;
+      this.night = { count: 0, hours: 0, lost: 0, blooms: 0, debt: 0 };
       this.zoom = { min: 9, max: 0, sum: 0, n: 0 };
       for (var k in this.acts) if (this.acts.hasOwnProperty(k)) this.acts[k] = 0;
     },
@@ -244,6 +255,14 @@ var IGRA = IGRA || {};
           (this.worst > 0.125 ? ", " + (en ? "worst " : "худший ") + Math.round(this.worst * 1000) + " ms" : "")
         : "—";
       line(en ? "smoothness" : "плавность", st);
+
+      if (this.night.count) {
+        line(en ? "while away" : "пока тебя не было",
+          Math.round(this.night.hours * 10) / 10 + (en ? "h" : "ч") +
+          (en ? ", shore lost " : ", берег потерял ") + this.night.lost +
+          (this.night.blooms ? (en ? ", blooms " : ", расцвело ") + this.night.blooms : "") +
+          (this.night.debt ? (en ? ", farewells " : ", прощаний ") + this.night.debt : ""));
+      }
 
       // РУКА — главный раздел. Человек четыре релиза говорит
       // «срывается», и это единственное место, где игра может ответить

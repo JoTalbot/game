@@ -274,6 +274,7 @@ var IGRA = IGRA || {};
         var nap = (Date.now() - G.Memory.leftAt) / 3600000;
         if (nap > 0.04) {
           var report = G.Memory.sleepWorld(self, Math.min(nap, 8));
+          if (G.Report) G.Report.noteNight(report);
           if (report.lost || report.blooms) {
             G.Voice.say(report.lost ? "nightLost" : "nightBloom", true);
           }

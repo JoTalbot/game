@@ -364,6 +364,7 @@ var IGRA = IGRA || {};
         var dayGap = Math.floor((now - (data.firstAt || data.leftAt)) / 86400000) + 1;
         this.days = Math.max(this.days, dayGap);
         var report = this.sleepWorld(game, hours);
+        if (G.Report) G.Report.noteNight(report);
         this.setFromDna(game.dna, true);
         var changed = this.shifted(this.lastDna, game.dna);
         if (hours > 3 || changed) {
