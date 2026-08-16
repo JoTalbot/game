@@ -218,6 +218,7 @@ var IGRA = IGRA || {};
       var lost = 0;
       var blooms = 0;
       var debt = 0;
+      var shouldResolve = false;
       var clim = this.climate();
       // Ночь ПРОРЕЖИВАЕТ берег, а не стирает его.
       //
@@ -276,7 +277,16 @@ var IGRA = IGRA || {};
           b.debt = Math.max(b.debt || 0, (b.debt || 0) + nightDebt / steps * (1.4 - (b.bond || 0)));
           b.x += G.rand(-18, 18);
           b.y += G.rand(-18, 18);
-          if ((b.debt || 0) > 1.2) debt++;
+          if ((b.debt || 0) > 1.2) shouldResolve = true;
+        }
+      }
+      if (shouldResolve) {
+        for (var k = w.beings.length - 1; k >= 0; k--) {
+          var c = w.beings[k];
+          if (!c.isYesterday && !c.dead && (c.debt || 0) > 1.2) {
+            var out = w.abandon(c, game.dna);
+            if (out !== "none") debt++;
+          }
         }
       }
       if (hours > 2 && G.chance(0.7)) {

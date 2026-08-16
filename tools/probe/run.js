@@ -2309,6 +2309,17 @@ group("ночь: берег редеет, но остаётся твоим");
   var afterThreeNights = peakDebt(72, 0.4);
   ok(afterThreeNights <= 1.1, "долгая разлука помнит крепкую связь",
      "долг после трёх суток " + afterThreeNights.toFixed(2));
+
+  // Существо, чей долг созрел за ночь, обязано разрешиться до первого
+  // кадра: иначе человек возвращается и видит, что берег ещё не проснулся.
+  var g3 = Aim.makeGame(Gn, 4242 + 72);
+  var lonely = new Gn.Being(g3.player.x + 900, g3.player.y + 10, "empathy");
+  lonely.bond = 0.2; lonely.debt = 1.05; lonely.temper = "curious";
+  g3.world.beings = [lonely];
+  Gn.Memory.sleepWorld(g3, 72);
+  var stillThere = g3.world.beings.some(function (x) { return x === lonely && !x.dead; });
+  ok(!stillThere, "созревший за ночью долг разрешается до возвращения",
+     stillThere ? "существо всё ещё на берегу" : "существо ушло до первого кадра");
 })();
 
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
