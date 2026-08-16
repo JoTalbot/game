@@ -2091,5 +2091,126 @@ group("голос: Игра говорит редко");
      "реплик покоя услышано " + idleHeard);
 })();
 
+
+// ——— память возвращения ———
+group("память: берег помнит, что ты уже приходил");
+(function () {
+  // Орган памяти (memory.js: сессии, дни, сезон, «вчерашний ты», сон
+  // берега, приветствие вернувшегося) был написан целиком и не работал
+  // НИ РАЗУ: в сейв его никто не клал, `onReturn` не звал ни один файл.
+  // 188 проверок были зелёными — ни одна не проходила круг «сохранился →
+  // вернулся». Отчёт человека выдал это цифрой «сессия 0» на пятой
+  // сессии подряд, и его же словами «слишком молчу»: половина голоса
+  // Игры звучит только вернувшемуся.
+  //
+  // Спрашиваем МИР, а не формулу: играем, сохраняемся, поднимаем игру с
+  // нуля и смотрим, что она о нас знает.
+  var Aim7 = require("./aim.js");
+  var Ge = Aim7.bootEngine();
+  require("./dom.js").install();
+
+  var g1 = Aim7.makeGame(Ge, 5150);
+  Ge.Memory.sessions = 1;
+  Ge.Memory.firstAt = Date.now() - 3 * 86400000;
+  Ge.Memory.setFromDna(g1.dna, true);
+  for (var i = 0; i < 60 * 30; i++) Ge.Game.prototype.update.call(g1, 1 / 60);
+  var name1 = g1.dna.name();
+  g1.save();
+
+  // человек ушёл на ночь и вернулся
+  var raw = JSON.parse(Ge._store["igra.save.v1"]);
+  ok(!!raw.memory, "память кладётся в сейв",
+     raw.memory ? "сессий " + raw.memory.sessions + ", день " + raw.memory.days : "нет поля memory");
+  if (raw.memory) {
+    raw.memory.leftAt = Date.now() - 9 * 3600000;
+    Ge._store["igra.save.v1"] = JSON.stringify(raw);
+  }
+
+  Ge.Memory.sessions = 0;
+  Ge.Memory.days = 1;
+  Ge.Memory.leftAt = 0;
+  Ge.Memory.notes = [];
+  Ge.Memory.lastName = "";
+  Ge.Memory.firstAt = 0;
+  var said = [];
+  var sayText = Ge.Voice.sayText;
+  Ge.Voice.sayText = function (t) { said.push(String(t)); };
+
+  var g2 = Aim7.makeGame(Ge, 5150);
+  var beingsBefore = g2.world.beings.length;
+  var loaded = g2.load();
+
+  ok(loaded, "сейв поднимается");
+  ok(Ge.Memory.sessions >= 2, "вернувшийся — не первый гость",
+     "сессия " + Ge.Memory.sessions);
+  ok(Ge.Memory.days >= 3, "берег считает дни, а не начинает жизнь заново",
+     "день " + Ge.Memory.days);
+  ok(Ge.Memory.lastName === name1, "берег помнит, кем ты был",
+     "«" + Ge.Memory.lastName + "» против «" + name1 + "»");
+  // Девять часов сна должны быть прожиты миром, а не забыты.
+  ok(Ge.Memory.sleptHours > 1, "берег прожил ночь без человека",
+     Math.round(Ge.Memory.sleptHours) + " ч");
+  ok(g2.world.beings.length > beingsBefore, "вчерашний ты выходит навстречу",
+     beingsBefore + " → " + g2.world.beings.length);
+  // Час ухода обязан стать «сейчас»: иначе та же ночь съедала бы берег
+  // заново при каждом сворачивании окна.
+  ok(Date.now() - Ge.Memory.leftAt < 60000, "ночь не засчитывается дважды");
+
+  Ge.Voice.sayText = sayText;
+})();
+
+
+// ——— отчёт не клевещет на руку ———
+group("отчёт: шаг — не промах");
+(function () {
+  // «в пустоту 44» из 99 касаний звучало как «человек мажет мимо узлов».
+  // Но пальцем в этой игре ХОДЯТ: касание пустоты ведёт игрока. Отчёт
+  // считал каждый шаг промахом, и по нему нельзя было судить о прицеле.
+  var Aim8 = require("./aim.js");
+  var Gw = Aim8.bootEngine();
+  require("./dom.js").install();
+  var g = Aim8.makeGame(Gw, 777);
+  Gw.Report.reset();
+
+  // человек кладёт палец на пустоту далеко от узлов и ведёт игрока
+  g.input.x = 700; g.input.y = 520;
+  var w = g.screenToWorld(g.input.x, g.input.y);
+  g.input.wx = w.x; g.input.wy = w.y;
+  g.time += 2;
+  g.onDown();
+  g.input.down = true;
+  g.player.gaze = null;
+  g.gazeTarget = null;
+  for (var i = 0; i < 120; i++) {
+    Gw.Game.prototype.update.call(g, 1 / 60);
+    g.player.gaze = null;
+    g.gazeTarget = null;
+  }
+  g.input.down = false;
+  g.onUp();
+
+  var ge = Gw.Report.gestures;
+  ok(ge.walk >= 1, "касание, которое вело игрока, записано шагом",
+     "шагов " + ge.walk);
+  ok(ge.empty === 0, "шаг не назван промахом в пустоту",
+     "в пустоту " + ge.empty);
+
+  // А теперь короткий тык в пустоту — палец не вёл никого. Это настоящий
+  // промах, и он обязан остаться промахом: ход меряется ВНУТРИ касания,
+  // а не копится с начала сессии. Иначе один шаг в начале игры навсегда
+  // записывает все последующие промахи в «шаги», и отчёт врёт в другую
+  // сторону.
+  g.time += 2;
+  g.onDown();
+  g.input.down = true;
+  g.player.gaze = null;
+  g.gazeTarget = null;
+  for (var j = 0; j < 6; j++) Gw.Game.prototype.update.call(g, 1 / 60);
+  g.input.down = false;
+  g.onUp();
+  ok(ge.empty === 1, "тык в пустоту после ходьбы остался промахом",
+     "в пустоту " + ge.empty + ", шагов " + ge.walk);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

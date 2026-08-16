@@ -317,12 +317,17 @@ var IGRA = IGRA || {};
 
     onReturn: function (game, data) {
       this.sessions = (data.sessions || 0) + 1;
-      this.leftAt = data.leftAt || Date.now();
       this.lastDna = (data.dna && data.dna.values) || data.lastDna || null;
       this.lastName = data.lastName || "";
       this.notes = data.notes || [];
       this.days = data.days || 1;
+      this.firstAt = data.firstAt || data.leftAt || Date.now();
       var now = Date.now();
+      // Час ухода — теперь ЭТОТ приход, а не прошлый. Иначе берег,
+      // проспавший ночь один раз, засыпал бы заново при каждом сворачивании
+      // окна: `visibilitychange` меряет сон от `Memory.leftAt`, и та же ночь
+      // съедала бы узлы снова и снова.
+      this.leftAt = now;
       if (data.leftAt) {
         var hours = (now - data.leftAt) / 3600000;
         var dayGap = Math.floor((now - (data.firstAt || data.leftAt)) / 86400000) + 1;

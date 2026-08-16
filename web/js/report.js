@@ -36,7 +36,7 @@ var IGRA = IGRA || {};
     // настоящий ввод. Значит правду знает только телефон — пусть он её и
     // расскажет. Каждое касание записывается: сколько длилось, взялся ли
     // взгляд, чем кончилось и ПОЧЕМУ оборвалось.
-    gestures: { taps: 0, held: 0, born: 0, torn: 0, empty: 0 },
+    gestures: { taps: 0, held: 0, born: 0, torn: 0, empty: 0, walk: 0 },
     // причины срыва — по именам, а не одним числом: иначе снова гадать
     tornBy: {},
     // сколько успел продержаться сорвавшийся взгляд (нужно, чтобы понять,
@@ -118,6 +118,7 @@ var IGRA = IGRA || {};
 
     gestureBorn: function () { this.gestures.born++; },
     gestureEmpty: function () { this.gestures.empty++; },
+    gestureWalk: function () { this.gestures.walk++; },
     noteCall: function () { this.lastCallAt = this.playT; },
 
     reset: function () {
@@ -125,7 +126,7 @@ var IGRA = IGRA || {};
       this.errors = [];
       this.playT = 0;
       this.startedAt = Date.now();
-      this.gestures = { taps: 0, held: 0, born: 0, torn: 0, empty: 0 };
+      this.gestures = { taps: 0, held: 0, born: 0, torn: 0, empty: 0, walk: 0 };
       this.tornBy = {};
       this.tornAt = [];
       this.slips = [];
@@ -246,6 +247,7 @@ var IGRA = IGRA || {};
         (en ? ", took gaze " : ", взяли взгляд ") + ge.held +
         (en ? ", grew " : ", выросло ") + ge.born +
         (en ? ", broke " : ", сорвалось ") + ge.torn +
+        (en ? ", walked " : ", шагов ") + ge.walk +
         (en ? ", into nothing " : ", в пустоту ") + ge.empty);
 
       var why = [];

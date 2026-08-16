@@ -295,6 +295,11 @@ var IGRA = IGRA || {};
     if (this.input.taps.length > 8) this.input.taps.shift();
     this.dna.taps++;
     if (G.Report) G.Report.act("taps");
+    // Ходьба — тоже жест, и он НЕ промах. `input.moved` копился с начала
+    // сессии и не обнулялся никогда, поэтому отличить «повёл игрока» от
+    // «ткнул мимо» игра не умела: отчёт свалил 44 касания в «пустоту»,
+    // хотя пальцем в этой игре ходят. Меряем ход внутри одного касания.
+    this.input.moved = 0;
 
     if (dtap < 0.28 && this.state === "play") {
       this.doPulse();
@@ -397,7 +402,10 @@ var IGRA = IGRA || {};
           this.player.gaze.state === "unformed") {
         G.Report.gestureTorn("let", this.player.gazeT);
       } else if (!this.player.gaze && !this.gazeTarget) {
-        G.Report.gestureEmpty();
+        // Палец, который вёл игрока хотя бы полсекунды, сделал своё дело:
+        // это шаг, а не промах мимо узла.
+        if ((this.input.moved || 0) > 0.5) G.Report.gestureWalk();
+        else G.Report.gestureEmpty();
       }
     }
     if (this.gazeTarget && this.gazeTarget.temper && this.player.gazeT < 1.1) {
@@ -1050,6 +1058,12 @@ var IGRA = IGRA || {};
       named: G.Director.named,
       lastMeta: G.Director.lastMeta,
       fate: { offered: G.Fate.offered, chosen: G.Fate.chosen },
+      // Память возвращения не сохранялась ВООБЩЕ. Орган памяти был
+      // написан целиком — сессии, дни, сезон, «вчерашний ты», приветствие
+      // вернувшегося, сон берега без человека — и не работал ни разу: в
+      // сейв его никто не клал, `onReturn` не звал ни один файл. Отчёт с
+      // телефона показал это цифрой «сессия 0» на пятой сессии подряд.
+      memory: G.Memory.snapshot(this),
       state: this.state === "title" ? "title" : "play"
     });
   };
@@ -1142,6 +1156,12 @@ var IGRA = IGRA || {};
     }
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.time = data.time || 0;
+    // Возвращение — это событие, а не тихая загрузка файла. Здесь берег
+    // досыпает часы без человека, считает день и сессию, растит
+    // «вчерашнего тебя», если суть сменилась, и Игра здоровается.
+    // Зовём последним: сон берега трогает узлы и существа, они должны
+    // быть уже восстановлены.
+    G.Memory.onReturn(this, data.memory || {});
     return true;
   };
 
