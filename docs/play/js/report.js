@@ -106,7 +106,7 @@ var IGRA = IGRA || {};
     // бесплатен (ест 6/с при восстановлении 7-14/с). Значит энергию ели
     // раны (22/с при касании) или пульс (-16). Без разбивки это снова
     // гадание: пишем, кто именно.
-    drain: { gaze: 0, wound: 0, pulse: 0 },
+    drain: { gaze: 0, wound: 0, pulse: 0, boss: 0 },
     noteDrain: function (who, amount) {
       if (this.drain[who] == null) return;
       this.drain[who] += amount || 0;
@@ -142,7 +142,7 @@ var IGRA = IGRA || {};
       this.slips = [];
       this.tornAfterCall = 0;
       this.lastCallAt = -999;
-      this.drain = { gaze: 0, wound: 0, pulse: 0 };
+      this.drain = { gaze: 0, wound: 0, pulse: 0, boss: 0 };
       this.lowest = 100;
       this.night = { count: 0, hours: 0, lost: 0, blooms: 0, debt: 0 };
       this.zoom = { min: 9, max: 0, sum: 0, n: 0 };
@@ -303,11 +303,16 @@ var IGRA = IGRA || {};
           this.tornAfterCall + (en ? " (within 20s of arrival)" : " (в первые 20с после прилёта)"));
       }
 
-      if (this.drain.gaze + this.drain.wound + this.drain.pulse > 1) {
+      // Босс — самый мощный отток силы в игре (38/с против 22/с у раны), и
+      // он был невидим в отчёте: «сила ушла на» и «падала до» врали ровно
+      // в бою, где человек терял больше всего. Каждый канал оттока обязан
+      // быть посчитан, иначе разбивка снова гадание.
+      if (this.drain.gaze + this.drain.wound + this.drain.pulse + this.drain.boss > 1) {
         line(en ? "strength spent on" : "сила ушла на",
           (en ? "gaze " : "взгляд ") + Math.round(this.drain.gaze) +
           (en ? ", wounds " : ", раны ") + Math.round(this.drain.wound) +
           (en ? ", pulses " : ", пульсы ") + Math.round(this.drain.pulse) +
+          (en ? ", boss " : ", босс ") + Math.round(this.drain.boss) +
           (en ? "; lowest " : "; падала до ") + this.lowest);
       }
 
