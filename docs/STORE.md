@@ -58,7 +58,8 @@ A genre that did not exist: reflektum.
 ## Что приложить к релизу
 
 - иконка: `web/assets/img/icon.png`
-- feature graphic 1024×500 — тёмный берег, семя света, слово не нужно
+- feature graphic 1024×500: `docs/feature.png` (генерируется `python3 tools/make-art.py`)
+- og-картинка 1200×630: `docs/og.jpg`
 - 4–8 скриншотов: титул, взгляд, сад, голод, небо, сигила, сезон
 - трейлер: `docs/TRAILER.md`
 - политика: `docs/PRIVACY.md`
