@@ -812,6 +812,7 @@ var IGRA = IGRA || {};
     if (!c) return;
     this.call = null;
     this.arrived++;
+    if (G.Report) { G.Report.act("calls"); G.Report.noteCall(); }
     this.callT = 22 + this.rng.range(0, 20);
     var col = G.TRAIT_COLOR[c.trait] || [200, 220, 255];
 

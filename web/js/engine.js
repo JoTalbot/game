@@ -161,6 +161,7 @@ var IGRA = IGRA || {};
       }
       e.preventDefault();
       G.Audio.unlock();
+      if (G.Report) G.Report.gestureStart();
       var p = pos(e);
       self.input.down = true;
       self.input.x = p.x;
@@ -226,6 +227,9 @@ var IGRA = IGRA || {};
       // из 1.35. Проверяем факт, а не намерение системы.
       var stillDown = e && e.touches && e.touches.length > 0;
       if (stillDown) return;
+      if (self.player.gaze && G.Report) {
+        G.Report.gestureTorn("system", self.player.gazeT);
+      }
       self.input.down = false;
       self.player.gaze = null;
       self.gazeTarget = null;
@@ -379,6 +383,21 @@ var IGRA = IGRA || {};
   };
 
   G.Game.prototype.onUp = function () {
+    // Отпустил, ничего не вырастив и даже не взяв взгляд — жест ушёл в
+    // пустоту. Таких «пустых» касаний много там, где человек не понимает,
+    // почему не получается.
+    // «Отпустил сам» — не срыв, если узел уже родился: gazeT обнуляется
+    // при рождении, а взгляд остаётся на живом узле, и человек просто
+    // убирает палец. Считать это обрывом значит утопить настоящие срывы
+    // в шуме: живой прогон дал 58 «срывов» на 56 рождений.
+    if (G.Report) {
+      if (this.player.gaze && this.player.gazeT > 0.15 &&
+          this.player.gaze.state === "unformed") {
+        G.Report.gestureTorn("let", this.player.gazeT);
+      } else if (!this.player.gaze && !this.gazeTarget) {
+        G.Report.gestureEmpty();
+      }
+    }
     if (this.gazeTarget && this.gazeTarget.temper && this.player.gazeT < 1.1) {
       var b = this.gazeTarget;
       if (this.dna.dominant() === "aggression") {
@@ -486,6 +505,7 @@ var IGRA = IGRA || {};
     // палец, а он держал, потому что игра показывала, что держит.
     //
     // Целимся заново после смены кожи — как и всё остальное в новом мире.
+    if (this.player.gaze && G.Report) G.Report.gestureTorn("meta", this.player.gazeT);
     this.player.gaze = null;
     this.gazeTarget = null;
     this.player.gazeT = 0;
@@ -832,6 +852,7 @@ var IGRA = IGRA || {};
     // кольцо горело, время тикало — и не рождалось ничего никогда.
     // Держаться можно только за то, что есть на берегу.
     if (n.dead || this.world.nodes.indexOf(n) < 0) {
+      if (G.Report) G.Report.gestureTorn(n.dead ? "died" : "gone", this.player.gazeT);
       this.player.gaze = null;
       this.player.gazeT = 0;
       return;
@@ -844,11 +865,16 @@ var IGRA = IGRA || {};
     // точки ЭКРАНА, где он лёг. Сцена под пальцем вольна уезжать.
     var gsx = this.input.gsx != null ? this.input.gsx : this.input.x;
     var gsy = this.input.gsy != null ? this.input.gsy : this.input.y;
-    if (G.dist(this.input.x, this.input.y, gsx, gsy) > 96) {
+    var slip = G.dist(this.input.x, this.input.y, gsx, gsy);
+    if (slip > 96) {
+      // Имя причины — общее, а расстояние копится отдельно: иначе каждый
+      // срыв уникален («ушёл на 121», «ушёл на 98») и сложить их нельзя.
+      if (G.Report) G.Report.gestureTorn("slip", this.player.gazeT, slip);
       this.player.gaze = null;
       return;
     }
     if (this.player.energy < 4) {
+      if (G.Report) G.Report.gestureTorn("energy", this.player.gazeT);
       G.Voice.say("lowEnergy");
       this.player.gaze = null;
       return;
@@ -871,6 +897,7 @@ var IGRA = IGRA || {};
 
     if (this.player.gazeT >= 1.35) {
       if (n.state !== "alive") {
+        if (G.Report) G.Report.gestureBorn();
         this.dna.gazes++;
         n.state = "crystallizing";
         var kind = this.world.crystallize(n, gest, this.dna);
@@ -1044,7 +1071,11 @@ var IGRA = IGRA || {};
       this.resize();
     }
 
-    if (G.Report && this.state === "play") G.Report.frame(dt);
+    if (G.Report && this.state === "play") {
+      G.Report.frame(dt);
+      G.Report.noteZoom(this.cam.z);
+      if (this.input.down) G.Report.gestureHold(dt, !!this.player.gaze);
+    }
     // Телефон, который не тянет, обязан получить послабление сам —
     // человек не должен искать настройку, которой в игре и нет.
     if (G.Quality && G.Quality.watch && this.state === "play") G.Quality.watch(dt);

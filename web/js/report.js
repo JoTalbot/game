@@ -31,12 +31,105 @@ var IGRA = IGRA || {};
     startedAt: 0,
     playT: 0,
 
+    // ЖЕСТЫ. Человек четыре релиза подряд говорит «срывается», а все
+    // замеры зелёные: стенд дёргает игру напрямую и не воспроизводит
+    // настоящий ввод. Значит правду знает только телефон — пусть он её и
+    // расскажет. Каждое касание записывается: сколько длилось, взялся ли
+    // взгляд, чем кончилось и ПОЧЕМУ оборвалось.
+    gestures: { taps: 0, held: 0, born: 0, torn: 0, empty: 0 },
+    // причины срыва — по именам, а не одним числом: иначе снова гадать
+    tornBy: {},
+    // сколько успел продержаться сорвавшийся взгляд (нужно, чтобы понять,
+    // рвётся ли он сразу или у самой цели: рождение на 1.35 с)
+    tornAt: [],
+    // где именно рвётся: сразу после перелёта по зову или в обычной игре
+    tornAfterCall: 0,
+    lastCallAt: -999,
+
+    gestureStart: function () {
+      this.gestures.taps++;
+      this._gT = 0;
+      this._gHeld = false;
+    },
+
+    gestureHold: function (dt, hasGaze) {
+      this._gT = (this._gT || 0) + dt;
+      if (hasGaze && !this._gHeld) {
+        this._gHeld = true;
+        this.gestures.held++;
+      }
+    },
+
+    // why — короткое имя причины: "палец ушёл", "узел исчез", "нет сил",
+    // "смена кожи", "система забрала". Именно оно и есть ответ на вопрос,
+    // который я четыре релиза задаю вслепую.
+    // Медиана честная: при чётном числе — среднее двух средних. Наивное
+    // `[len>>1]` на двух значениях даёт больший из них, и отчёт врёт в
+    // сторону «всё плохо» — а по этим числам я принимаю решения.
+    median: function (arr) {
+      if (!arr || !arr.length) return 0;
+      var a = arr.slice().sort(function (x, y) { return x - y; });
+      var m = a.length >> 1;
+      var v = a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+      return Math.round(v * 100) / 100;
+    },
+
+    // Причины срыва живут КЛЮЧАМИ, а строкой становятся при показе — та
+    // же болезнь, что чинили по всему миру в 0.4.46: русский текст,
+    // вмерзающий в данные. Проверка поймала это сразу.
+    WHY: {
+      slip:   { ru: "палец ушёл",           en: "finger slipped away" },
+      gone:   { ru: "узел исчез",           en: "the node vanished" },
+      died:   { ru: "узел умер",            en: "the node died" },
+      energy: { ru: "нет сил",              en: "out of strength" },
+      meta:   { ru: "смена кожи",           en: "the shedding" },
+      system: { ru: "система забрала жест", en: "the system took the gesture" },
+      let:    { ru: "отпустил сам",         en: "let go himself" }
+    },
+    whyText: function (key) {
+      var w = this.WHY[key];
+      if (!w) return String(key);
+      return G.Lang && G.Lang.id === "en" ? w.en : w.ru;
+    },
+
+    slips: [],
+    gestureTorn: function (why, t, slip) {
+      this.gestures.torn++;
+      var key = String(why || "?");
+      this.tornBy[key] = (this.tornBy[key] || 0) + 1;
+      if (t != null && this.tornAt.length < 60) this.tornAt.push(Math.round(t * 100) / 100);
+      if (slip != null && this.slips.length < 60) this.slips.push(Math.round(slip));
+      if (this.playT - this.lastCallAt < 20) this.tornAfterCall++;
+    },
+
+    gestureBorn: function () { this.gestures.born++; },
+    gestureEmpty: function () { this.gestures.empty++; },
+    noteCall: function () { this.lastCallAt = this.playT; },
+
     reset: function () {
       this.frames = 0; this.slow = 0; this.stall = 0; this.worst = 0; this.fpsSum = 0;
       this.errors = [];
       this.playT = 0;
       this.startedAt = Date.now();
+      this.gestures = { taps: 0, held: 0, born: 0, torn: 0, empty: 0 };
+      this.tornBy = {};
+      this.tornAt = [];
+      this.slips = [];
+      this.tornAfterCall = 0;
+      this.lastCallAt = -999;
+      this.zoom = { min: 9, max: 0, sum: 0, n: 0 };
       for (var k in this.acts) if (this.acts.hasOwnProperty(k)) this.acts[k] = 0;
+    },
+
+    // Отдаление камеры: человек прямо назвал его как условие срыва
+    // («при отдалении экрана только некоторые ещё можно обвести»).
+    zoom: { min: 9, max: 0, sum: 0, n: 0 },
+    noteZoom: function (z) {
+      if (!z || !isFinite(z)) return;
+      if (z < this.zoom.min) this.zoom.min = z;
+      if (z > this.zoom.max) this.zoom.max = z;
+      this.zoom.sum += z;
+      this.zoom.n++;
     },
 
     act: function (key, n) {
@@ -127,6 +220,51 @@ var IGRA = IGRA || {};
           (this.worst > 0.125 ? ", " + (en ? "worst " : "худший ") + Math.round(this.worst * 1000) + " ms" : "")
         : "—";
       line(en ? "smoothness" : "плавность", st);
+
+      // РУКА — главный раздел. Человек четыре релиза говорит
+      // «срывается», и это единственное место, где игра может ответить
+      // сама: сколько касаний, сколько взяли взгляд, сколько дожили до
+      // рождения и по какой причине оборвались остальные.
+      var ge = this.gestures;
+      line(en ? "touches" : "касаний", ge.taps +
+        (en ? ", took gaze " : ", взяли взгляд ") + ge.held +
+        (en ? ", grew " : ", выросло ") + ge.born +
+        (en ? ", broke " : ", сорвалось ") + ge.torn +
+        (en ? ", into nothing " : ", в пустоту ") + ge.empty);
+
+      var why = [];
+      for (var k in this.tornBy) {
+        if (this.tornBy.hasOwnProperty(k)) why.push(this.whyText(k) + " ×" + this.tornBy[k]);
+      }
+      if (why.length) line(en ? "broke because" : "срыв по причине", why.join(", "));
+
+      if (this.tornAt.length) {
+        var srt = this.tornAt.slice().sort(function (x, y) { return x - y; });
+        var mid = this.median(srt);
+        var early = srt.filter(function (x) { return x < 0.4; }).length;
+        line(en ? "broke at" : "срыв на секунде",
+          (en ? "median " : "медиана ") + mid + (en ? "s, near-instant " : "с, почти сразу ") +
+          early + (en ? " of " : " из ") + srt.length +
+          (en ? " (birth at 1.35s)" : " (рождение на 1.35с)"));
+      }
+      if (this.slips.length) {
+        var sl = this.slips.slice().sort(function (x, y) { return x - y; });
+        line(en ? "finger slipped" : "палец уезжал на",
+          (en ? "median " : "медиана ") + this.median(sl) +
+          (en ? ", max " : ", максимум ") + sl[sl.length - 1] +
+          (en ? " screen points (break at 96)" : " точек экрана (порог срыва 96)"));
+      }
+      if (this.tornAfterCall) {
+        line(en ? "broke after a call" : "срыв сразу после зова",
+          this.tornAfterCall + (en ? " (within 20s of arrival)" : " (в первые 20с после прилёта)"));
+      }
+
+      if (this.zoom.n) {
+        line(en ? "camera zoom" : "отдаление камеры",
+          (en ? "from " : "от ") + this.zoom.min.toFixed(2) +
+          (en ? " to " : " до ") + this.zoom.max.toFixed(2) +
+          (en ? ", average " : ", в среднем ") + (this.zoom.sum / this.zoom.n).toFixed(2));
+      }
 
       var a = this.acts;
       line(en ? "grown" : "выращено", w.discovered + " (" + (en ? "alive " : "живых ") +
