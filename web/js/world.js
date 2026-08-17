@@ -703,7 +703,7 @@ var IGRA = IGRA || {};
         // Глобальный кулдаун 90с как у rooted (120с), пер-существо флаг
         // hungerTold — одно существо не ноет каждый кадр, а разные — по очереди.
         // Раненое спасённое ждёт дольше: порог 0.75 вместо 0.65 — видно, что память берега держит.
-        var hungerThresh = b._woundedRescued ? 0.75 : 0.63;
+        var hungerThresh = b._woundedRescued ? 0.75 : 0.62;
         if (b.debt > hungerThresh && !b.hungerTold && G.Voice) {
           if (this.age - (this._hungerSaid || -999) > 90) {
             b.hungerTold = 1;
