@@ -264,6 +264,20 @@ var IGRA = IGRA || {};
     return best;
   };
 
+  G.World.prototype.nearestBloom = function (x, y, max) {
+    var best = null;
+    var bestD = 1e9;
+    for (var i = 0; i < this.blooms.length; i++) {
+      var b = this.blooms[i];
+      var d = Math.sqrt(G.dist2(x, y, b.x, b.y)) - (b.r || 6);
+      if (d < max && d < bestD) {
+        bestD = d;
+        best = b;
+      }
+    }
+    return best;
+  };
+
   G.World.prototype.crystallize = function (node, gest, dna) {
     if (node.state === "alive") return;
     var kind = node.hint || kindFromGesture(gest, dna);
@@ -500,7 +514,8 @@ var IGRA = IGRA || {};
         // терял щит за 110 с, до следующего перерождения. Прилива это не
         // касается вовсе (24% у сеятеля при любом из значений) — только
         // того, окупается ли забота: 30% при 0.004, 37% при 0.003.
-        if (n.roots > 0 && n.care < 0.28) n.roots = Math.max(0, n.roots - dt * 0.0025);
+        var stillHold = this.active && this.active.some(function (a) { return a.id === "stillHold"; });
+        if (!stillHold && n.roots > 0 && n.care < 0.28) n.roots = Math.max(0, n.roots - dt * 0.0025);
         // Узел считается остывшим задолго до того, как прилив станет ему
         // опасен (порог забвения — 0.28). Иначе «возвращение» почти
         // никогда не засчитывалось: человек греет то, что на глаз
@@ -623,6 +638,8 @@ var IGRA = IGRA || {};
           b.debt = Math.max(0, b.debt - 0.35);
           b.bond = Math.min(1, b.bond + 0.07);
           b._rescueTold = 1;
+          // раненое спасённое помнит: преданное раненое ждёт дольше — порог голода выше, связь крепче
+          if (b.temper === "wounded") { b._woundedRescued = true; b.bond = Math.min(1, b.bond + 0.05); }
           if (G.Report) G.Report.act("rescued");
           // награда сада: спасённое существо оставляет цветок — привычка
           // к возвращению видна не только в свете и звуке, но и в саду.
@@ -675,7 +692,9 @@ var IGRA = IGRA || {};
         // 24–55 сек (в зависимости от bond) — есть время вернуться.
         // Глобальный кулдаун 90с как у rooted (120с), пер-существо флаг
         // hungerTold — одно существо не ноет каждый кадр, а разные — по очереди.
-        if (b.debt > 0.65 && !b.hungerTold && G.Voice) {
+        // Раненое спасённое ждёт дольше: порог 0.75 вместо 0.65 — видно, что память берега держит.
+        var hungerThresh = b._woundedRescued ? 0.75 : 0.65;
+        if (b.debt > hungerThresh && !b.hungerTold && G.Voice) {
           if (this.age - (this._hungerSaid || -999) > 90) {
             b.hungerTold = 1;
             this._hungerSaid = this.age;

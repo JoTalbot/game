@@ -26,7 +26,7 @@ var IGRA = IGRA || {};
     acts: {
       taps: 0, gazes: 0, crystals: 0, returns: 0,
       anchors: 0, pulses: 0, calls: 0, laws: 0,
-      sky: 0, sigil: 0, lang: 0, rescued: 0
+      sky: 0, sigil: 0, lang: 0, rescued: 0, blooms: 0
     },
     startedAt: 0,
     playT: 0,
@@ -343,7 +343,7 @@ var IGRA = IGRA || {};
       line(en ? "shores (all time)" : "берегов за всю жизнь", w.meta + (en ? ", roads " : ", дорог ") + (w.arrived || 0) +
         (en ? ", beings " : ", существ ") + w.beings.length);
       line(en ? "laws touched" : "законов тронуто", a.laws +
-        (en ? ", pulses " : ", пульсов ") + a.pulses);
+        (en ? ", pulses " : ", пульсов ") + a.pulses + (en ? ", blooms " : ", цветов ") + (a.blooms||0));
       line(en ? "sky opened" : "небо открывал", a.sky +
         (en ? ", sigil " : ", сигилу ") + a.sigil);
 

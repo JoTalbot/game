@@ -374,6 +374,20 @@ var IGRA = IGRA || {};
         this.dna.feed("contemplation", 0.01);
         if (this.dna.gazes === 0) G.Voice.say("firstGaze");
       } else {
+        var bloom = this.world.nearestBloom(this.input.wx, this.input.wy, this.aimRadius(44));
+        if (bloom) {
+          var trait2 = (bloom.verse && bloom.verse.trait) || this.dna.dominant() || "contemplation";
+          var f2 = (G.TRAIT_NOTE && G.TRAIT_NOTE[trait2]) || 440;
+          if (G.Audio && G.Audio.pluck) G.Audio.pluck(f2);
+          else if (G.Audio && G.Audio.tone) G.Audio.tone(f2, 0.4, 0.08, "triangle");
+          if (G.Voice && bloom.verse && (!this._bloomSaid || this.time - this._bloomSaid > 4)) {
+            this._bloomSaid = this.time;
+            G.Voice.sayText(G.verseText(bloom.verse));
+          }
+          this.fx.ring(bloom.x, bloom.y, 12, bloom.c || [170,150,240], bloom.r+6, 0.4);
+          if (G.Report) G.Report.act("blooms");
+          return;
+        }
         this.player.gaze = null;
         this.gazeTarget = null;
         this.fx.spawn({
@@ -498,6 +512,7 @@ var IGRA = IGRA || {};
     this._skyNudged = false;
     this._sigilNudged = false;
     this._skyNudgedAt = 0;
+    this._bloomSaid = -999;
     this.world.birthShore(this.player, this.dna);
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     G.Memory.firstAt = Date.now();
