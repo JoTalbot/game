@@ -324,8 +324,10 @@ var IGRA = IGRA || {};
         if (this.garden.amt) {
           this.garden.amt.gain.setTargetAtTime(lvl * 0.34, t, 2.5);
         }
-        // с приливом сад глохнет: слышно, что мир накрывает
-        this.garden.lp.frequency.setTargetAtTime(520 - (tide || 0) * 260, t, 1.0);
+        // с приливом сад глохнет: слышно, что мир накрывает. Голод — второй
+        // тихий гнет: когда кто-то ждёт, сад тоже чуть глуше — как будто
+        // берег затаил дыхание вместе с существом. Не громче/тише, а темнее.
+        this.garden.lp.frequency.setTargetAtTime(G.clamp(520 - (tide || 0) * 260 - hunger * 90, 180, 520), t, 1.0);
       }
 
       if (this.heart && this.heart.on) {
