@@ -628,7 +628,7 @@ var IGRA = IGRA || {};
             this._rescueSaid = this.age;
             if (G.Voice) G.Voice.say("rescued");
             if (fx) fx.ring(b.x, b.y, 16, (G.TRAIT_COLOR && G.TRAIT_COLOR[b.hue]) || [200,210,255], b.r + 12, 0.5);
-            if (G.Audio && G.Audio.rooted) G.Audio.rooted(G.KIND_TRAIT[b.hue] || "curiosity");
+            if (G.Audio && G.Audio.rooted) G.Audio.rooted(b.hue || "empathy");
           }
         }
         if (b.debt < 0.25) { b.hungerTold = 0; b._rescueTold = 0; }
