@@ -626,11 +626,14 @@ var IGRA = IGRA || {};
           // награда сада: спасённое существо оставляет цветок — привычка
           // к возвращению видна не только в свете и звуке, но и в саду.
           // Один цветок за одно спасение (флаг _rescueTold не даёт фарма).
+          // Цветок — цветом существа, а не всегда contemplation: спасение
+          // эмпатии — розово, тишины — фиолетово, видно чья это память.
           if (G.Organs && G.Organs.plantBloom) {
             try {
               var rv = G.Organs.composeVerse ? G.Organs.composeVerse({ world: this, dna: dna }) : "";
               if (rv) this.addVerse(rv);
-              G.Organs.plantBloom(this, b.x, b.y, rv);
+              var bl = G.Organs.plantBloom(this, b.x, b.y, rv);
+              if (bl && G.TRAIT_COLOR && G.TRAIT_COLOR[b.hue]) bl.c = G.TRAIT_COLOR[b.hue];
             } catch (e) {}
           }
           if (this.age - (this._rescueSaid || -999) > 90) {
