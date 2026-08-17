@@ -648,7 +648,7 @@ var IGRA = IGRA || {};
           b.bond = Math.min(1, b.bond + 0.07);
           b._rescueTold = 1;
           // раненое спасённое помнит: преданное раненое ждёт дольше — порог голода выше, связь крепче
-          if (b.temper === "wounded") { b._woundedRescued = true; b.bond = Math.min(1, b.bond + 0.05); }
+          if (b.temper === "wounded") { b._woundedRescued = true; b.bond = Math.min(1, b.bond + 0.06); }
           if (G.Report) G.Report.act("rescued");
           // награда сада: спасённое существо оставляет цветок — привычка
           // к возвращению видна не только в свете и звуке, но и в саду.
