@@ -337,7 +337,7 @@ var IGRA = IGRA || {};
       line(en ? "grown (all time)" : "выращено за всю жизнь", w.discovered +
         " (" + (en ? "alive " : "живых ") +
         w.nodes.filter(function (n) { return n.state === "alive"; }).length + ")");
-      line(en ? "returns" : "возвращений", a.returns + (en ? ", anchors " : ", якорей ") + a.anchors + (en ? ", rescued " : ", спасено ") + (a.rescued||0));
+      line(en ? "returns" : "возвращений", a.returns + (en ? ", anchors " : ", якорей ") + a.anchors + " (" + (en ? "now " : "сейчас ") + w.anchors.length + "/" + (w.anchorCap||3) + ")" + (en ? ", rescued " : ", спасено ") + (a.rescued||0));
       line(en ? "lost to tide (all time)" : "забрал прилив за всю жизнь", w.lost +
         (en ? ", carried by rebirth " : ", унесла метаморфоза ") + (w.carried || 0));
       line(en ? "shores (all time)" : "берегов за всю жизнь", w.meta + (en ? ", roads " : ", дорог ") + (w.arrived || 0) +
