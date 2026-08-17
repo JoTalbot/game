@@ -476,7 +476,7 @@ var IGRA = IGRA || {};
         G.Voice.say("bossMercy", true);
       } else {
         for (var i = 0; i < 5; i++) {
-          game.world.stars.push({
+          game.world.addStar({
             x: boss.x * 0.12 + G.rand(-20, 20),
             y: boss.y * 0.12 + G.rand(-20, 20),
             c: [255, 90, 110],
