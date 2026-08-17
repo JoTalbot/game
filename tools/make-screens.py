@@ -190,6 +190,27 @@ def scene(n):
         draw_seed(img, cx, cy, color=(255, 240, 245), size=1.0)
         corner_label(img, "оттепель")
         caption(img, "ты уже не один.")
+    elif n == 7:  # голод — тусклое существо ждёт
+        img, cx, cy = background((90, 110, 190))
+        draw_nodes(img, cx, cy, rng, "empathy", count=36, alive_ratio=0.55, spread_x=0.75)
+        # тусклый огонёк — голод (dim)
+        draw_seed(img, cx + 140, cy - 70, color=(180, 190, 220), size=0.6)
+        draw_seed(img, cx, cy, color=(245, 240, 255), size=1.0)
+        corner_label(img, "оттепель")
+        caption(img, "одно из них бледнеет.")
+    elif n == 8:  # спасение — цветок цветом памяти
+        img, cx, cy = background((170, 150, 240))
+        draw_nodes(img, cx, cy, rng, "contemplation", count=52, alive_ratio=0.85, spread_x=0.78)
+        # яркий цветок спасения
+        bloom = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        bd = ImageDraw.Draw(bloom)
+        col = (255, 180, 200, 180)
+        bd.ellipse([cx+110-18, cy-40-18, cx+110+18, cy-40+18], fill=col)
+        bloom = bloom.filter(ImageFilter.GaussianBlur(1.2))
+        img.alpha_composite(bloom)
+        draw_seed(img, cx, cy, color=(220, 210, 255), size=0.95)
+        corner_label(img, "сад")
+        caption(img, "ты вернулся — оно не уйдёт.")
     else:  # сигила / конец
         img, cx, cy = background((180, 220, 255))
         draw_stars(img, rng, 120)
@@ -204,7 +225,7 @@ def scene(n):
 def main():
     os.makedirs(OUT, exist_ok=True)
     paths = []
-    for n in range(1, 7):
+    for n in range(1, 9):
         img = scene(n)
         p = os.path.join(OUT, f"screen-{n}.png")
         img.convert("RGB").save(p, "PNG", optimize=True)
