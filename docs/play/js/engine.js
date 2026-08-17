@@ -672,7 +672,7 @@ var IGRA = IGRA || {};
       this._skyNudgedAt = this.time;
       G.Voice.say("sky");
     }
-    if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 && this.world.discovered > 22 && this.time > 490 && this._skyNudged && this.time - (this._skyNudgedAt || 0) > 90) {
+    if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 && this.world.discovered > 22 && this.time > 485 && this._skyNudged && this.time - (this._skyNudgedAt || 0) > 90) {
       this._sigilNudged = true;
       if (G.Voice) G.Voice.sayText(G.Lang.t("skyLine") + " — " + G.Lang.t("sigil"));
     }
