@@ -380,7 +380,7 @@ var IGRA = IGRA || {};
           var f2 = (G.TRAIT_NOTE && G.TRAIT_NOTE[trait2]) || 440;
           if (G.Audio && G.Audio.pluck) G.Audio.pluck(f2);
           else if (G.Audio && G.Audio.tone) G.Audio.tone(f2, 0.4, 0.08, "triangle");
-          if (G.Voice && bloom.verse && (!this._bloomSaid || this.time - this._bloomSaid > 4)) {
+          if (G.Voice && bloom.verse && (!this._bloomSaid || this.time - this._bloomSaid > 3.5)) {
             this._bloomSaid = this.time;
             G.Voice.sayText(G.verseText(bloom.verse));
           }
@@ -424,7 +424,7 @@ var IGRA = IGRA || {};
         // и погасил взгляд — не надо тот же тык засчитывать ещё и сюда,
         // иначе воронка даёт два исхода на одно касание.
         if (G.Report._gDone) return;
-        if ((this.input.moved || 0) > 0.35) G.Report.gestureWalk();
+        if ((this.input.moved || 0) > 0.32) G.Report.gestureWalk();
         else G.Report.gestureEmpty();
       }
     }
@@ -667,12 +667,12 @@ var IGRA = IGRA || {};
     // Подсказка неба и сигилы для молчуна: отчёт 0.4.80 — 61 выращено, небо 0, сигила 0.
     // Звезды уже есть, но архив невидим, пока не откроешь. Один раз за жизнь,
     // тихо, после того как мир уже есть что показать.
-    if (!this._skyNudged && this.state === "play" && G.Report && G.Report.acts.sky === 0 && this.world.discovered > 28 && this.time > 360 && this.world.stars.length > 4) {
+    if (!this._skyNudged && this.state === "play" && G.Report && G.Report.acts.sky === 0 && this.world.discovered > 28 && this.time > 340 && this.world.stars.length > 4) {
       this._skyNudged = true;
       this._skyNudgedAt = this.time;
       G.Voice.say("sky");
     }
-    if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 && this.world.discovered > 22 && this.time > 520 && this._skyNudged && this.time - (this._skyNudgedAt || 0) > 90) {
+    if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 && this.world.discovered > 22 && this.time > 500 && this._skyNudged && this.time - (this._skyNudgedAt || 0) > 90) {
       this._sigilNudged = true;
       if (G.Voice) G.Voice.sayText(G.Lang.t("skyLine") + " — " + G.Lang.t("sigil"));
     }
