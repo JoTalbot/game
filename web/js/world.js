@@ -279,7 +279,6 @@ var IGRA = IGRA || {};
     if (kind === "echo") {
       var b = G.Organs.birthBeing(node.x + 20, node.y - 12, "empathy", this.rng);
       this.beings.push(b);
-      node.name = b.name;
     }
     if (kind === "tone") {
       var base = G.TRAIT_NOTE[dna.dominant()] || 440;
