@@ -607,14 +607,31 @@ var IGRA = IGRA || {};
       b.y += b.vy * dt;
       if (d < 56) {
         var was = b.bond;
+        var prevDebt = b.debt || 0;
         b.bond = Math.min(1, b.bond + dt * 0.1);
         b.fear = Math.max(0, b.fear - dt * 0.1);
-        b.debt = Math.max(0, (b.debt || 0) - dt * 0.08);
+        b.debt = Math.max(0, prevDebt - dt * 0.08);
         // порог спутника пройден — Игра называет это вслух, один раз
         if (was <= 0.55 && b.bond > 0.55 && !b.saidCompanion) {
           b.saidCompanion = true;
           if (G.Voice) G.Voice.sayText(G.companionLine(b), true);
         }
+        // спасение на грани: вернулся, пока голод ещё горячий — долг
+        // прощается быстрее, связь крепнет. Награда за то, что заметил
+        // потускнение (dim в renderer.js) и услышал «hunger». Без неё
+        // спасение ничем не отличалось от случайного прохода мимо.
+        if (prevDebt > 0.75 && b.debt > 0.3 && !b._rescueTold) {
+          b.debt = Math.max(0, b.debt - 0.35);
+          b.bond = Math.min(1, b.bond + 0.07);
+          b._rescueTold = 1;
+          if (this.age - (this._rescueSaid || -999) > 90) {
+            this._rescueSaid = this.age;
+            if (G.Voice) G.Voice.say("rescued");
+            if (fx) fx.ring(b.x, b.y, 16, (G.TRAIT_COLOR && G.TRAIT_COLOR[b.hue]) || [200,210,255], b.r + 12, 0.5);
+            if (G.Audio && G.Audio.rooted) G.Audio.rooted(G.KIND_TRAIT[b.hue] || "curiosity");
+          }
+        }
+        if (b.debt < 0.25) { b.hungerTold = 0; b._rescueTold = 0; }
       } else if (b.bond > 0.3 && !b.isYesterday) {
         // Долг памяти. Он копился здесь с самого начала, сохранялся между
         // сессиями, у него были написаны две реплики на двух языках — и
@@ -638,6 +655,21 @@ var IGRA = IGRA || {};
         // самые любимые не уходили никогда. Замер это и показал: пик
         // долга 1.05 при пороге 1.2 — орган дозревал почти, но не совсем.
         b.debt = (b.debt || 0) + dt * 0.021 * (1.4 - b.bond);
+        // видимое голодание должно быть слышно, как остывание узла (cooling).
+        // Долг копился невидимо до исхода (debtStar/Wound) — теперь первое
+        // потускнение называется вслух, пока существо ещё можно спасти.
+        // Порог 0.65: dim 0.70 уже заметен глазом, до исхода 1.2 остаётся
+        // 24–55 сек (в зависимости от bond) — есть время вернуться.
+        // Глобальный кулдаун 90с как у rooted (120с), пер-существо флаг
+        // hungerTold — одно существо не ноет каждый кадр, а разные — по очереди.
+        if (b.debt > 0.65 && !b.hungerTold && G.Voice) {
+          if (this.age - (this._hungerSaid || -999) > 90) {
+            b.hungerTold = 1;
+            this._hungerSaid = this.age;
+            G.Voice.say("hunger");
+            if (fx) fx.ring(b.x, b.y, 14, (G.TRAIT_COLOR && G.TRAIT_COLOR[b.hue]) || [200,210,255], b.r + 10, 0.45);
+          }
+        }
         if (b.debt > 1.2) this.abandon(b, dna);
       }
     }

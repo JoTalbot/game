@@ -271,6 +271,20 @@ var IGRA = IGRA || {};
       "ты обещал теплом и не вернулся. теперь оно голодно.",
       "долг памяти не прощает расстояния."
     ],
+    // Голод виден глазом (renderer dim), но Игра молчала до самого исхода
+    // (debtStar/Wound). Как в 0.4.55 тускнеющий узел получил голос cooling,
+    // так и голодное существо должно сказать, пока его ещё можно спасти:
+    // видимому нужен голос, иначе механика не существует.
+    hunger: [
+      "одно из них бледнеет. оно ещё здесь, но уже тише.",
+      "смотри — оно гаснет. подойди, пока не стало ни раной, ни звездой.",
+      "его свет слабеет не в упрёк. это расстояние просит шага."
+    ],
+    rescued: [
+      "ты вернулся. оно не успеет уйти.",
+      "ещё миг — и оно стало бы прощанием. ты успел.",
+      "смотри — снова горит. долг прощён."
+    ],
     yesterday: [
       "это не гость. это ты вчерашний. он помнит жесты, которые ты уже стыдишься.",
       "посмотри на него. он ещё не знает, кем ты стал.",
@@ -309,7 +323,8 @@ var IGRA = IGRA || {};
       sit: 0, wander: 0, frontier: 0,
       curiosity: 1, contemplation: 1, aggression: 1, empathy: 1, harmony: 1, chaos: 1, kind: 1,
       longPlay: 1, rooted: 2, tide: 2, named: 2, nameHint: 2,
-      watchRooted: 3, watchScatter: 3, watchNoAnchor: 3, watchStill: 3, watchTogether: 3
+      watchRooted: 3, watchScatter: 3, watchNoAnchor: 3, watchStill: 3, watchTogether: 3,
+      hunger: 2, rescued: 3
     },
     weight: function (key) {
       var w = this.WEIGHT[key];

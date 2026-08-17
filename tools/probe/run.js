@@ -2499,6 +2499,120 @@ group("голод существа виден глазом");
      "голодный светит " + Math.round(100 * hungry / fed) + "% от сытого");
 })();
 
+// ——— голод существа слышен, пока его можно спасти ———
+// Визуал dim уже есть (проверка выше), но без голоса механика невидима:
+// человек теряет существо, не понимая, что оно всё это время гасло.
+// Как cooling для узлов (0.4.55) — голос, который замечает голодающее,
+// и награда за спасение на грани. Проверяем, что слово приходит до
+// исхода и что спасение отличается от случайного прохода мимо.
+group("голод существа слышен, пока его можно спасти");
+(function () {
+  var AimH = require("./aim.js");
+  var GH = AimH.bootEngine();
+  require("./dom.js").install();
+  function hungerAndRescue() {
+    var heard = [];
+    var real = GH.Voice.say.bind(GH.Voice);
+    GH.Voice.say = function (k, f) {
+      var was = GH.Voice.lastAt;
+      var r = real(k, f);
+      if (GH.Voice.lastAt !== was) heard.push({ k: k, t: g.time });
+      return r;
+    };
+    var g = AimH.makeGame(GH, 42);
+    // ставим существо вдали с крепкой связью, но не спутник (fear высок)
+    var b = new GH.Being(g.player.x + 700, g.player.y, "empathy");
+    b.bond = 0.5; b.debt = 0; b.temper = "shy"; b.fear = 0.8;
+    g.world.beings = [b];
+    g.player.x = 0; g.player.y = 0;
+    GH.Voice.lastAt = -999; GH.Voice.queue = []; g.world._hungerSaid = -999; g.world._rescueSaid = -999;
+    // 70 секунд разлуки — долг должен дойти до hunger, но ещё не до abandon
+    for (var i = 0; i < 70 * 60; i++) {
+      AimH.step = require("./harness.js").step;
+      // используем тот же шаг, что и выше, но проще: напрямую тикаем мир
+      g.time += 1 / 60;
+      if (g.state === "meta") { g.metaT += 1 / 60; if (g.metaT > 3.2) g.finishMeta(); }
+      g.world.update(1 / 60, g.player, g.dna, g.fx, g);
+      if (GH.Voice && GH.Voice.update) GH.Voice.update(1 / 60);
+      if (b.dead) break;
+    }
+    var hungerAt = heard.filter(function (h) { return h.k === "hunger"; });
+    var debtStarAt = heard.filter(function (h) { return h.k === "debtStar" || h.k === "debtWound"; });
+    GH.Voice.say = real;
+    return { heard: heard, hungerAt: hungerAt, debtAt: debtStarAt, dead: b.dead, debt: b.debt };
+  }
+  var r1 = hungerAndRescue();
+  ok(r1.hungerAt.length >= 1, "голодное существо окликает голосом до исхода",
+     r1.hungerAt.length ? "hunger на " + r1.hungerAt[0].t.toFixed(0) + "с, долг " + (r1.debt||0).toFixed(2) : "не сказало (слышано: " + r1.heard.map(function(h){return h.k;}).join(",") + ")");
+  // hunger должен прийти РАНЬШЕ исхода: иначе предупреждать поздно
+  if (r1.hungerAt.length && r1.debtAt.length) {
+    ok(r1.hungerAt[0].t < r1.debtAt[0].t, "предупреждение приходит раньше прощания",
+       "hunger " + r1.hungerAt[0].t.toFixed(0) + "с → " + r1.debtAt[0].k + " " + r1.debtAt[0].t.toFixed(0) + "с");
+  }
+  // спасение на грани: вернулись, пока долг горячий — звучит rescued и долг прощается быстрее
+  (function () {
+    var GH2 = AimH.bootEngine();
+    require("./dom.js").install();
+    var heard2 = [];
+    var real2 = GH2.Voice.say.bind(GH2.Voice);
+    GH2.Voice.say = function (k, f) {
+      var was = GH2.Voice.lastAt;
+      var r = real2(k, f);
+      if (GH2.Voice.lastAt !== was) heard2.push(k);
+      return r;
+    };
+    var g2 = AimH.makeGame(GH2, 43);
+    var b2 = new GH2.Being(g2.player.x + 5, g2.player.y, "empathy");
+    b2.bond = 0.7; b2.debt = 1.0; b2.temper = "shy";
+    g2.world.beings = [b2];
+    g2.player.x = b2.x; g2.player.y = b2.y - 10;
+    GH2.Voice.lastAt = -999; GH2.Voice.queue = []; g2.world._rescueSaid = -999;
+    var beforeDebt = b2.debt, beforeBond = b2.bond;
+    for (var i = 0; i < 90; i++) {
+      g2.time += 1 / 60;
+      g2.world.update(1 / 60, g2.player, g2.dna, g2.fx, g2);
+      if (GH2.Voice && GH2.Voice.update) GH2.Voice.update(1 / 60);
+    }
+    var hasRescued = heard2.indexOf("rescued") >= 0;
+    ok(hasRescued, "возвращение на грани голода отмечается словом",
+       heard2.length ? heard2.join(",") : "тишина");
+    // награда: долг упал сильнее, чем от простого стояния рядом (0.08/с *1.5с=0.12),
+    // а связь подросла
+    var debtDrop = beforeDebt - b2.debt;
+    ok(debtDrop > 0.3, "спасение прощает долг быстрее обычного стояния",
+       "долг " + beforeDebt.toFixed(2) + " → " + b2.debt.toFixed(2) + " (снято " + debtDrop.toFixed(2) + ")");
+    ok(b2.bond > beforeBond, "спасение крепляет связь", "bond " + beforeBond.toFixed(2) + " → " + b2.bond.toFixed(2));
+    GH2.Voice.say = real2;
+  })();
+  // и не тараторит каждую секунду: один голос на одно голодание
+  (function () {
+    var GH3 = AimH.bootEngine();
+    require("./dom.js").install();
+    var cnt = 0;
+    var real3 = GH3.Voice.say.bind(GH3.Voice);
+    GH3.Voice.say = function (k, f) {
+      var was = GH3.Voice.lastAt;
+      var r = real3(k, f);
+      if (GH3.Voice.lastAt !== was && k === "hunger") cnt++;
+      return r;
+    };
+    var g3 = AimH.makeGame(GH3, 44);
+    var b3 = new GH3.Being(g3.player.x + 800, g3.player.y, "empathy");
+    b3.bond = 0.5; b3.debt = 0.64; b3.temper = "shy"; b3.fear = 0.9;
+    g3.world.beings = [b3];
+    g3.player.x = 0; g3.player.y = 0;
+    GH3.Voice.lastAt = -999; GH3.Voice.queue = []; g3.world._hungerSaid = -999;
+    for (var i = 0; i < 60 * 10; i++) {
+      g3.time += 1 / 60;
+      g3.world.update(1 / 60, g3.player, g3.dna, g3.fx, g3);
+      if (GH3.Voice && GH3.Voice.update) GH3.Voice.update(1 / 60);
+    }
+    ok(cnt <= 1, "одно голодание — один оклик, а не каждый кадр",
+       "hunger ×" + cnt + " за 10с");
+    GH3.Voice.say = real3;
+  })();
+})();
+
 // ——— отчёт не клевещет на руку ———
 group("отчёт: шаг — не промах");
 (function () {

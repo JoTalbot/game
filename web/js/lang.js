@@ -198,6 +198,16 @@ var IGRA = IGRA || {};
     sky: ["this is not decoration. this is an archive of refusals."],
     debtStar: ["it went to the sky. the debt of memory was paid in light."],
     debtWound: ["you promised warmth and did not return. now it is hungry."],
+    hunger: [
+      "one of them is paling. still here, but quieter.",
+      "look — it dims. come closer before it becomes star or wound.",
+      "its light fades not in reproach. distance asks for a step."
+    ],
+    rescued: [
+      "you came back. it will not have to leave.",
+      "a moment more and it would have become a farewell. you made it.",
+      "look — it burns again. the debt is forgiven."
+    ],
     yesterday: ["this is not a guest. this is yesterday's you."],
     yesterdayHit: ["you struck your yesterday. it will remember more precisely than i will."],
     season: ["the weather of the soul has changed. organs will grow differently."],
