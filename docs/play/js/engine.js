@@ -380,7 +380,7 @@ var IGRA = IGRA || {};
           var f2 = (G.TRAIT_NOTE && G.TRAIT_NOTE[trait2]) || 440;
           if (G.Audio && G.Audio.pluck) G.Audio.pluck(f2);
           else if (G.Audio && G.Audio.tone) G.Audio.tone(f2, 0.4, 0.08, "triangle");
-          if (G.Voice && bloom.verse && (!this._bloomSaid || this.time - this._bloomSaid > 3.2)) {
+          if (G.Voice && bloom.verse && (!this._bloomSaid || this.time - this._bloomSaid > 3.0)) {
             this._bloomSaid = this.time;
             G.Voice.sayText(G.verseText(bloom.verse));
           }
