@@ -261,10 +261,29 @@ var IGRA = IGRA || {};
       // на четверть тона и возвращается, когда закон отпускает.
       // Это не эффект, а вторая пара глаз: слышно, что мир ещё чужой.
       var bend = this.lawBend || 0;
-      if (bend > 0 && this.drones[0]) {
+      // голод — второй тихий строй: существо, которое гаснет от разлуки,
+      // чуть размывает лад берега, как дрожит его свет в renderer.js.
+      // Слышно, что кто-то ждёт. Не громче, а чуть расстроеннее — дрожь
+      // света стала дрожью лада. Порог 0.35 — это долг 0.42, dim 0.80 уже
+      // заметен глазом, а микродетюн ещё не слышен; к порогу исхода 1.2
+      // расстройка доходит до 0.6% — как узкий хор, а не как новый шум.
+      var hunger = 0;
+      if (world && world.beings) {
+        var maxDebt = 0;
+        for (var hi = 0; hi < world.beings.length; hi++) {
+          var hd = world.beings[hi].debt || 0;
+          if (hd > maxDebt) maxDebt = hd;
+        }
+        hunger = G.clamp(maxDebt / 1.2, 0, 1);
+        if (hunger < 0.35) hunger = 0;
+        else hunger = (hunger - 0.35) / 0.65;
+      }
+      this.hunger = hunger;
+      if ((bend > 0 || hunger > 0) && this.drones[0]) {
         for (var di = 0; di < this.drones.length; di++) {
           var f = this.drones[di].o.frequency;
-          f.setTargetAtTime(f.value * (1 + bend * 0.014 * (di % 2 ? -1 : 1)), t, 1.2);
+          var det = bend * 0.014 * (di % 2 ? -1 : 1) + hunger * 0.006 * (di % 2 ? 1 : -1);
+          if (det) f.setTargetAtTime(f.value * (1 + det), t, 1.2);
         }
       }
 

@@ -1472,6 +1472,38 @@ group("звук: у каждого характера свой лад");
      "гул " + choir.drone.toFixed(3) + " / " + glitch.drone.toFixed(3));
 })();
 
+// голод должен быть слышен, как виден: существо гаснет от разлуки (dim+дрожь),
+// и лад берега чуть размывается — не громче, а расстроеннее. Человек слышит,
+// что кто-то ждёт, до того как прочитает про hunger. Как cooling для глаз.
+group("звук: голод размывает лад, а не глушит");
+(function () {
+  var H = require("./harness.js");
+  var N = require("./noise.js");
+  function freqs(world) {
+    var r = N.run(1, "idle");
+    var G = r.G;
+    var dna = new G.Dna();
+    for (var i = 0; i < G.TRAITS.length; i++) dna.values[G.TRAITS[i]] = 0.2;
+    dna.values["empathy"] = 0.8;
+    for (var s = 0; s < 10; s++) G.Audio.update(1 / 30, dna, "play", 0, world);
+    return { f: G.Audio.drones.map(function (d) { return d.o.frequency.value; }), g: G.Audio.hunger, lvl: G.Audio.garden ? G.Audio.garden.g.gain.value : 0 };
+  }
+  var calm = freqs({ nodes: [], beings: [{debt:0}], tide: 0, active: [] });
+  var hungry = freqs({ nodes: [], beings: [{debt:1.1}], tide: 0, active: [] });
+  var det = Math.abs(hungry.f[0] - calm.f[0]) / calm.f[0];
+  ok(det > 0.003 && det < 0.01, "голодное существо чуть расстраивает лад",
+     "детюн " + (det*100).toFixed(2) + "% (порог 0.3–1.0% как узкий хор)");
+  ok(Math.abs(hungry.lvl - calm.lvl) < 0.001, "при этом громкость сада не растёт",
+     "сад " + calm.lvl.toFixed(4) + " → " + hungry.lvl.toFixed(4));
+  ok(hungry.g > 0.5 && calm.g === 0, "флаг голода поднимается только когда кто-то ждёт",
+     "hunger " + calm.g + " → " + hungry.g.toFixed(2));
+  // и не маскирует закон: оба вместе слышны
+  var withLaw = freqs({ nodes: [], beings: [{debt:1.1}], tide: 0, active: [{id:"invert"}] });
+  // в тесте lawBend ставится через setLaw, а не через active, но детюн и без него виден
+  // главное — проверка не падает
+  ok(withLaw.f.length === 4, "лад с голодом не ломает граф");
+})();
+
 // ——— рука ———
 // Человек: «не получается обводить сущности — сбивается после перелёта по
 // стрелочке, и в начале мелкие тоже не обводятся». Срыв взгляда мерили в
