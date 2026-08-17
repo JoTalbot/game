@@ -624,6 +624,16 @@ var IGRA = IGRA || {};
           b.debt = Math.max(0, b.debt - 0.35);
           b.bond = Math.min(1, b.bond + 0.07);
           b._rescueTold = 1;
+          // награда сада: спасённое существо оставляет цветок — привычка
+          // к возвращению видна не только в свете и звуке, но и в саду.
+          // Один цветок за одно спасение (флаг _rescueTold не даёт фарма).
+          if (G.Organs && G.Organs.plantBloom) {
+            try {
+              var rv = G.Organs.composeVerse ? G.Organs.composeVerse({ world: this, dna: dna }) : "";
+              if (rv) this.addVerse(rv);
+              G.Organs.plantBloom(this, b.x, b.y, rv);
+            } catch (e) {}
+          }
           if (this.age - (this._rescueSaid || -999) > 90) {
             this._rescueSaid = this.age;
             if (G.Voice) G.Voice.say("rescued");
