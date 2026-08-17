@@ -28,6 +28,7 @@ var IGRA = IGRA || {};
 
     offer: function (game) {
       if (this.offered) return;
+      if ((game.time || 0) < 1200) return;
       this.offered = true;
       G.Voice.say("fate");
       G.Voice.sayText(G.Lang.t("fate"), true);
@@ -37,6 +38,7 @@ var IGRA = IGRA || {};
     },
 
     release: function (game) {
+      if ((game.time || 0) < 1200 && !this.chosen) return;
       this.chosen = "release";
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.remove("on");
@@ -62,6 +64,7 @@ var IGRA = IGRA || {};
     },
 
     become: function (game) {
+      if ((game.time || 0) < 1200 && !this.chosen) return;
       this.chosen = "become";
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.remove("on");

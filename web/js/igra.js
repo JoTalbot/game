@@ -361,8 +361,8 @@ var IGRA = IGRA || {};
 
     say: function (key, force) {
       var now = G.now();
-      if (!force && key === this.lastKey && now - this.lastAt < 18) return;
-      if (!force && now - this.lastAt < 4.5) {
+      if (!force && key === this.lastKey && now - this.lastAt < 22) return;
+      if (!force && now - this.lastAt < 6) {
         var w = this.weight(key);
         if (w === 0) return;                       // фон не ждёт очереди — он повторится сам
         for (var q = 0; q < this.queue.length; q++) {

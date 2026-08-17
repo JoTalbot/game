@@ -393,11 +393,11 @@ var IGRA = IGRA || {};
       boss.x += boss.vx * dt;
       boss.y += boss.vy * dt;
       if (d < boss.r + p.r + 6) {
-        p.energy = Math.max(0, p.energy - 38 * dt);
+        p.energy = Math.max(0, p.energy - 28 * dt);
         // Босс ест силу, но в отчёте его не было: «сила ушла на» не знала
         // самого мощного едока, а «падала до» застывала на последнем
         // замеренном от взгляда или раны. Пишем честно.
-        if (G.Report) { G.Report.noteDrain("boss", 38 * dt); G.Report.noteEnergy(p.energy); }
+        if (G.Report) { G.Report.noteDrain("boss", 28 * dt); G.Report.noteEnergy(p.energy); }
         if (G.chance(dt * 8)) {
           game.fx.spawn({
             x: p.x,

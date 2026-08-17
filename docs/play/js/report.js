@@ -302,7 +302,7 @@ var IGRA = IGRA || {};
         line(en ? "finger slipped" : "палец уезжал на",
           (en ? "median " : "медиана ") + this.median(sl) +
           (en ? ", max " : ", максимум ") + sl[sl.length - 1] +
-          (en ? " screen points (break at 96)" : " точек экрана (порог срыва 96)"));
+          (en ? " screen points (break at 112)" : " точек экрана (порог срыва 112)"));
       }
       if (this.tornAfterCall) {
         line(en ? "broke after a call" : "срыв сразу после зова",
