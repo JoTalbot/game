@@ -495,7 +495,9 @@ var IGRA = IGRA || {};
 
     spawnCrack: function (world, x, y) {
       if (world.cracks.length > 5) world.cracks.shift();
-      var law = G.pick(LAWS);
+      var pool = LAWS;
+      if ((world.anchorCap || 3) >= 7) pool = LAWS.filter(function (l) { return l.id !== "moreAnchors"; });
+      var law = G.pick(pool);
       world.cracks.push({
         x: x,
         y: y,
