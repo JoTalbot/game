@@ -667,7 +667,7 @@ var IGRA = IGRA || {};
     // Подсказка неба и сигилы для молчуна: отчёт 0.4.80 — 61 выращено, небо 0, сигила 0.
     // Звезды уже есть, но архив невидим, пока не откроешь. Один раз за жизнь,
     // тихо, после того как мир уже есть что показать.
-    if (!this._skyNudged && this.state === "play" && G.Report && G.Report.acts.sky === 0 && this.world.discovered > 28 && this.time > 330 && this.world.stars.length > 4) {
+    if (!this._skyNudged && this.state === "play" && G.Report && G.Report.acts.sky === 0 && this.world.discovered > 28 && this.time > 325 && this.world.stars.length > 4) {
       this._skyNudged = true;
       this._skyNudgedAt = this.time;
       G.Voice.say("sky");
