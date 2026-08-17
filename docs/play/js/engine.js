@@ -424,7 +424,7 @@ var IGRA = IGRA || {};
         // и погасил взгляд — не надо тот же тык засчитывать ещё и сюда,
         // иначе воронка даёт два исхода на одно касание.
         if (G.Report._gDone) return;
-        if ((this.input.moved || 0) > 0.28) G.Report.gestureWalk();
+        if ((this.input.moved || 0) > 0.26) G.Report.gestureWalk();
         else G.Report.gestureEmpty();
       }
     }
