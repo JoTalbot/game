@@ -495,6 +495,9 @@ var IGRA = IGRA || {};
     this.dna.age = 0;
     G.Fate.offered = false;
     G.Fate.chosen = "";
+    this._skyNudged = false;
+    this._sigilNudged = false;
+    this._skyNudgedAt = 0;
     this.world.birthShore(this.player, this.dna);
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     G.Memory.firstAt = Date.now();
@@ -645,6 +648,18 @@ var IGRA = IGRA || {};
     G.Director.observe(dt, this);
     if (G.Fate.ready(this) && this.state === "play" && this.dna.age > 8) {
       G.Fate.offer(this);
+    }
+    // Подсказка неба и сигилы для молчуна: отчёт 0.4.80 — 61 выращено, небо 0, сигила 0.
+    // Звезды уже есть, но архив невидим, пока не откроешь. Один раз за жизнь,
+    // тихо, после того как мир уже есть что показать.
+    if (!this._skyNudged && this.state === "play" && G.Report && G.Report.acts.sky === 0 && this.world.discovered > 28 && this.time > 360 && this.world.stars.length > 4) {
+      this._skyNudged = true;
+      this._skyNudgedAt = this.time;
+      G.Voice.say("sky");
+    }
+    if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 && this.world.discovered > 22 && this.time > 520 && this._skyNudged && this.time - (this._skyNudgedAt || 0) > 90) {
+      this._sigilNudged = true;
+      if (G.Voice) G.Voice.sayText(G.Lang.t("skyLine") + " — " + G.Lang.t("sigil"));
     }
 
     if (this.state === "birth") {

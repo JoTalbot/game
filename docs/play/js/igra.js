@@ -324,7 +324,7 @@ var IGRA = IGRA || {};
       curiosity: 1, contemplation: 1, aggression: 1, empathy: 1, harmony: 1, chaos: 1, kind: 1,
       longPlay: 1, rooted: 2, tide: 2, named: 2, nameHint: 2,
       watchRooted: 3, watchScatter: 3, watchNoAnchor: 3, watchStill: 3, watchTogether: 3,
-      hunger: 2, rescued: 3
+      hunger: 2, rescued: 3, sky: 3
     },
     weight: function (key) {
       var w = this.WEIGHT[key];
