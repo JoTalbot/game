@@ -147,7 +147,7 @@ var IGRA = IGRA || {};
     { id: "swapKinds", ru: "берег путает органы", hint: "живое меняет природу", en: "the shore confuses organs", enHint: "the living changes its nature" },
     { id: "bloom", ru: "сад без разрешения", hint: "цветы сами", en: "a garden unasked", enHint: "flowers on their own" },
     { id: "reveal", ru: "туман признаётся", hint: "неоформленное вспыхивает", en: "the fog confesses", enHint: "the unformed flares up" },
-    { id: "stillHold", ru: "тишина держит", hint: "корни не сохнут", en: "silence holds", enHint: "roots do not wither", lasts: 21 }
+    { id: "stillHold", ru: "тишина держит", hint: "корни не сохнут", en: "silence holds", enHint: "roots do not wither", lasts: 22 }
   ];
 
   function lawName(law) {
