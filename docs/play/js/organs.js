@@ -426,9 +426,9 @@ var IGRA = IGRA || {};
         boss.hp -= dmg * 0.35;
       } else if (style === "contemplation") {
         boss.stun = 1.4;
-        boss.weak = 3.5;
+        boss.weak = 3.6;
       } else if (style === "curiosity") {
-        boss.weak = 3.5;
+        boss.weak = 3.6;
         G.Voice.sayText(G.Lang.t("seamHit"), true);
       } else if (style === "chaos") {
         boss.lunge = -1;
