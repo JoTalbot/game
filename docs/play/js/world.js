@@ -378,11 +378,20 @@ var IGRA = IGRA || {};
   };
 
   // Один вход для стихов: сигила читает три последних, а сейв не должен
-  // пухнуть. За полчаса набегало 600 строк — держим 60.
+  // пухнуть. За полчаса набегало 600 строк — держим 60. Спасённые
+  // помечены rescued:true и при переполнении вытесняют обычные, а не
+  // наоборот — память берега держит спасённых дольше в тех же 60.
   G.World.prototype.addVerse = function (verse) {
     if (!verse) return;
     this.verses.push(verse);
-    if (this.verses.length > 60) this.verses.splice(0, this.verses.length - 60);
+    if (this.verses.length <= 60) return;
+    // найди первый не-спасённый для сноса
+    var idx = -1;
+    for (var i = 0; i < this.verses.length; i++) {
+      if (!this.verses[i] || !this.verses[i].rescued) { idx = i; break; }
+    }
+    if (idx >= 0) this.verses.splice(idx, 1);
+    else this.verses.splice(0, this.verses.length - 60);
   };
 
   G.World.prototype.update = function (dt, player, dna, fx, game) {
@@ -649,6 +658,7 @@ var IGRA = IGRA || {};
           if (G.Organs && G.Organs.plantBloom) {
             try {
               var rv = G.Organs.composeVerse ? G.Organs.composeVerse({ world: this, dna: dna }) : "";
+              if (rv && typeof rv === "object") rv.rescued = true;
               if (rv) this.addVerse(rv);
               var bl = G.Organs.plantBloom(this, b.x, b.y, rv);
               if (bl && G.TRAIT_COLOR && G.TRAIT_COLOR[b.hue]) bl.c = G.TRAIT_COLOR[b.hue];
