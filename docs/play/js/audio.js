@@ -282,7 +282,7 @@ var IGRA = IGRA || {};
       if ((bend > 0 || hunger > 0) && this.drones[0]) {
         for (var di = 0; di < this.drones.length; di++) {
           var f = this.drones[di].o.frequency;
-          var det = bend * 0.014 * (di % 2 ? -1 : 1) + hunger * 0.0067 * (di % 2 ? 1 : -1);
+          var det = bend * 0.014 * (di % 2 ? -1 : 1) + hunger * 0.0068 * (di % 2 ? 1 : -1);
           if (det) f.setTargetAtTime(f.value * (1 + det), t, 1.2);
         }
       }
