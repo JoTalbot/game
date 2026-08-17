@@ -723,6 +723,21 @@ var IGRA = IGRA || {};
         }
         if (b.debt > 1.2) this.abandon(b, dna);
       }
+      // Спутник говорит сам. Преданное существо (bond прошёл порог
+      // спутника, страх улёгся) изредка подаёт голос по своей воле —
+      // не по касанию, а потому что рядом. Редко (кулдаун ~3 минуты на
+      // существо), тихо (только когда Игра молчит больше минуты), от
+      // своего лица (G.companionTalk). До этого преданность была видна
+      // (свечение, следование) и названа один раз при рождении спутника —
+      // но сам спутник молчал, пока его не трогали.
+      if (b.bond > 0.6 && b.fear < 0.5 && !b.isYesterday && d < 130 && G.Voice) {
+        var nowT = G.now();
+        if (nowT - (b._talkAt || -999) > 170 &&
+            !G.Voice.visible && nowT - (G.Voice.lastAt || -999) > 60) {
+          b._talkAt = nowT;
+          G.Voice.sayText(G.companionTalk(b), true);
+        }
+      }
     }
 
     // счётчик кусающих обнуляется каждый кадр: боль делится между теми,
@@ -873,6 +888,35 @@ var IGRA = IGRA || {};
     var arr = COMPANION[lang()];
     return arr[companionSaid++ % arr.length];
   };
+
+  // Спутник говорит САМ — не Игра про него. Преданное существо (bond
+  // прошёл порог спутника) изредка подаёт голос по своей воле: короткая
+  // строка от лица существа, с именем, если оно названо. Это отдельный
+  // пул от COMPANION (тот — голос Игры при рождении спутника).
+  var COMPANION_TALK = {
+    ru: [
+      "я рядом. просто иду следом.",
+      "мне хорошо, когда ты не торопишься.",
+      "ты вернулся. я знал, что вернёшься.",
+      "если устанешь — я посижу рядом."
+    ],
+    en: [
+      "i am beside you. just walking after.",
+      "i feel good when you do not hurry.",
+      "you came back. i knew you would.",
+      "if you get tired, i will sit with you."
+    ]
+  };
+
+  G.companionTalk = function (b) {
+    var arr = COMPANION_TALK[lang()];
+    var i = (b.memory ? b.memory.length : 0) % arr.length;
+    var name = b.named ? G.beingName(b) + ". " : "";
+    return name + arr[i];
+  };
+
+  // для стенда: полнота двух раскладок спутника
+  G.COMPANION_TALK = COMPANION_TALK;
 
   // закон кончился — берег возвращается к себе, и это слышно
   var LAW_END = {

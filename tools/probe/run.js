@@ -3020,6 +3020,64 @@ group("небо: все звёзды рождаются через addStar");
   ok(w.stars.length <= 160, "убитые раны не переполняют небо", w.stars.length + " звёзд");
 })();
 
+// ——— спутник говорит сам ———
+group("спутник говорит сам: преданность слышна, но тихо");
+(function () {
+  // Редкость и частота: преданное существо рядом говорит само, но не
+  // тараторит. Считаем вызовы G.companionTalk (ровно один на реплику)
+  // за десять минут стояния.
+  var game = H.makeWorld(G, 31);
+  var w = game.world;
+  var b = new G.Being(game.player.x + 50, game.player.y + 50, "empathy");
+  b.bond = 0.85;
+  b.fear = 0.1;
+  b.temper = "clingy";
+  b.named = true;
+  w.beings.push(b);
+  var origTalk = G.companionTalk;
+  var talks = [];
+  var t0 = game.time;
+  G.companionTalk = function (bb) {
+    talks.push(game.time - t0);
+    return origTalk(bb);
+  };
+  for (var f = 0; f < 60 * 60 * 10; f++) H.step(G, game, 1 / 60, null, 0);
+  G.companionTalk = origTalk;
+  ok(talks.length >= 1, "спутник за десять минут хоть раз говорит сам", talks.length + " реплик");
+  ok(talks.length <= 4, "и не тараторит", talks.length + " реплик за 10 минут");
+  var minGap = 1e9;
+  for (var i = 1; i < talks.length; i++) {
+    if (talks[i] - talks[i - 1] < minGap) minGap = talks[i] - talks[i - 1];
+  }
+  ok(talks.length < 2 || minGap >= 120, "пауза между репликами — не меньше двух минут",
+    talks.length < 2 ? "меньше двух реплик" : "мин. интервал " + Math.round(minGap) + "с");
+  // Чужое не говорит: без преданности — тишина. Существо боязливое
+  // (fear высокий — не подойдёт, bond не вырастет) и далеко от порога
+  // спутника: пять минут стояния — ноль реплик.
+  var g2 = H.makeWorld(G, 32);
+  var b2 = new G.Being(g2.player.x + 320, g2.player.y + 320, "empathy");
+  b2.bond = 0.3;
+  b2.fear = 0.9;
+  b2.temper = "shy";
+  g2.world.beings.push(b2);
+  var talks2 = 0;
+  G.companionTalk = function () { talks2++; return ""; };
+  for (var f2 = 0; f2 < 60 * 60 * 5; f2++) H.step(G, g2, 1 / 60, null, 0);
+  G.companionTalk = origTalk;
+  ok(talks2 === 0, "чужее не подаёт голос — преданность нужна", talks2 + " реплик");
+  // Раскладки: спутник говорит на двух языках, без кириллицы в en.
+  var ct = G.COMPANION_TALK || {};
+  ok(ct.ru && ct.en && ct.ru.length >= 3 && ct.en.length === ct.ru.length,
+    "обе раскладки спутника полны", "ru " + (ct.ru || []).length + " / en " + (ct.en || []).length);
+  var cyr = (ct.en || []).filter(function (s) { return /[а-яА-Я]/.test(s); });
+  ok(cyr.length === 0, "английский спутник без кириллицы");
+  // Преданность видна глазом: в рендере существа есть кольцо при bond>0.6.
+  var fs = require("fs");
+  var rnd = fs.readFileSync(__dirname + "/../../web/js/renderer.js", "utf8");
+  ok(/b\.bond > 0\.6[\s\S]*?arc\(p\.x, p\.y, r \* 1\.25/.test(rnd),
+    "преданность видна: кольцо спутника рисуется при bond>0.6");
+})();
+
 // ——— память метаморфозы: берег помнит, чем ты жил ———
 group("метаморфоза помнит: новый берег несёт цветы прошлого");
 (function () {
