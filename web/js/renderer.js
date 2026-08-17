@@ -505,15 +505,24 @@ var IGRA = IGRA || {};
       var pulse = 0.85 + 0.15 * Math.sin(t * 2 + n.phase);
       var r = n.r * cam.z * pulse;
       if (n.state === "unformed") {
-        glow(ctx, p.x, p.y, r * 2.4, c, 0.07 + n.care * 0.05);
-        ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.22 + 0.2 * pulse);
+        // Обещанная природа видна заранее. Узел с hint уже задуман
+        // (метка первого берега, гнездо после зова) и вырастет этой
+        // породой — ореол и зерно подкрашиваются её цветом, чтобы
+        // обещание не было тайной. Механика, которую не видно, не
+        // существует.
+        var hc = c;
+        if (n.hint && G.KIND_TRAIT[n.hint] && G.TRAIT_COLOR[G.KIND_TRAIT[n.hint]]) {
+          hc = G.TRAIT_COLOR[G.KIND_TRAIT[n.hint]];
+        }
+        glow(ctx, p.x, p.y, r * 2.4, hc, 0.09 + n.care * 0.05);
+        ctx.strokeStyle = G.rgb(hc[0], hc[1], hc[2], 0.30 + 0.2 * pulse);
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(p.x, p.y, r * 0.7, n.phase, n.phase + Math.PI * 1.2);
         ctx.stroke();
-        ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.35);
+        ctx.fillStyle = G.rgb(hc[0], hc[1], hc[2], 0.45);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 2.2, 0, G.TAU);
+        ctx.arc(p.x, p.y, 2.4, 0, G.TAU);
         ctx.fill();
       } else {
         // Тускнение видно ГЛАЗОМ. Живой узел светил одинаково всегда:

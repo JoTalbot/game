@@ -2979,5 +2979,82 @@ group("сейв: битые данные не ломают берег");
      b ? "bond=" + b.bond + " fear=" + b.fear + " debt=" + b.debt : "существа нет");
 })();
 
+// ——— небо: кап у всех входов — единый addStar ———
+group("небо: все звёзды рождаются через addStar");
+(function () {
+  var fs = require("fs");
+  // Числовая правда: убитые раны пушили звёзды мимо капа 160 — за долгую
+  // боевую сессию небо переполнялось и раздувало сейв. Теперь у капа
+  // один вход, и сторож читает исходник: любой новый stars.push мимо
+  // addStar покраснеет, а не всплывёт через месяц в отчёте с телефона.
+  var outside = [];
+  ["organs.js", "engine.js", "director.js", "renderer.js", "ui.js"].forEach(function (f) {
+    var lines = fs.readFileSync(__dirname + "/../../web/js/" + f, "utf8").split("\n");
+    lines.forEach(function (line, i) {
+      var t = line.replace(/\/\/.*$/, "");
+      if (t.indexOf("stars.push") >= 0 || t.indexOf("stars.length > 160") >= 0) {
+        outside.push(f + ":" + (i + 1));
+      }
+    });
+  });
+  ok(outside.length === 0, "звёзды в органах и движке — только через addStar",
+    outside.length ? outside.join(", ") : "все входы в addStar");
+  var wj = fs.readFileSync(__dirname + "/../../web/js/world.js", "utf8").split("\n");
+  var pushes = [];
+  wj.forEach(function (line, i) {
+    var t = line.replace(/\/\/.*$/, "");
+    if (t.indexOf("stars.push") >= 0 || t.indexOf("stars.length > 160") >= 0) pushes.push(i + 1);
+  });
+  ok(pushes.length === 2 && pushes[0] > 300 && pushes[1] === pushes[0] + 1,
+    "в мире единственный вход — сам addStar (push и кап рядом)",
+    pushes.length === 2 ? "строки " + pushes.join(",") : "входы вне addStar: " + pushes.join(","));
+  // Поведение: 200 убитых ран не переполняют небо.
+  var game = H.makeWorld(G, 6);
+  var w = game.world;
+  for (var k = 0; k < 200; k++) {
+    var u = new G.Wound(k * 3, k % 7, "thorn");
+    u.hp = 1;
+    w.wounds.push(u);
+    w.hitWound(u.x, u.y, 5, 5, null);
+  }
+  ok(w.stars.length <= 160, "убитые раны не переполняют небо", w.stars.length + " звёзд");
+})();
+
+// ——— память метаморфозы: берег помнит, чем ты жил ———
+group("метаморфоза помнит: новый берег несёт цветы прошлого");
+(function () {
+  var game = H.makeWorld(G, 21);
+  var w = game.world;
+  // Сад из одного характера: сплошные shard (сбой). Цветы памяти
+  // красятся цветом породы — проверим именно shard: его цвет не
+  // встретить ни у одного обычного цветка сада.
+  w.nodes.forEach(function (n) {
+    n.state = "alive";
+    n.kind = "shard";
+    n.care = 0.1;
+    n.roots = 0;
+  });
+  w.anchors = [];
+  var planted = w.metamorphose(game.player, game.dna);
+  var blooms = w.blooms.filter(function (b) { return b.memory === "shard"; });
+  ok(planted >= 1, "метаморфоза возвращает память цветами", planted + " цветов");
+  ok(blooms.length >= 1, "цветок помнит породу прошлого сада (shard)",
+    blooms.length + " цветов сбоя");
+  if (blooms.length) {
+    ok(blooms[0].c.join(",") === G.TRAIT_COLOR.chaos.join(","),
+      "цветок носит цвет породы, а не фиолет сада",
+      "[" + blooms[0].c.join(",") + "]");
+  }
+  // Цветы памяти переживают выход: blooms целиком лежат в сейве.
+  var json = JSON.parse(JSON.stringify(w.toJSON()));
+  var savedMem = json.blooms.filter(function (b) { return b.memory === "shard"; }).length;
+  ok(savedMem >= 1, "цветы памяти переживают выход", savedMem + " цветов в сейве");
+  // Обычный берег не носит цветов памяти: без метаморфозы их нет.
+  var fresh = H.makeWorld(G, 22);
+  var mem = fresh.world.blooms.filter(function (b) { return b.memory; });
+  ok(mem.length === 0, "обычный берег не помнит — цветы памяти только после смены кожи",
+    mem.length + " цветов памяти");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

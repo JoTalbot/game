@@ -180,6 +180,13 @@ var IGRA = IGRA || {};
       "новый берег пуст. так бывает, когда только сеешь.",
       "ничего не удержалось. корни растут от возвращений."
     ],
+    // Память метаморфозы: новый берег начинается с цветов пород, которыми
+    // человек жил до смены кожи. Цветы помнят цветом, не словами.
+    metaMemory: [
+      "новый берег помнит, чем ты жил. вот его цветы.",
+      "я взяла с собой твои породы. они расцвели у ног.",
+      "эти цветы — из прошлого берега. они помнят тебя."
+    ],
     returner: [
       "ты вернулся. я чуть сдвинулась, пока тебя не было.",
       "я помню вчерашние руки.",
@@ -324,7 +331,7 @@ var IGRA = IGRA || {};
       curiosity: 1, contemplation: 1, aggression: 1, empathy: 1, harmony: 1, chaos: 1, kind: 1,
       longPlay: 1, rooted: 2, tide: 2, named: 2, nameHint: 2,
       watchRooted: 3, watchScatter: 3, watchNoAnchor: 3, watchStill: 3, watchTogether: 3,
-      hunger: 2, rescued: 3, sky: 3
+      hunger: 2, rescued: 3, sky: 3, metaMemory: 2
     },
     weight: function (key) {
       var w = this.WEIGHT[key];

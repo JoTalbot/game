@@ -513,6 +513,7 @@ var IGRA = IGRA || {};
     this._sigilNudged = false;
     this._skyNudgedAt = 0;
     this._bloomSaid = -999;
+    this._metaMemory = 0;
     this.world.birthShore(this.player, this.dna);
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     G.Memory.firstAt = Date.now();
@@ -564,7 +565,7 @@ var IGRA = IGRA || {};
     this.input.hx = null;
     this.input.hy = null;
 
-    this.world.metamorphose(this.player, this.dna);
+    var metaMemory = this.world.metamorphose(this.player, this.dna);
     // Перерождение — самая крупная потеря в игре: у того, кто только
     // сеет, оно уносит весь берег до последнего узла, трижды за сессию,
     // и раньше об этом не говорилось ни слова. Игра называет, что стало
@@ -574,6 +575,7 @@ var IGRA = IGRA || {};
       if (this.world.nodes[si].state === "alive") survived++;
     }
     this._metaKept = survived;
+    this._metaMemory = metaMemory;
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.state = "play";
     this.metaFlash = 0.6;
@@ -584,7 +586,12 @@ var IGRA = IGRA || {};
     var self = this;
     // не поверх имени: вторая правда приходит следом
     setTimeout(function () {
-      G.Voice.say(self._metaKept > 0 ? "metaKept" : "metaBare");
+      // Память метаморфозы — третья правда: даже когда удержать было
+      // нечего (сеятель), новый берег помнит его породы цветами.
+      // Сеятелю это честнее, чем «я пришла налегке»: он не пуст,
+      // он помнит. Садовнику хватает metaKept — его память видна.
+      if (self._metaMemory > 0 && self._metaKept <= 0) G.Voice.say("metaMemory");
+      else G.Voice.say(self._metaKept > 0 ? "metaKept" : "metaBare");
     }, 4200);
     this.save();
   };

@@ -302,6 +302,20 @@ var IGRA = IGRA || {};
     return kind;
   };
 
+  // Небо — память, а не свалка. За полчаса игры сюда набегало 565 звёзд
+  // (100 КБ сейва и каша на экране). Держим последние 160: старое
+  // забвение гаснет, недавнее горит. Это честно — память тоже редеет.
+  //
+  // ЕДИНЫЙ вход для звёзд. Раньше кап жил в трёх местах, а hitWound
+  // (убитая рана) и killBoss (убитый босс) пушили звёзды мимо него —
+  // за долгую боевую сессию небо переполнялось сверх 160 и раздувало
+  // сейв. Все звёзды мира рождаются через addStar, поэтому кап не
+  // потеряется при следующем органе.
+  G.World.prototype.addStar = function (star) {
+    this.stars.push(star);
+    if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
+  };
+
   G.World.prototype.forget = function (node, asWound) {
     if (node.dead) return;
     node.dead = true;
@@ -317,11 +331,7 @@ var IGRA = IGRA || {};
       oy: node.y,
       verse: node.verse || ""
     };
-    this.stars.push(star);
-    // Небо — память, а не свалка. За полчаса игры сюда набегало 565 звёзд
-    // (100 КБ сейва и каша на экране). Держим последние 160: старое
-    // забвение гаснет, недавнее горит. Это честно — память тоже редеет.
-    if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
+    this.addStar(star);
     // Уход слышно. Раньше узел тонул молча — единственное крупное
     // событие мира без голоса. Два исхода звучат по-разному: рана —
     // низкий скрежет (голос wound был написан, но его никто не звал),
@@ -359,7 +369,7 @@ var IGRA = IGRA || {};
       if (G.Voice) G.Voice.say("debtWound");
       return "wound";
     }
-    this.stars.push({
+    this.addStar({
       x: being.x * 0.15,
       y: being.y * 0.15,
       c: (G.TRAIT_COLOR && G.TRAIT_COLOR[being.hue]) || [200, 210, 255],
@@ -371,7 +381,6 @@ var IGRA = IGRA || {};
       // на языке человека, а не на том, что был включён в час утраты
       verse: { who: { named: true, nameKey: being.nameKey, babyKey: being.babyKey, healed: being.healed, name: being.trueName || being.name || "" } }
     });
-    if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
     if (G.Audio && G.Audio.forget) G.Audio.forget("empathy");
     if (G.Voice) G.Voice.say("debtStar");
     return "star";
@@ -975,7 +984,7 @@ var IGRA = IGRA || {};
         if (u.hp <= 0) {
           u.dead = true;
           this.killed++;
-          this.stars.push({
+          this.addStar({
             x: u.x * 0.15,
             y: u.y * 0.15,
             c: [255, 90, 100],
@@ -1055,6 +1064,7 @@ var IGRA = IGRA || {};
     // Теперь удержанное переходит в новый мир: метаморфоза — смена кожи,
     // а не амнезия. Просто согретое (care > 0.55) по-прежнему уходит в небо.
     var keep = [];
+    var counts = {};
     for (var i = 0; i < this.nodes.length; i++) {
       var n = this.nodes[i];
       if (n.state !== "alive") continue;
@@ -1097,7 +1107,7 @@ var IGRA = IGRA || {};
       // только согретое (care > 0.55), а остальные полторы сотни узлов
       // исчезали молча — ни звезды, ни счёта. Теперь новый мир помнит
       // весь прежний сад: согретое горит ярче, остальное — тише.
-      this.stars.push({
+      this.addStar({
         x: n.x * 0.12,
         y: n.y * 0.12,
         c: n.color(),
@@ -1106,8 +1116,11 @@ var IGRA = IGRA || {};
         faint: n.care > 0.55 ? 0 : 1
       });
       this.carried++;
+      // «Берег помнит»: считаем, какими породами человек жил на этом
+      // берегу. Топ по частоте после рождения нового берега вернётся
+      // цветами-памятью (memoryBlooms) — смена кожи, а не амнезия.
+      if (n.kind && n.kind !== "spark") counts[n.kind] = (counts[n.kind] || 0) + 1;
     }
-    if (this.stars.length > 160) this.stars.splice(0, this.stars.length - 160);
     // якоря без узлов — мусор в сейве
     var kept = keep.map(function (k) { return k.id; });
     this.anchors = this.anchors.filter(function (id) { return kept.indexOf(id) >= 0; });
@@ -1136,11 +1149,52 @@ var IGRA = IGRA || {};
       loyal[li].y = player.y + G.rand(-40, 40);
       this.beings.push(loyal[li]);
     }
+    // Новый берег начинается с памяти: у ног игрока расцветают цветы
+    // пород, которыми он жил до смены кожи. Цветок — обещание, не
+    // подарок: он ничего не растёт и не рожает, он просто помнит
+    // цветом. Метаморфоза — смена кожи, а не амнезия: человек сразу
+    // видит, что мир помнит, кем он был.
+    var top = [];
+    for (var tk in counts) top.push(tk);
+    top.sort(function (a, b) { return counts[b] - counts[a]; });
+    var remembered = this.memoryBlooms(player, top.slice(0, 3));
     this.tide = 0;
     this.tideT = 36;
     // после метаморфозы зов рождается заново: новый мир — новая даль
     this.call = null;
     this.callT = 16;
+    // сколько цветов памяти расцвело — движок решает, что сказать
+    return remembered;
+  };
+
+  // «Берег помнит». После смены кожи у ног игрока расцветают до трёх
+  // цветов пород, которые он чаще всего выращивал до метаморфозы
+  // (spark — «ещё не решено» — в память не идёт). Цветок — обещание
+  // цветом: он ничего не растит и не рожает, он только помнит. Ни
+  // единого броска случайности: лишний кубик сдвинул бы весь поток
+  // мира, а с ним и баланс (грабля, срабатывавшая уже трижды).
+  G.World.prototype.memoryBlooms = function (player, kinds) {
+    if (!kinds || !kinds.length) return 0;
+    var spots = [[150, 30], [-110, 130], [60, -150]];
+    var placed = 0;
+    for (var i = 0; i < kinds.length && i < spots.length; i++) {
+      var kind = kinds[i];
+      var trait = G.KIND_TRAIT[kind];
+      if (!trait || !G.TRAIT_COLOR[trait]) continue;
+      this.blooms.push({
+        x: player.x + spots[i][0],
+        y: player.y + spots[i][1],
+        r: 8 + (i % 3) * 2,
+        phase: i * 2.1,
+        verse: "",
+        age: 0,
+        memory: kind,
+        c: G.TRAIT_COLOR[trait]
+      });
+      placed++;
+    }
+    if (this.blooms.length > 36) this.blooms.splice(0, this.blooms.length - 36);
+    return placed;
   };
 
   G.World.prototype.toJSON = function () {
