@@ -266,7 +266,7 @@ var IGRA = IGRA || {};
         line(en ? "while away" : "пока тебя не было",
           Math.round(this.night.hours * 10) / 10 + (en ? "h" : "ч") +
           (en ? ", shore lost " : ", берег потерял ") + this.night.lost +
-          (this.night.blooms ? (en ? ", blooms " : ", расцвело ") + this.night.blooms : "") +
+          (this.night.blooms ? (en ? ", blooms+rescued " : ", расцвело ") + this.night.blooms : "") +
           (this.night.debt ? (en ? ", farewells " : ", прощаний ") + this.night.debt : ""));
       }
 
@@ -343,7 +343,7 @@ var IGRA = IGRA || {};
       line(en ? "shores (all time)" : "берегов за всю жизнь", w.meta + (en ? ", roads " : ", дорог ") + (w.arrived || 0) +
         (en ? ", beings " : ", существ ") + w.beings.length);
       line(en ? "laws touched" : "законов тронуто", a.laws +
-        (en ? ", pulses " : ", пульсов ") + a.pulses + (en ? ", blooms " : ", цветов ") + (a.blooms||0));
+        (en ? ", pulses " : ", пульсов ") + a.pulses + (en ? ", blooms+rescued " : ", цветов ") + (a.blooms||0));
       line(en ? "sky opened" : "небо открывал", a.sky +
         (en ? ", sigil " : ", сигилу ") + a.sigil);
 
