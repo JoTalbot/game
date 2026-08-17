@@ -417,14 +417,14 @@ var IGRA = IGRA || {};
           this.player.gaze.state === "unformed") {
         G.Report.gestureTorn("let", this.player.gazeT);
       } else if (!this.player.gaze && !this.gazeTarget) {
-        // Палец, который вёл игрока хотя бы треть секунды (0.35с), сделал своё дело:
+        // Палец, который вёл игрока хотя бы треть секунды (0.30с), сделал своё дело:
         // это шаг, а не промах мимо узла.
         // Но только если у этого жеста ещё нет исхода. Срыв посреди жеста
         // (палец ушёл, узел исчез, смена кожи) уже записан как «сорвалось»
         // и погасил взгляд — не надо тот же тык засчитывать ещё и сюда,
         // иначе воронка даёт два исхода на одно касание.
         if (G.Report._gDone) return;
-        if ((this.input.moved || 0) > 0.32) G.Report.gestureWalk();
+        if ((this.input.moved || 0) > 0.30) G.Report.gestureWalk();
         else G.Report.gestureEmpty();
       }
     }
