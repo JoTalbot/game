@@ -26,7 +26,7 @@ var IGRA = IGRA || {};
     acts: {
       taps: 0, gazes: 0, crystals: 0, returns: 0,
       anchors: 0, pulses: 0, calls: 0, laws: 0,
-      sky: 0, sigil: 0, lang: 0
+      sky: 0, sigil: 0, lang: 0, rescued: 0
     },
     startedAt: 0,
     playT: 0,
@@ -337,7 +337,7 @@ var IGRA = IGRA || {};
       line(en ? "grown (all time)" : "выращено за всю жизнь", w.discovered +
         " (" + (en ? "alive " : "живых ") +
         w.nodes.filter(function (n) { return n.state === "alive"; }).length + ")");
-      line(en ? "returns" : "возвращений", a.returns + (en ? ", anchors " : ", якорей ") + a.anchors);
+      line(en ? "returns" : "возвращений", a.returns + (en ? ", anchors " : ", якорей ") + a.anchors + (en ? ", rescued " : ", спасено ") + (a.rescued||0));
       line(en ? "lost to tide (all time)" : "забрал прилив за всю жизнь", w.lost +
         (en ? ", carried by rebirth " : ", унесла метаморфоза ") + (w.carried || 0));
       line(en ? "shores (all time)" : "берегов за всю жизнь", w.meta + (en ? ", roads " : ", дорог ") + (w.arrived || 0) +
