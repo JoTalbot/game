@@ -10,9 +10,9 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-1.6.6"
-VCODE=166
-VNAME="1.6.6"
+NAME="igra-1.6.7"
+VCODE=167
+VNAME="1.6.7"
 
 echo "==> sync web → assets"
 rm -rf "$APP/assets/www"
