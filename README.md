@@ -69,7 +69,7 @@ Android — нативный WebView (`world.igra.app`), оффлайн, пол�
 Сейчас ставь **2.4**: [скачать APK](https://github.com/JoTalbot/game/releases/latest/download/igra.apk)
 Перед установкой удали старую ИГРУ.
 
-Агентам: `docs/STATUS.md` → `docs/HANDOFF.md`.
+Агентам: `docs/STATUS.md` → `docs/HANDOFF.md`. Публикация в Play: `docs/PUBLISH.md`.
 
 Разреши установку из неизвестного источника → открой файл → родись.
 
