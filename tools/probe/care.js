@@ -3,6 +3,14 @@
 var H = require("./harness.js");
 var G = H.boot();
 
+// Детерминированный выбор: тот же LCG, что в run.js. Раньше Math.random()
+// давал заботу 40–49% между прогонами — не отличить регрессию от шума.
+var rndSeed = 20240815;
+function rnd() {
+  rndSeed = (rndSeed * 1664525 + 1013904223) >>> 0;
+  return rndSeed / 4294967296;
+}
+
 function run(seed) {
   var game = H.makeWorld(G, seed);
   var tended = {}, born = {};
@@ -12,10 +20,10 @@ function run(seed) {
     // к тем же узлам. Случайный выбор почти никогда не давал второго
     // визита, и корни не успевали проявиться в замере.
     var live = game.world.nodes.filter(function (x) { return x.state === "alive" && x.care < 0.5; });
-    if (live.length && Math.random() < 0.6) {
+    if (live.length && rnd() < 0.6) {
       var mine = live.filter(function (x) { return tended[x.id]; });
-      var pool = mine.length && Math.random() < 0.75 ? mine : live;
-      n = pool[(Math.random() * pool.length) | 0];
+      var pool = mine.length && rnd() < 0.75 ? mine : live;
+      n = pool[(rnd() * pool.length) | 0];
     }
     var back = !!n;
     if (!n) n = H.nearestUnformed(game);

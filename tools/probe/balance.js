@@ -10,6 +10,15 @@
 var H = require("./harness.js");
 var G = H.boot();
 
+// Детерминированный выбор садовника: тот же LCG, что в стороже run.js.
+// Без него Math.random() давал разброс заботы 40–49% между прогонами, и
+// нельзя было отличить регрессию от шума. Один seed — одни числа.
+var rndSeed = 20240815;
+function rnd() {
+  rndSeed = (rndSeed * 1664525 + 1013904223) >>> 0;
+  return rndSeed / 4294967296;
+}
+
 function run(seed, tend) {
   var game = H.makeWorld(G, seed);
   var grown = 0;
@@ -17,7 +26,7 @@ function run(seed, tend) {
     var n = null;
     if (tend) {
       var live = game.world.nodes.filter(function (x) { return x.state === "alive" && x.care < 0.5; });
-      if (live.length && Math.random() < 0.5) n = live[(Math.random() * live.length) | 0];
+      if (live.length && rnd() < 0.5) n = live[(rnd() * live.length) | 0];
     }
     var back = !!n;
     if (!n) n = H.nearestUnformed(game);
