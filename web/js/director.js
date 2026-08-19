@@ -195,7 +195,7 @@ var IGRA = IGRA || {};
       // «каков ты». Игра смотрит на повадку и называет её вслух — редко,
       // не чаще раза в две минуты, и только когда повадка отчётлива.
       this._watchT += dt;
-      if (this._watchT > 22 && t - this._lastWatch > 115 && game.state === "play" && !game.sky) {
+      if (this._watchT > 22 && t - this._lastWatch > 95 && game.state === "play" && !game.sky) {
         this._watchT = 0;
         var seen = this.read(game);
         if (seen) {
