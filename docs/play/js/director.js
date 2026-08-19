@@ -119,12 +119,14 @@ var IGRA = IGRA || {};
       if (game.input.rhythm > 0.55) dna.feed("harmony", 0.03, dt);
       if (game.input.wild > 0.5) dna.feed("chaos", 0.025, dt);
 
+      // Смена сезона объявлялась жёсткой строкой (sayText с хардкодом) и
+      // обходила пул `season`, который от этого молчал всю жизнь — мёртвый
+      // код, обещавший голос. Теперь говорит пул, а имя сезона остаётся на
+      // экране: его рисует paintSeason (сезон «…» под сигилой), и оно же
+      // ложится в память строкой seasonNote. Голос не должен дублировать
+      // то, что и так видно, — он говорит о следствии: органы растут иначе.
       if (G.Memory.setFromDna(dna) && dna.age > 40) {
-        G.Voice.sayText(
-          (G.Lang && G.Lang.id === "en" ? "the season turned. now it is " : "сезон сменился. теперь — ") +
-            G.Memory.climateName() + ".",
-          true
-        );
+        G.Voice.say("season", true);
         G.Memory.note(G.Lang.t("seasonNote") + " " + G.Memory.climateName());
         G.UI.paintSeason();
       }

@@ -3150,5 +3150,46 @@ group("метаморфоза: ни один живой узел не исчез
      survived + " выжило");
 })();
 
+// ——— у голоса нет немых пулов ———
+// Пул написан и не звучит — это мёртвый код, который обещает голос и
+// молчит. Так молчал `season`: смена сезона объявлялась жёстким sayText
+// с хардкодом, и пул прожил всю жизнь в тишине. Так же молчали idle и
+// returner, пока их не нашли в 0.4.45. Каждый ключ LINES обязан зваться
+// say()/pick() по литералу — ЛИБО быть в белом списке динамики ниже.
+group("голос: ни один пул не немой");
+(function () {
+  var keys = G.Voice.keys();
+  // Динамика: ключ выбирается в рантайме, а не литералом. Белый список —
+  // документ, а не исключение: каждый пункт обязан называть МЕСТО, где
+  // ключ рождается, иначе список превратится в свалку немых.
+  var dynamic = {
+    // оси — say(dna.dominant()) и say(map[kind]) в director.js
+    curiosity: 1, aggression: 1, contemplation: 1, empathy: 1, chaos: 1, harmony: 1,
+    // наблюдения директора — say(read()) → watch*
+    watchRooted: 1, watchScatter: 1, watchNoAnchor: 1, watchStill: 1, watchTogether: 1,
+    // вехи — say(msKey) по MILESTONES
+    ms5: 1, ms10: 1, ms20: 1, ms40: 1, ms70: 1, ms120: 1,
+    // породы — say(map[kind]) в director.js (встреча породы)
+    stillBorn: 1, kind: 1, glitch: 1, music: 1, firstNode: 1,
+    // тернарные вызовы в engine.js
+    nightLost: 1, nightBloom: 1, metaKept: 1, metaBare: 1, anchorFirst: 1, anchor: 1
+  };
+  var fs = require("fs");
+  var path = require("path");
+  var code = "";
+  fs.readdirSync(path.join(__dirname, "..", "..", "web", "js")).forEach(function (f) {
+    if (/\.js$/.test(f)) code += fs.readFileSync(path.join(__dirname, "..", "..", "web", "js", f), "utf8");
+  });
+  code = code.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+  var silent = [];
+  keys.forEach(function (k) {
+    if (dynamic[k]) return;
+    var re = new RegExp("(say|pick)\\s*\\(\\s*[\"']" + k + "[\"']");
+    if (!re.test(code)) silent.push(k);
+  });
+  ok(silent.length === 0, "каждый пул голоса кто-то зовёт",
+     silent.length ? "немые: " + silent.join(", ") : keys.length + " ключей живо");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

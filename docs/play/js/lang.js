@@ -211,7 +211,7 @@ var IGRA = IGRA || {};
     ],
     yesterday: ["this is not a guest. this is yesterday's you."],
     yesterdayHit: ["you struck your yesterday. it will remember more precisely than i will."],
-    season: ["the weather of the soul has changed. organs will grow differently."],
+    season: ["the weather of the soul has changed. organs will grow differently.", "a season is not decoration. it is the shore's law for these days."],
     fate: ["i can let you go. or you can become me."],
     released: ["go. i will keep the shore as a constellation.", "thank you for existing in me."],
     became: ["now you are the voice. someone else will come. you will read them."]
