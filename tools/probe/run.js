@@ -3191,5 +3191,39 @@ group("голос: ни один пул не немой");
      silent.length ? "немые: " + silent.join(", ") : keys.length + " ключей живо");
 })();
 
+// ——— сигила несёт поступки, а не только ДНК ———
+// Отпечаток был чистым портретом ДНК: двое с одним характером получали
+// одинаковую сигилу, и обещание CONCEPT «вирусный артефакт, который
+// нельзя подделать» не держалось. Теперь на форме — след истории: берега
+// кольцами, удержанное засечками. Проверяем фактом (число мазков), а не
+// формулой: подлог «убрать след истории» даёт одинаковый кадр при разной
+// истории и красит обе проверки.
+group("сигила несёт поступки, а не только ДНК");
+(function () {
+  require("./dom.js").install();
+  var game = H.makeWorld(G, 7);
+  var canvas = document.getElementById("sigil-canvas");
+  function ops(meta, saved) {
+    game.world.meta = meta;
+    game.world.saved = saved;
+    var ctx = canvas.getContext("2d");
+    ctx.calls.length = 0;
+    G.UI.drawSigil(game);
+    var c = ctx.calls;
+    return {
+      stroke: c.filter(function (x) { return x === "stroke"; }).length,
+      fill: c.filter(function (x) { return x === "fill"; }).length
+    };
+  }
+  var empty = ops(0, 0);
+  var lived = ops(3, 5);
+  ok(empty.stroke >= 1, "сигила рисуется и у пустой истории",
+     empty.stroke + " мазков формы");
+  ok(lived.stroke > empty.stroke, "берега оставляют кольца на сигиле",
+     "колец-мазков " + lived.stroke + " против " + empty.stroke + " без истории");
+  ok(lived.fill > empty.fill, "удержанное оставляет засечки на сигиле",
+     "засечек-заливок " + lived.fill + " против " + empty.fill);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

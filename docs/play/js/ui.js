@@ -213,6 +213,34 @@ var IGRA = IGRA || {};
       ctx.arc(cx, cy, 3.2, 0, G.TAU);
       ctx.fill();
 
+      // Сигила — отпечаток, а не просто портрет ДНК. Двое с одной ДНК, но
+      // разной историей, обязаны дать разный знак — иначе «нельзя
+      // подделать» пустые слова, а не обещание. Поступки оставляют след
+      // на форме: каждый прожитый берег — тонкое кольцо наружу (чем дальше,
+      // тем тусклее — история, а не счёт), каждое удержанное — засечка на
+      // внешнем кольце, как якорь на карте. Цифры рядом (статистика) говорят
+      // сколько, а форма — что это уже не подделать.
+      var meta = Math.max(0, game.world.meta || 0);
+      for (var sh = 0; sh < Math.min(meta, 12); sh++) {
+        ctx.beginPath();
+        ctx.strokeStyle = G.rgb(col[0], col[1], col[2], 0.12 + sh * 0.015);
+        ctx.lineWidth = 1;
+        ctx.arc(cx, cy, 116 + sh * 3.4, 0, G.TAU);
+        ctx.stroke();
+      }
+      var held = Math.max(0, game.world.saved || 0);
+      if (held > 0) {
+        var outer = 122 + Math.min(meta, 12) * 3.4;
+        var cap = Math.min(held, 24);
+        for (var hk = 0; hk < cap; hk++) {
+          var ha2 = -Math.PI / 2 + hk * (G.TAU / cap);
+          ctx.fillStyle = "rgba(255,255,255,0.4)";
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(ha2) * outer, cy + Math.sin(ha2) * outer, 1.3, 0, G.TAU);
+          ctx.fill();
+        }
+      }
+
       var name = document.getElementById("sigil-name");
       var sub = document.getElementById("sigil-sub");
       var stats = document.getElementById("sigil-stats");
