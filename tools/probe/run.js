@@ -3561,5 +3561,31 @@ group("«стать игрой» — это голос, а не заглушка
      ru + " / " + en);
 })();
 
+// ——— сигила зовёт, и её нельзя подделать ———
+// Сигила — твоё лицо в игре, но человек почти никогда её не открывал
+// (отчёты: «сигилу 0»). Зов был слабый (сквозь вехи и «небо — сигила»).
+// Теперь отдельный зов `sigil` (ru/en) + пульс кнопки, гасится при открытии.
+group("сигила зовёт");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  var g = Aim.makeGame(AG, 7);
+  g.world.meta = 5;
+  g.time = 300;
+  g.state = "play";
+  AG.Report.reset();
+  var heard = [];
+  var real = AG.Voice.say.bind(AG.Voice);
+  AG.Voice.say = function (k) { heard.push(k); return real(k); };
+  try { g.update(1 / 60); } catch (e) {}
+  AG.Voice.say = real;
+  ok(g._sigilNudged, "зрелый берег зовёт сигилу");
+  ok(heard.indexOf("sigil") >= 0, "и называет её вслух", heard.join(","));
+  // пул переведён и полон
+  ok(AG.LINES_EN && AG.LINES_EN.sigil && AG.LINES_EN.sigil.length === AG.LINES.sigil.length,
+     "английский зов сигилы не короче русского",
+     "ru " + (AG.LINES.sigil || []).length + " / en " + (AG.LINES_EN.sigil || []).length);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

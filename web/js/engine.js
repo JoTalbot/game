@@ -751,9 +751,16 @@ var IGRA = IGRA || {};
       var skyBtn = document.getElementById("sky-btn");
       if (skyBtn) skyBtn.classList.add("invite");
     }
-    if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 && this.world.discovered > 22 && this.time > 485 && this._skyNudged && this.time - (this._skyNudgedAt || 0) > 90) {
+    // Сигила — твоё лицо, но человек почти никогда её не открывал (отчёты:
+    // «сигилу 0»). Зов отдельный от неба: когда имя уже высечено (5+ берегов
+    // или 40+ выращено), голос называет сигилу прямо, а кнопка пульсирует,
+    // пока её не откроют. Пульс гаснет в toggleSigil.
+    if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 &&
+        (this.world.meta >= 5 || this.world.discovered >= 40) && this.time > 240) {
       this._sigilNudged = true;
-      if (G.Voice) G.Voice.sayText(G.Lang.t("skyLine") + " — " + G.Lang.t("sigil"));
+      G.Voice.say("sigil");
+      var sigBtn = document.getElementById("sigil-btn");
+      if (sigBtn) sigBtn.classList.add("invite");
     }
 
     if (this.state === "birth") {

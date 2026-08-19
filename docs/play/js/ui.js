@@ -188,7 +188,12 @@ var IGRA = IGRA || {};
       scr.classList.toggle("on", on);
       // Считаем ОТКРЫТИЕ, а не переключение: закрыть — не поступок.
       if (on && G.Report) G.Report.act("sigil");
-      if (on) this.drawSigil(game);
+      if (on) {
+        this.drawSigil(game);
+        // сигила открыта — приглашение больше не нужно, пульс гаснет
+        var sb = document.getElementById("sigil-btn");
+        if (sb) sb.classList.remove("invite");
+      }
       G.Audio.ui();
     },
 
