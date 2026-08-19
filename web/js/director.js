@@ -55,6 +55,7 @@ var IGRA = IGRA || {};
       this._greeted = {};
       this._born = 0;
       this._returns = 0;
+      this._pulseTold = false;
     },
 
     note: function (kind, amt) {
@@ -201,6 +202,27 @@ var IGRA = IGRA || {};
         if (seen) {
           this._lastWatch = t;
           G.Voice.say(seen);
+        }
+      }
+
+      // Пульс — двойное касание. Подсказка о нём висит шесть секунд после
+      // рождения и умирает, и человек доходит до седьмого берега, ни разу
+      // не пульсовав (отчёт 2.3: пульсов 0 при 18 тронутых законах) — а без
+      // пульса нет ни боя, ни законов, ни финала. Игра замечает это вслух
+      // ОДИН раз, и только когда жест впервые по-настоящему нужен: рядом
+      // голодная рана или босс. Не меню-туториал — существо, которое видит,
+      // что ты не знаешь жеста, и называет его, как называет остывший узел.
+      if (!this._pulseTold && dna.pulses === 0 && dna.age > 90 &&
+          game.state === "play") {
+        var nearWound = false;
+        for (var wI = 0; wI < game.world.wounds.length; wI++) {
+          if (G.dist(p.x, p.y, game.world.wounds[wI].x, game.world.wounds[wI].y) < 140) nearWound = true;
+        }
+        var nearBoss = game.world.boss &&
+          G.dist(p.x, p.y, game.world.boss.x, game.world.boss.y) < 260;
+        if (nearWound || nearBoss) {
+          this._pulseTold = true;
+          G.Voice.say("pulseHint");
         }
       }
 
