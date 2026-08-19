@@ -123,12 +123,19 @@ var IGRA = IGRA || {};
       // memory stars from forgotten nodes
       var stars = game.world.stars;
       var sky = game.sky;
+      // Небо наклоняется: чем больше забыто, тем ближе и ярче звёздная
+      // пыль над миром. Пустой берег едва видит небо; у того, кто всё
+      // отпускал, оно само напрашивается на взгляд. Открытое небо — уже
+      // созвездие (0.9). Здесь только множители, а не новые операции:
+      // на слабом телефоне кадр не дорожает.
+      var fill = G.clamp(stars.length / 160, 0, 1);
+      var scale = sky ? 0.9 : 0.30 + fill * 0.25;
       for (var m = 0; m < stars.length; m++) {
         var st = stars[m];
-        var scale = sky ? 0.9 : 0.35;
         var sx = w * 0.5 + st.x * scale + Math.sin(t * 0.2 + st.tw) * (sky ? 14 : 8);
         var sy = (sky ? h * 0.42 : h * 0.22) + st.y * (sky ? 0.7 : 0.2) + Math.cos(t * 0.15 + st.tw) * (sky ? 12 : 6);
         var ta = 0.4 + 0.4 * Math.sin(t * 2 + st.tw);
+        if (!sky) ta *= 1 + fill * 0.4;
         // то, что человек грел, горит ярче забытого мимоходом
         if (st.faint) ta *= 0.45;
         // 160 звёзд памяти — самая массовая горсть свечений в кадре.

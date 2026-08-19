@@ -3269,5 +3269,35 @@ group("босс не разрастается в бесконечность");
      w.boss ? w.boss.hp + " hp при 118 потерянных (вклад lost закапан)" : "босса нет");
 })();
 
+// ——— небо полно и зовёт ———
+// Отчёт 2.3: 118 звёзд, «небо открывал: 0». Первый зов («sky», 28 узлов)
+// был абстрактен и терялся. Второй, настойчивый зов приходит, когда
+// созвездие набилось (звёзд > 50), а человек так и не поднял взгляд, — и
+// гасится, как только небо открыто. Проверяем факт: флаг, слово и пульс.
+group("небо полно и зовёт");
+(function () {
+  var Aim = require("./aim.js");
+  var G2 = Aim.bootEngine();
+  var g2 = Aim.makeGame(G2, 7);
+  g2.world.stars = [];
+  for (var i = 0; i < 60; i++) {
+    g2.world.stars.push({ x: i, y: i * 0.3, c: [200, 200, 255], kind: "spark", tw: 0, ox: i, oy: i });
+  }
+  g2.time = 500;
+  g2.state = "play";
+  G2.Report.reset();
+  var heard = [];
+  var real = G2.Voice.say.bind(G2.Voice);
+  G2.Voice.say = function (k) { heard.push(k); return real(k); };
+  try { g2.update(1 / 60); } catch (e) {}
+  G2.Voice.say = real;
+  ok(g2._skyFull, "полное небо ставит флаг зова");
+  ok(heard.indexOf("skyFull") >= 0, "и зовёт вслух, конкретно", heard.join(","));
+  // пул переведён и полон — стережёт общий сторож длины; а здесь факт
+  ok(G2.LINES_EN && G2.LINES_EN.skyFull && G2.LINES_EN.skyFull.length === G2.LINES.skyFull.length,
+     "английский зов не короче русского",
+     "ru " + (G2.LINES.skyFull || []).length + " / en " + (G2.LINES_EN.skyFull || []).length);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

@@ -760,6 +760,8 @@ var IGRA = IGRA || {};
       }
       var btn = document.getElementById("sky-btn");
       if (btn) btn.classList.toggle("lit", on);
+      // небо открыто — приглашение больше не нужно, пульс гаснет
+      if (on && btn) btn.classList.remove("invite");
     }
   };
 })(IGRA);

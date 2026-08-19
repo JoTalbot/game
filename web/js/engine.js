@@ -510,6 +510,7 @@ var IGRA = IGRA || {};
     G.Fate.offered = false;
     G.Fate.chosen = "";
     this._skyNudged = false;
+    this._skyFull = false;
     this._sigilNudged = false;
     this._skyNudgedAt = 0;
     this._bloomSaid = -999;
@@ -678,6 +679,16 @@ var IGRA = IGRA || {};
       this._skyNudged = true;
       this._skyNudgedAt = this.time;
       G.Voice.say("sky");
+    }
+    // Второй, настойчивый зов: звёзд уже много (созвездие набилось), а
+    // человек так и не поднял взгляд — отчёт 2.3: 118 звёзд, небо открыто
+    // 0 раз. Небо само напрашивается: голосом и мягкой пульсацией кнопки
+    // в углу. Один раз за жизнь, не тараторит.
+    if (!this._skyFull && this.state === "play" && G.Report && G.Report.acts.sky === 0 && this.world.stars.length > 50 && this.time > 420) {
+      this._skyFull = true;
+      G.Voice.say("skyFull");
+      var skyBtn = document.getElementById("sky-btn");
+      if (skyBtn) skyBtn.classList.add("invite");
     }
     if (!this._sigilNudged && this.state === "play" && G.Report && G.Report.acts.sigil === 0 && this.world.discovered > 22 && this.time > 485 && this._skyNudged && this.time - (this._skyNudgedAt || 0) > 90) {
       this._sigilNudged = true;
