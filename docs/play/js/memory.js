@@ -443,15 +443,15 @@ var IGRA = IGRA || {};
     key: "igra.mouth.endpoint",
     get: function () {
       try {
-        return localStorage.getItem(this.key) || "";
+        return G.Save.get(this.key) || "";
       } catch (e) {
         return "";
       }
     },
     set: function (v) {
       try {
-        if (!v) localStorage.removeItem(this.key);
-        else localStorage.setItem(this.key, v.trim());
+        if (!v) G.Save.del(this.key);
+        else G.Save.set(this.key, v.trim());
       } catch (e) {}
     },
     maybe: function (prompt, cb) {

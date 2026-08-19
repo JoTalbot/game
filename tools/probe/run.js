@@ -3299,5 +3299,40 @@ group("небо полно и зовёт");
      "ru " + (G2.LINES.skyFull || []).length + " / en " + (G2.LINES_EN.skyFull || []).length);
 })();
 
+// ——— сейв идёт через нативный мост, когда он есть ———
+// На Android сейв пишется в SharedPreferences через window.AndroidSave,
+// потому что localStorage в WebView (кастомный origin) не живёт между
+// запусками. Стенд без моста видит только localStorage-путь. Здесь мокаем
+// мост и проверяем факт: при живом мосте backend()==native, запись/чтение
+// идут в него, а язык — тоже через него.
+group("сейв идёт через нативный мост, когда он есть");
+(function () {
+  var box = {};
+  var prev = (typeof window !== "undefined") ? window.AndroidSave : undefined;
+  try { window.AndroidSave = {
+    read: function (k) { return box[k] != null ? box[k] : null; },
+    write: function (k, v) { box[k] = String(v); },
+    remove: function (k) { delete box[k]; }
+  }; } catch (e) {}
+  try {
+    ok(G.Save.backend() === "native", "живой мост — сейв идёт нативным путём", G.Save.backend());
+    G.Save.write({ v: 2, dna: { values: { curiosity: 1 } } });
+    ok(box["igra.save.v1"] != null, "запись ушла в мост, а не в localStorage");
+    var got = G.Save.load();
+    ok(got && got.v === 2, "чтение идёт из моста");
+    // язык через тот же мост
+    G.Lang.set("en");
+    ok(box["igra.lang"] === "en", "выбор языка ложится в мост");
+    G.Lang.set("ru");
+    // рот и voiceplus — тоже
+    G.Mouth.set("https://x");
+    ok(box["igra.mouth.endpoint"] === "https://x", "рот ложится в мост");
+    G.Mouth.set("");
+    ok(box["igra.mouth.endpoint"] === undefined, "пустой рот стирается из моста");
+  } finally {
+    try { if (prev === undefined) delete window.AndroidSave; else window.AndroidSave = prev; } catch (e) {}
+  }
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

@@ -69,7 +69,7 @@ var IGRA = IGRA || {};
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.remove("on");
       try {
-        localStorage.setItem(
+        G.Save.set(
           "igra.voiceplus",
           JSON.stringify({
             name: game.dna.name(),
@@ -89,7 +89,7 @@ var IGRA = IGRA || {};
       var finish = function () {
         G.Save.clear();
         try {
-          localStorage.setItem("igra.lang", G.Lang.id);
+          G.Save.set("igra.lang", G.Lang.id);
         } catch (e) {}
         location.reload();
       };
@@ -105,7 +105,7 @@ var IGRA = IGRA || {};
 
     greetPlus: function () {
       try {
-        var raw = localStorage.getItem("igra.voiceplus");
+        var raw = G.Save.get("igra.voiceplus");
         if (!raw) return;
         var data = JSON.parse(raw);
         if (!data || !(data.dna || data.name)) return;

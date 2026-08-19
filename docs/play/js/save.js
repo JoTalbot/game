@@ -95,6 +95,32 @@ var IGRA = IGRA || {};
       } catch (e) {
         return false;
       }
+    },
+
+    // Универсальное ключ-значение через то же хранилище, что и сейв.
+    // Сюда ходят все мелкие настройки, которые раньше жили в localStorage
+    // (язык, рот, voiceplus): на Android localStorage может не пережить
+    // перезапуск, и выбор человека терялся так же, как терялся сейв.
+    get: function (key) {
+      var n = native();
+      if (n) {
+        try { var v = n.read(key); if (v != null) return v; } catch (e) {}
+      }
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    },
+    set: function (key, value) {
+      var n = native();
+      if (n) {
+        try { n.write(key, value); return; } catch (e) {}
+      }
+      try { localStorage.setItem(key, value); } catch (e) {}
+    },
+    del: function (key) {
+      var n = native();
+      if (n) {
+        try { n.remove(key); } catch (e) {}
+      }
+      try { localStorage.removeItem(key); } catch (e) {}
     }
   };
 })(IGRA);

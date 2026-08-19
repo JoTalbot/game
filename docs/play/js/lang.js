@@ -249,7 +249,7 @@ var IGRA = IGRA || {};
     init: function () {
       var saved = null;
       try {
-        saved = localStorage.getItem("igra.lang");
+        saved = G.Save.get("igra.lang");
       } catch (e) {}
       var nav = (navigator.language || navigator.userLanguage || "ru").toLowerCase();
       this.id = saved || (nav.indexOf("en") === 0 ? "en" : "ru");
@@ -258,7 +258,7 @@ var IGRA = IGRA || {};
     set: function (id) {
       this.id = id === "en" ? "en" : "ru";
       try {
-        localStorage.setItem("igra.lang", this.id);
+        G.Save.set("igra.lang", this.id);
       } catch (e) {}
       this.apply();
     },
