@@ -388,9 +388,39 @@ var IGRA = IGRA || {};
       var dx = p.x - boss.x;
       var dy = p.y - boss.y;
       var d = Math.sqrt(dx * dx + dy * dy) || 1;
+      // Босс — голод с твоим лицом, и голод кормится вниманием. Пока ты
+      // рядом, он сыт и бой идёт; оставь его — он голодает. Накопив голод
+      // без внимания, он уходит сам: то, что брошено дважды, возвращается
+      // в небо. Тот же закон, что у ран (истлевают за 95с) и существ (долг
+      // памяти разрешается): ничто не вечно, даже твоя тень. От босса
+      // можно уйти — он не налог (отчёт 2.9/2.10: босс съедал 84–86% силы
+      // игроку-сбою, который не мог его убить).
+      boss.t = (boss.t || 0);
+      if (d > 260) boss.t += dt;
+      else boss.t = Math.max(0, boss.t - dt * 2);
+      if (boss.t > 120) {
+        for (var si = 0; si < 3; si++) {
+          game.world.addStar({
+            x: boss.x * 0.12 + G.rand(-20, 20),
+            y: boss.y * 0.12 + G.rand(-20, 20),
+            c: [255, 90, 110],
+            kind: "wound",
+            tw: Math.random() * G.TAU
+          });
+        }
+        if (game.fx) game.fx.burst(boss.x, boss.y, 40, [255, 80, 100], 100, 0.9);
+        game.world.boss = null;
+        game.world.bossSaid = false;
+        game.world.lostGate = (game.world.lost || 0) + 3;
+        if (G.Voice) G.Voice.say("bossLeft");
+        return;
+      }
       if (boss.stun <= 0) {
         boss.lunge -= dt;
-        var spd = boss.lunge > 0 ? 150 : 42;
+        // Рывок (150) — только когда босс близко, «чует». Издалека он едва
+        // тащится (42) — от него можно уйти, как от раны. Раньше рывок шёл
+        // циклично на любой дистанции, и босс догонял бегущего всегда.
+        var spd = (boss.lunge > 0 && d < 300) ? 150 : 42;
         if (boss.lunge <= -2.4) boss.lunge = 0.55;
         boss.vx = G.lerp(boss.vx, (dx / d) * spd, 1 - Math.pow(0.15, dt));
         boss.vy = G.lerp(boss.vy, (dy / d) * spd, 1 - Math.pow(0.15, dt));
@@ -450,7 +480,11 @@ var IGRA = IGRA || {};
         G.Voice.sayText(G.Lang.t("seamHit"), true);
       } else if (style === "chaos") {
         boss.lunge = -1;
-        boss.hp -= dmg * 0.4;
+        // Сбой рвёт шов по-настоящему. Раньше 0.4 — игрок-сбой не мог убить
+        // босса вовсе (27 hp → 67 пульсов), и тот съедал сессию. Теперь
+        // урон сравним с эмпатией (0.6), ниже жара (1.6+агрессия) — своя,
+        // рискованная дорога: сбой ещё и телепортирует самого игрока.
+        boss.hp -= dmg * 1.0;
         game.glitch = 0.9;
       } else {
         boss.hp -= dmg * (boss.weak > 0 ? 1.6 : 1);

@@ -1254,7 +1254,8 @@ var IGRA = IGRA || {};
           parts: Array.isArray(bo.parts) ? bo.parts : [],
           phase: G.num(bo.phase, 0), lunge: G.num(bo.lunge, 0),
           stun: G.num(bo.stun, 0), weak: G.num(bo.weak, 0),
-          nameKey: G.num(bo.nameKey, 0)
+          nameKey: G.num(bo.nameKey, 0),
+          t: G.num(bo.t, 0)
         };
       }
       this.world.bossSaid = !!data.world.bossSaid;

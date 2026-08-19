@@ -1330,7 +1330,8 @@ var IGRA = IGRA || {};
         r: this.boss.r, hp: this.boss.hp, maxHp: this.boss.maxHp,
         parts: this.boss.parts || [], phase: this.boss.phase,
         lunge: this.boss.lunge, stun: this.boss.stun, weak: this.boss.weak,
-        nameKey: this.boss.nameKey
+        nameKey: this.boss.nameKey,
+        t: this.boss.t
       } : null,
       bossSaid: this.bossSaid,
       lostGate: this.lostGate
