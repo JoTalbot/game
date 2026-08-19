@@ -262,6 +262,16 @@ var IGRA = IGRA || {};
         : "—";
       line(en ? "smoothness" : "плавность", st);
 
+      // Правда о сейве — тем же хранилищем, которым он пишется. Без этой
+      // строки «сейв не работает» неразличим: молчит ли localStorage/мост,
+      // или человек просто не нажал «вернуться». probe() делает живой круг
+      // записал-прочитал, backend() называет, чем игра пишет на этой
+      // машине: native (SharedPreferences в Android) или localStorage.
+      line(en ? "save" : "сейв",
+        (G.Save && G.Save.backend ? G.Save.backend() : "?") +
+        (G.Save && G.Save.probe ? (G.Save.probe() ? (en ? " ok" : " жив") : (en ? " BROKEN" : " СЛОМАН")) : "") +
+        (G.Save && G.Save.exists ? (G.Save.exists() ? (en ? " exists" : " есть") : (en ? " empty" : " пуст")) : ""));
+
       if (this.night.count) {
         line(en ? "while away" : "пока тебя не было",
           Math.round(this.night.hours * 10) / 10 + (en ? "h" : "ч") +

@@ -141,6 +141,41 @@ public class MainActivity extends Activity {
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());
 
+            // Сейв должен переживать перезапуск, а localStorage в WebView
+            // на Android может не жить (кастомный origin https://igra.local,
+            // отдаваемый через shouldInterceptRequest, — на некоторых ядрах
+            // и Android 15 хранилище привязано к сессии и стирается).
+            // Нативный мост в SharedPreferences переживает всё, кроме удаления
+            // игры. Игра предпочитает его localStorage; тот остаётся запасным
+            // для браузера. Ключ тот же: igra.save.v1.
+            webView.addJavascriptInterface(new Object() {
+                @android.webkit.JavascriptInterface
+                public String read(String key) {
+                    try {
+                        return getSharedPreferences("igra", MODE_PRIVATE)
+                                .getString(key, null);
+                    } catch (Throwable t) {
+                        return null;
+                    }
+                }
+
+                @android.webkit.JavascriptInterface
+                public void write(String key, String value) {
+                    try {
+                        getSharedPreferences("igra", MODE_PRIVATE)
+                                .edit().putString(key, value).apply();
+                    } catch (Throwable t) {}
+                }
+
+                @android.webkit.JavascriptInterface
+                public void remove(String key) {
+                    try {
+                        getSharedPreferences("igra", MODE_PRIVATE)
+                                .edit().remove(key).apply();
+                    } catch (Throwable t) {}
+                }
+            }, "AndroidSave");
+
             WebSettings s = webView.getSettings();
             s.setJavaScriptEnabled(true);
             s.setDomStorageEnabled(true);
