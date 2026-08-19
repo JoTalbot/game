@@ -3334,5 +3334,37 @@ group("сейв идёт через нативный мост, когда он �
   }
 })();
 
+// ——— пульс — не промах ———
+// Двойное касание-пульс записывалось двумя «в пустоту» на пульс: отчёт
+// врал про руку («в пустоту 67» при 8 пульсах читалось как беспомощность,
+// хотя человек воевал). Триггер пульса — свой исход. Проверяем фактом:
+// пульс добавляет «пульсов», а не «в пустоту».
+group("отчёт: пульс — не промах");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  var g = Aim.makeGame(AG, 7);
+  AG.Report.reset();
+  // двойное касание: первый тап, потом быстрый второй
+  function tap(t) {
+    g.time = t;
+    g.input.down = true;
+    AG.Report.gestureStart();
+    try { g.onDown(); } catch (e) {}
+    g.input.down = false;
+    try { g.onUp(); } catch (e) {}
+  }
+  tap(10.00);
+  tap(10.20); // < 0.28 с после первого — пульс
+  var ge = AG.Report.gestures;
+  ok(ge.pulse === 1, "двойное касание даёт один пульс",
+     "пульсов " + ge.pulse);
+  ok(ge.empty <= 1, "триггер пульса не записан промахом в пустоту",
+     "в пустоту " + ge.empty + " (первый тап может остаться, второй — нет)");
+  ok(AG.Report.acts.pulses === 1, "и счётчик поступков «пульсы» тоже вырос",
+     "pulses=" + AG.Report.acts.pulses);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
