@@ -3503,10 +3503,26 @@ group("быстрый конец для теста");
   AG.Fate.offered = false; AG.Fate.chosen = "";
   ok(AG.Fate.ready(g), "в тестовом режиме судьба приходит быстро — только по времени",
      "time=40 (ничего не выращено) → ready=" + AG.Fate.ready(g));
+  // Кнопки конца тоже обязаны срабатывать в тесте: порог 20 минут стоял в
+  // ЧЕТЫРЁХ местах (ready/offer/release/become), и если обновить только
+  // ready/offer — развилка появится, а кнопки молча откажут (жалоба
+  // «отпустить/стать игрой не работает»).
+  AG.Fate.chosen = "";
+  AG.Fate.release(g);
+  ok(AG.Fate.chosen === "release", "в тесте «отпустить» срабатывает",
+     "chosen=" + AG.Fate.chosen);
+  AG.Fate.chosen = "";
+  AG.Fate.become(g);
+  ok(AG.Fate.chosen === "become", "в тесте «стать игрой» срабатывает",
+     "chosen=" + AG.Fate.chosen);
+  AG.Fate.chosen = "";
   AG.DEBUG.fast = false;
   AG.Fate.offered = false; AG.Fate.chosen = "";
   ok(!AG.Fate.ready(g), "без тестового режима порог 20 минут не тронут",
      "time=40 → ready=" + AG.Fate.ready(g));
+  AG.Fate.release(g);
+  ok(AG.Fate.chosen !== "release", "без теста «отпустить» рано не срабатывает",
+     "chosen=" + (AG.Fate.chosen || "(пусто)"));
 })();
 
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");

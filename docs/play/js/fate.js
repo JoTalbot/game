@@ -45,7 +45,7 @@ var IGRA = IGRA || {};
     },
 
     release: function (game) {
-      if ((game.time || 0) < 1200 && !this.chosen) return;
+      if ((game.time || 0) < 1200 && !(G.DEBUG && G.DEBUG.fast) && !this.chosen) return;
       this.chosen = "release";
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.remove("on");
@@ -71,7 +71,7 @@ var IGRA = IGRA || {};
     },
 
     become: function (game) {
-      if ((game.time || 0) < 1200 && !this.chosen) return;
+      if ((game.time || 0) < 1200 && !(G.DEBUG && G.DEBUG.fast) && !this.chosen) return;
       this.chosen = "become";
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.remove("on");
