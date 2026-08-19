@@ -127,7 +127,9 @@ var IGRA = IGRA || {};
       if (title) {
         function tapTitle(e) {
           if (e.target && e.target.closest && e.target.closest("button")) return;
-          birthNow(e);
+          // Тап в пустоту титула рождает только того, кто ещё не жил —
+          // иначе случайное касание стирает прошлую жизнь (см. engine.onDown).
+          if (!G.Save.exists()) birthNow(e);
         }
         title.addEventListener("click", tapTitle);
         title.addEventListener("touchend", tapTitle, { passive: false });

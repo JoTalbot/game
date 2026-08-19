@@ -285,7 +285,13 @@ var IGRA = IGRA || {};
 
   G.Game.prototype.onDown = function () {
     if (this.state === "title") {
-      this.startBirth();
+      // Тап в пустоту рождает только того, кто ещё не жил. У вернувшегося
+      // (сейв есть) случайное касание титула больше не стирает прошлую
+      // жизнь: раньше ЛЮБОЙ тап рождал заново, и через 8 секунд новая
+      // жизнь перезаписывала сейв — человек писал «не сохранилось», хотя
+      // сейв был жив. Вернуться — кнопка «вернуться»; начать заново —
+      // кнопка «родиться» (осознанный жест).
+      if (!G.Save.exists()) this.startBirth();
       return;
     }
     if (G.Voice.visible) G.Voice.skip();
@@ -465,12 +471,15 @@ var IGRA = IGRA || {};
 
   G.Game.prototype.doPulse = function () {
     if (this.state !== "play" && this.state !== "birth") return;
-    if (this.player.energy < 16) {
-      G.Voice.say("lowEnergy");
-      return;
-    }
     if (this.player.pulseT > 0) return;
-    this.player.energy -= 16;
+    // Пульс работает и без сил. Голод забирает силу, а не право драться —
+    // тот же закон, что у взгляда (0.4.60). Раньше при энергии < 16 пульс
+    // блокировался, а босс съедал энергию до нуля: порочный круг — нельзя
+    // пульсовать → нельзя убить босса → он ест дальше. Отчёт 2.9: босс 86%
+    // силы, «падала до 0», сработало 18 пульсов из 99 попыток. Энергия ниже
+    // нуля не уходит (Math.max), а восстанавливается в update как обычно.
+    if (this.player.energy < 16) G.Voice.say("lowEnergy");
+    this.player.energy = Math.max(0, this.player.energy - 16);
     if (G.Report) { G.Report.noteDrain("pulse", 16); G.Report.noteEnergy(this.player.energy); }
     this.player.pulseT = 0.55;
     this.dna.pulses++;

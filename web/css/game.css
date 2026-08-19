@@ -198,6 +198,12 @@ button:active {
 #btn-continue.show {
   display: inline-flex;
 }
+/* Есть «вернуться» — «родиться» отходит в тень. Вернувшийся не должен
+   случайно начать заново: главный жест — продолжить, а не стереть. */
+#btn-continue.show ~ #btn-born {
+  opacity: 0.5;
+  border-color: rgba(232, 230, 242, 0.16);
+}
 
 #veil {
   position: absolute;

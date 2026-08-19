@@ -3366,5 +3366,52 @@ group("отчёт: пульс — не промах");
      "pulses=" + AG.Report.acts.pulses);
 })();
 
+// ——— пульс работает и без сил ———
+// Босс съедал энергию до нуля, а пульс при энергии < 16 блокировался —
+// порочный круг: нельзя пульсовать → нельзя убить босса → он ест дальше.
+// Отчёт 2.9: босс 86% силы, сработало 18 пульсов из 99 попыток. Голод
+// должен забирать силу удара, а не право драться (как взгляд в 0.4.60).
+group("пульс работает и без сил");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  var g = Aim.makeGame(AG, 7);
+  g.player.energy = 5;
+  AG.Report.reset();
+  g.input.down = true;
+  g.time = 10; try { g.onDown(); } catch (e) {}
+  g.time = 10.2; try { g.onDown(); } catch (e) {} // < 0.28 с — пульс
+  g.input.down = false;
+  ok(AG.Report.acts.pulses === 1, "без сил пульс всё же срабатывает",
+     "pulses=" + AG.Report.acts.pulses + " (энергия была 5)");
+})();
+
+// ——— титул не рождает заново при живом сейве ———
+// Тап в пустоту титула рождал заново ЛЮБОГО, и новая жизнь через 8 секунд
+// перезаписывала сейв — человек писал «не сохранилось», хотя сейв был жив
+// (строка «сейв: native жив есть»). Теперь тап рождает только того, кто ещё
+// не жил; вернуться — кнопкой «вернуться». Сторож читает код: в ветке
+// `state === "title"` обязан быть `!G.Save.exists()` перед startBirth.
+group("титул не рождает заново при живом сейве");
+(function () {
+  var fs = require("fs");
+  var path = require("path");
+  function code(src) {
+    return src.replace(/\/\/[^\n]*/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
+  }
+  var eng = code(fs.readFileSync(path.join(__dirname, "..", "..", "web", "js", "engine.js"), "utf8"));
+  var i = eng.indexOf('if (this.state === "title")');
+  var seg = eng.slice(i, i + 260);
+  ok(/G\.Save\.exists\(\)/.test(seg) && /startBirth/.test(seg),
+     "движок рождает только без сейва",
+     /G\.Save\.exists\(\)/.test(seg) ? "тап защищён" : "тап по-прежнему рождает");
+  var uij = code(fs.readFileSync(path.join(__dirname, "..", "..", "web", "js", "ui.js"), "utf8"));
+  var j = uij.indexOf("function tapTitle");
+  var useg = uij.slice(j, j + 240);
+  ok(/G\.Save\.exists\(\)/.test(useg),
+     "и клик по титулу защищён тем же условием",
+     /G\.Save\.exists\(\)/.test(useg) ? "tapTitle защищён" : "tapTitle рождает безусловно");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
