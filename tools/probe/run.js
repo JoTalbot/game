@@ -3414,7 +3414,7 @@ group("титул не рождает заново при живом сейве"
      /G\.Save\.exists\(\)/.test(seg) ? "тап защищён" : "тап по-прежнему рождает");
   var uij = code(fs.readFileSync(path.join(__dirname, "..", "..", "web", "js", "ui.js"), "utf8"));
   var j = uij.indexOf("function tapTitle");
-  var useg = uij.slice(j, j + 240);
+  var useg = uij.slice(j, j + 420);
   ok(/G\.Save\.exists\(\)/.test(useg),
      "и клик по титулу защищён тем же условием",
      /G\.Save\.exists\(\)/.test(useg) ? "tapTitle защищён" : "tapTitle рождает безусловно");
@@ -3497,11 +3497,12 @@ group("быстрый конец для теста");
   var AG = Aim.bootEngine();
   var g = Aim.makeGame(AG, 7);
   g.time = 40;
-  g.world.meta = 1;
+  g.world.meta = 0;
+  g.world.discovered = 0;
   AG.DEBUG.fast = true;
   AG.Fate.offered = false; AG.Fate.chosen = "";
-  ok(AG.Fate.ready(g), "в тестовом режиме судьба приходит быстро",
-     "time=40, meta=1 → ready=" + AG.Fate.ready(g));
+  ok(AG.Fate.ready(g), "в тестовом режиме судьба приходит быстро — только по времени",
+     "time=40 (ничего не выращено) → ready=" + AG.Fate.ready(g));
   AG.DEBUG.fast = false;
   AG.Fate.offered = false; AG.Fate.chosen = "";
   ok(!AG.Fate.ready(g), "без тестового режима порог 20 минут не тронут",

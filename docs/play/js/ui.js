@@ -127,6 +127,10 @@ var IGRA = IGRA || {};
       if (title) {
         function tapTitle(e) {
           if (e.target && e.target.closest && e.target.closest("button")) return;
+          // Касание слова-логотипа «ИГРА» — не «родиться»: оно включает
+          // тестовый режим (см. ниже). Иначе первое же касание логотипа
+          // рождало заново, и пять касаний не успевали набраться.
+          if (e.target && e.target.id === "word") return;
           // Тап в пустоту титула рождает только того, кто ещё не жил —
           // иначе случайное касание стирает прошлую жизнь (см. engine.onDown).
           if (!G.Save.exists()) birthNow(e);
@@ -144,6 +148,7 @@ var IGRA = IGRA || {};
         var tapCount = 0, tapLast = 0;
         function countTap(e) {
           if (e && e.stopPropagation) e.stopPropagation();
+          if (e && e.preventDefault) e.preventDefault();
           var now = Date.now();
           tapCount = (now - tapLast < 600) ? tapCount + 1 : 1;
           tapLast = now;
@@ -158,6 +163,9 @@ var IGRA = IGRA || {};
         }
         wordEl.addEventListener("click", countTap);
         wordEl.addEventListener("touchend", countTap, { passive: false });
+        // pointerup тоже глушим на логотипе: иначе он всплывает к титулу
+        // и рождает игру до того, как наберётся пять касаний.
+        wordEl.addEventListener("pointerup", countTap);
       }
     },
 
