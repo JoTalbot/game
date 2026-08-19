@@ -396,8 +396,19 @@ var IGRA = IGRA || {};
       // можно уйти — он не налог (отчёт 2.9/2.10: босс съедал 84–86% силы
       // игроку-сбою, который не мог его убить).
       boss.t = (boss.t || 0);
-      if (d > 260) boss.t += dt;
+      // Зона побега (200) обязана лежать ДАЛЬШЕ зоны рывка (160). Раньше
+      // было наоборот: рывок до 300, голод копился за 260 — беглец не мог
+      // оторваться, босс догонял рывком раньше, чем накопится голод, и
+      // прилипал намертво (отчёт 2.11: босс 85% силы при 4 пульсах).
+      // Теперь за 200 босс тащится (42 < твой ~100), и голод честно копится.
+      if (d > 200) boss.t += dt;
       else boss.t = Math.max(0, boss.t - dt * 2);
+      // На середине голода босс сам говорит, что слабеет: игрок узнаёт,
+      // что уход работает, — до того как он сработает до конца.
+      if (boss.t > 60 && !boss._fadeSaid) {
+        boss._fadeSaid = true;
+        if (G.Voice) G.Voice.say("bossFading");
+      }
       if (boss.t > 120) {
         for (var si = 0; si < 3; si++) {
           game.world.addStar({
@@ -411,16 +422,18 @@ var IGRA = IGRA || {};
         if (game.fx) game.fx.burst(boss.x, boss.y, 40, [255, 80, 100], 100, 0.9);
         game.world.boss = null;
         game.world.bossSaid = false;
-        game.world.lostGate = (game.world.lost || 0) + 3;
+        // Босс — редкая гроза, а не постоянный спутник. Раньше порог был
+        // +3 забытых: забывающий игрок встречал нового босса каждую
+        // минуту. Теперь нужно 12 забытых до следующего — событие, а не фон.
+        game.world.lostGate = (game.world.lost || 0) + 12;
         if (G.Voice) G.Voice.say("bossLeft");
         return;
       }
       if (boss.stun <= 0) {
         boss.lunge -= dt;
-        // Рывок (150) — только когда босс близко, «чует». Издалека он едва
-        // тащится (42) — от него можно уйти, как от раны. Раньше рывок шёл
-        // циклично на любой дистанции, и босс догонял бегущего всегда.
-        var spd = (boss.lunge > 0 && d < 300) ? 150 : 42;
+        // Рывок (150) — только когда босс близко, «чует» (<160). Издалека
+        // он едва тащится (42) — от него можно уйти, как от раны.
+        var spd = (boss.lunge > 0 && d < 160) ? 150 : 42;
         if (boss.lunge <= -2.4) boss.lunge = 0.55;
         boss.vx = G.lerp(boss.vx, (dx / d) * spd, 1 - Math.pow(0.15, dt));
         boss.vy = G.lerp(boss.vy, (dy / d) * spd, 1 - Math.pow(0.15, dt));
@@ -541,7 +554,8 @@ var IGRA = IGRA || {};
       game.fx.burst(boss.x, boss.y, 48, [255, 80, 100], 120, 1.1);
       game.world.boss = null;
       game.world.bossSaid = false;
-      game.world.lostGate = (game.world.lost || 0) + 3;
+      // Редкая гроза: следующий босс — только после 12 забытых, а не 3.
+      game.world.lostGate = (game.world.lost || 0) + 12;
       game.world.killed++;
       game.metaFlash = 0.35;
     },

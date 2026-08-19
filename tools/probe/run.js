@@ -3449,6 +3449,25 @@ group("босс — не налог, а разрешимая угроза");
   G.Organs.hitBoss(game, 1.0, "chaos");
   ok(w.boss && w.boss.hp < 27, "сбой бьёт босса, а не царапает",
      w.boss ? "hp " + w.boss.hp + " из 27 (снято " + (27 - w.boss.hp) + ")" : "босса нет");
+  // 4. Зона побега дальше зоны рывка: за 200 босс тащится (42), а не
+  //    рывком (150). Иначе беглец не оторвётся — босс прилипает намертво
+  //    (отчёт 2.11: 85% силы). Мерим факт: скорость за пределами 200.
+  mkBoss(0);
+  game.player.x = 300; game.player.y = 0;
+  var boss4 = w.boss;
+  boss4.lunge = 0.55;
+  var px0 = boss4.x, py0 = boss4.y;
+  for (var f2 = 0; f2 < 30; f2++) G.Organs.updateBoss(game, 1 / 60);
+  var moved = Math.hypot(boss4.x - px0, boss4.y - py0) / 0.5;
+  ok(moved < 80, "вдали босс тащится, а не рвётся рывком",
+     "скорость " + moved.toFixed(0) + " (рывок был бы ~150, тяга ~42)");
+  // 5. Босс не плодится: после ухода следующий — только через 12 забытых.
+  mkBoss(120);
+  game.player.x = 1000; game.player.y = 0;
+  G.Organs.updateBoss(game, 1 / 60);
+  ok(!w.boss && w.lostGate === (w.lost || 0) + 12,
+     "следующий босс — через 12 забытых, а не 3",
+     "lostGate=" + w.lostGate + " (lost=" + (w.lost || 0) + ")");
 })();
 
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
