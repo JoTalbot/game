@@ -3114,5 +3114,41 @@ group("метаморфоза помнит: новый берег несёт ц�
     mem.length + " цветов памяти");
 })();
 
+// ——— метаморфоза не теряет живое молча ———
+// «Стало созвездием» — не потеря, а память: каждый живой узел, не
+// переживший смену кожи, обязан стать звездой неба. Когда-то (0.4.39)
+// перерождение стирало сад подчистую — полторы сотни узлов исчезали молча,
+// ни звезды, ни счёта. С тех пор это чинили, но НЕ стерегли: сторож
+// «выжившие + новые звёзды == живые до» краснеет при любом возврате
+// молчаливой потери. Подлог «вернуть молчаливое стирание» (выкинуть
+// addStar из ветки неудержанного) даёт выжившие+звёзды < живые до.
+group("метаморфоза: ни один живой узел не исчезает молча");
+(function () {
+  var game = H.makeWorld(G, 7);
+  var w = game.world;
+  // сад из разных пород: два укоренённых (переживут), один якорь,
+  // остальные — брошенные (станут созвездием)
+  w.nodes = []; w.anchors = []; w.stars = [];
+  var kinds = ["relic", "still", "echo", "thorn", "tone", "shard"];
+  for (var i = 0; i < 12; i++) {
+    var n = new G.Node(100 + i * 30, 100, kinds[i % kinds.length]);
+    n.state = "alive"; n.care = 0.1; n.roots = (i < 2) ? 0.7 : 0;
+    w.nodes.push(n);
+  }
+  w.anchors.push(w.nodes[2].id);
+  var aliveBefore = w.nodes.filter(function (x) { return x.state === "alive"; }).length;
+  var starsBefore = w.stars.length;
+  w.metamorphose(game.player, game.dna);
+  var survived = w.nodes.filter(function (x) { return x.state === "alive"; }).length;
+  var newStars = w.stars.length - starsBefore;
+  ok(survived + newStars === aliveBefore,
+     "каждый живой узел либо пережил, либо стал звездой",
+     survived + " выжило + " + newStars + " звёзд = " + (survived + newStars) + " из " + aliveBefore);
+  ok(newStars > 0, "неудержанное уходит в созвездие, а не исчезает",
+     newStars + " новых звёзд");
+  ok(survived >= 3, "укоренённое и удержанное переживает смену кожи",
+     survived + " выжило");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
