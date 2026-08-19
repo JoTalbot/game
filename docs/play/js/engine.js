@@ -655,6 +655,26 @@ var IGRA = IGRA || {};
           setTimeout(function () {
             G.UI.toggleSigil(selfG, false);
             G.UI.openReport(selfG);
+            // «Отпустить» — это конец, а не застревание. Раньше после
+            // закрытия отчёта игрок оставался в полумёртвом мире (камера
+            // 0.38, ничего не происходит) и справедливо писал «игра не
+            // заканчивается». Теперь отчёт закрыт — и берег возвращается
+            // на титул: можно родиться заново или стать игрой.
+            G.UI.afterReport = function () {
+              selfG.state = "title";
+              document.body.classList.add("title-mode");
+              var ts = document.getElementById("title-screen");
+              if (ts) {
+                ts.style.display = "";
+                ts.classList.remove("out");
+              }
+              var ta = document.getElementById("title-actions");
+              if (ta) ta.classList.add("on");
+              var word = document.getElementById("word");
+              if (word) word.classList.add("on");
+              var tag = document.getElementById("tag");
+              if (tag) tag.classList.add("on");
+            };
           }, 2600);
         }
       }
@@ -1269,6 +1289,12 @@ var IGRA = IGRA || {};
     if (data.fate) {
       G.Fate.offered = !!data.fate.offered;
       G.Fate.chosen = data.fate.chosen || "";
+      // «Отпустить» — это прожитый конец, а не вечное состояние. Раньше
+      // вернувшийся после release навсегда оставался с chosen="release":
+      // развилка больше не предлагалась, и второй конец («стать игрой»)
+      // был недостижим без удаления сейва. Сбрасываем — вернувшийся может
+      // снова дорасти до развилки и выбрать другой путь.
+      if (G.Fate.chosen === "release") G.Fate.chosen = "";
     }
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.time = data.time || 0;

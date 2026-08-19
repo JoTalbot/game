@@ -3485,5 +3485,28 @@ group("босс — не налог, а разрешимая угроза");
      "босс" + (g2.world.boss ? " ЕСТЬ (слишком рано)" : "а нет — ждёт 15"));
 })();
 
+// ——— быстрый конец для теста ———
+// Человек на устройстве не может ждать 20 минут до развилки, чтобы
+// проверить обе концовки. Отладочный режим G.DEBUG.fast (пять касаний по
+// логотипу) ускоряет судьбу: развилка при 30с + мете или 12 узлах. Обычный
+// порог не трогается. Проверяем факт: fast готовит судьбу быстро, без fast
+// — по-прежнему не раньше 20 минут.
+group("быстрый конец для теста");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  var g = Aim.makeGame(AG, 7);
+  g.time = 40;
+  g.world.meta = 1;
+  AG.DEBUG.fast = true;
+  AG.Fate.offered = false; AG.Fate.chosen = "";
+  ok(AG.Fate.ready(g), "в тестовом режиме судьба приходит быстро",
+     "time=40, meta=1 → ready=" + AG.Fate.ready(g));
+  AG.DEBUG.fast = false;
+  AG.Fate.offered = false; AG.Fate.chosen = "";
+  ok(!AG.Fate.ready(g), "без тестового режима порог 20 минут не тронут",
+     "time=40 → ready=" + AG.Fate.ready(g));
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);

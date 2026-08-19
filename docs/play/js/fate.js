@@ -20,6 +20,13 @@ var IGRA = IGRA || {};
     // большой сад, переживший прилив.
     ready: function (game) {
       if (this.offered || this.chosen) return false;
+      // Тестовый «быстрый конец»: развилка приходит почти сразу, чтобы
+      // человек мог проверить обе концовки на устройстве. Обычный порог
+      // (20 минут) не трогается — это только отладка.
+      if (G.DEBUG && G.DEBUG.fast) {
+        return (game.time || 0) > 30 &&
+               (game.world.meta >= 1 || game.world.discovered > 12);
+      }
       if ((game.time || 0) < 1200) return false;
       return game.world.meta >= 2 ||
              game.dna.age > 900 ||
@@ -28,7 +35,7 @@ var IGRA = IGRA || {};
 
     offer: function (game) {
       if (this.offered) return;
-      if ((game.time || 0) < 1200) return;
+      if ((game.time || 0) < 1200 && !(G.DEBUG && G.DEBUG.fast)) return;
       this.offered = true;
       G.Voice.say("fate");
       G.Voice.sayText(G.Lang.t("fate"), true);

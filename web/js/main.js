@@ -10,6 +10,10 @@ var IGRA = IGRA || {};
     }
     G.Lang.init();
     G.Quality.init();
+    // Тестовый «быстрый конец»: подхватывается из сейва, если был включён
+    // пятью касаниями по логотипу (см. ui.js). Ускоряет только развилку
+    // судьбы — ради проверки обеих концовок на устройстве.
+    G.DEBUG.fast = (G.Save && G.Save.get("igra.debug.fast") === "1");
     var game = new G.Game();
     G.app = game;
     G.UI.bind(game);

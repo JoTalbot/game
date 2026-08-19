@@ -135,6 +135,30 @@ var IGRA = IGRA || {};
         title.addEventListener("touchend", tapTitle, { passive: false });
         title.addEventListener("pointerup", tapTitle);
       }
+
+      // Тестовый «быстрый конец»: пять быстрых касаний по логотипу «ИГРА»
+      // включают отладку, развилка судьбы придёт почти сразу. Для проверки
+      // обеих концовок на устройстве; обычному игроку незаметно.
+      var wordEl = document.getElementById("word");
+      if (wordEl) {
+        var tapCount = 0, tapLast = 0;
+        function countTap(e) {
+          if (e && e.stopPropagation) e.stopPropagation();
+          var now = Date.now();
+          tapCount = (now - tapLast < 600) ? tapCount + 1 : 1;
+          tapLast = now;
+          if (tapCount >= 5) {
+            tapCount = 0;
+            G.DEBUG = G.DEBUG || {};
+            G.DEBUG.fast = true;
+            try { G.Save.set("igra.debug.fast", "1"); } catch (err) {}
+            G.UI.hint("тест: конец близко");
+            setTimeout(function () { G.UI.hint(""); }, 3000);
+          }
+        }
+        wordEl.addEventListener("click", countTap);
+        wordEl.addEventListener("touchend", countTap, { passive: false });
+      }
     },
 
     hint: function (text) {
