@@ -339,8 +339,12 @@ var IGRA = IGRA || {};
 
     maybeBoss: function (game) {
       var w = game.world;
-      if (w.boss || w.lost < (w.lostGate || 4)) return;
-      if (G.Director.organs.combat < 0.18 && w.lost < 6) return;
+      // Первый босс — не раньше 15 забытых (было 4). Он собирается из
+      // брошенного, и собраться ему нужно из ЧЕГО-ТО: четырёх забытых
+      // узлов мало, это разминка, а не прожитая потеря. Босс обязан быть
+      // последствием, а не спутником с первой минуты (отчёт 2.12: босс
+      // 94% силы у игрока, который просто хотел растить сад).
+      if (w.boss || w.lost < (w.lostGate || 15)) return;
       if (w.bossSaid) return;
       var parts = (w.forgotten || []).slice(-5);
       if (!parts.length) {
@@ -405,11 +409,11 @@ var IGRA = IGRA || {};
       else boss.t = Math.max(0, boss.t - dt * 2);
       // На середине голода босс сам говорит, что слабеет: игрок узнаёт,
       // что уход работает, — до того как он сработает до конца.
-      if (boss.t > 60 && !boss._fadeSaid) {
+      if (boss.t > 25 && !boss._fadeSaid) {
         boss._fadeSaid = true;
         if (G.Voice) G.Voice.say("bossFading");
       }
-      if (boss.t > 120) {
+      if (boss.t > 50) {
         for (var si = 0; si < 3; si++) {
           game.world.addStar({
             x: boss.x * 0.12 + G.rand(-20, 20),
@@ -422,10 +426,9 @@ var IGRA = IGRA || {};
         if (game.fx) game.fx.burst(boss.x, boss.y, 40, [255, 80, 100], 100, 0.9);
         game.world.boss = null;
         game.world.bossSaid = false;
-        // Босс — редкая гроза, а не постоянный спутник. Раньше порог был
-        // +3 забытых: забывающий игрок встречал нового босса каждую
-        // минуту. Теперь нужно 12 забытых до следующего — событие, а не фон.
-        game.world.lostGate = (game.world.lost || 0) + 12;
+        // Босс — редкая гроза, а не постоянный спутник. Следующий — только
+        // после 25 забытых: событие, а не фон.
+        game.world.lostGate = (game.world.lost || 0) + 25;
         if (G.Voice) G.Voice.say("bossLeft");
         return;
       }
@@ -455,11 +458,18 @@ var IGRA = IGRA || {};
         G.Voice.say("bossSpeak");
       }
       if (d < boss.r + p.r + 6) {
-        p.energy = Math.max(0, p.energy - 28 * dt);
+        // Босс — психологическая угроза, а не налог. Раньше кусал на 28/с —
+        // самый быстрый отток в игре, вдвое злее раны: несколько секунд
+        // контакта, и энергия в нуле, человек не может ни смотреть, ни
+        // драться (отчёт 2.9/2.11/2.12: босс 84–94% силы, «падала до 0»).
+        // Теперь 6/с — ниже восстановления (7–14/с): даже вплотную босс не
+        // обнуляет. Он пугает, толкает, но не запрещает жить. Кто хочет
+        // боя — дерётся; кто не хочет — спокойно растит узлы под его взглядом.
+        p.energy = Math.max(0, p.energy - 6 * dt);
         // Босс ест силу, но в отчёте его не было: «сила ушла на» не знала
         // самого мощного едока, а «падала до» застывала на последнем
         // замеренном от взгляда или раны. Пишем честно.
-        if (G.Report) { G.Report.noteDrain("boss", 28 * dt); G.Report.noteEnergy(p.energy); }
+        if (G.Report) { G.Report.noteDrain("boss", 6 * dt); G.Report.noteEnergy(p.energy); }
         if (G.chance(dt * 8)) {
           game.fx.spawn({
             x: p.x,
@@ -554,8 +564,8 @@ var IGRA = IGRA || {};
       game.fx.burst(boss.x, boss.y, 48, [255, 80, 100], 120, 1.1);
       game.world.boss = null;
       game.world.bossSaid = false;
-      // Редкая гроза: следующий босс — только после 12 забытых, а не 3.
-      game.world.lostGate = (game.world.lost || 0) + 12;
+      // Редкая гроза: следующий босс — только после 25 забытых.
+      game.world.lostGate = (game.world.lost || 0) + 25;
       game.world.killed++;
       game.metaFlash = 0.35;
     },
