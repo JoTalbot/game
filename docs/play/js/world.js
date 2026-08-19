@@ -918,6 +918,25 @@ var IGRA = IGRA || {};
   // для стенда: полнота двух раскладок спутника
   G.COMPANION_TALK = COMPANION_TALK;
 
+  // Голос, ставший тобой (NG+): существо с прошлым именем встречает нового
+  // игрока и говорит от лица голоса. Одна реплика на рождение — узнавание,
+  // а не тараторка. Живёт здесь, рядом с COMPANION_TALK: тоже голос существа.
+  var VOICE_LINE = {
+    ru: [
+      "я был тобой. теперь я — голос. иди, я прочту тебя.",
+      "не бойся. ты уже умеешь всё, что умел я."
+    ],
+    en: [
+      "i was you. now i am the voice. go, i will read you.",
+      "do not fear. you already know everything i knew."
+    ]
+  };
+
+  G.voiceLine = function (name) {
+    var arr = VOICE_LINE[lang()];
+    return name + ". " + arr[(name ? name.length : 0) % arr.length];
+  };
+
   // закон кончился — берег возвращается к себе, и это слышно
   var LAW_END = {
     ru: {

@@ -530,6 +530,34 @@ var IGRA = IGRA || {};
     this._metaMemory = 0;
     this.world.birthShore(this.player, this.dna);
     this.prevDnaSnap = G.Director.snapshot(this.dna);
+    // «Ты — голос» (NG+). После «стать игрой» новый мир читает тебя так,
+    // как ты читал его: в начале жизни рождается существо с твоим прошлым
+    // именем — ты сам, ставший голосом. Оно идёт следом и говорит один раз.
+    // Раньше «стать игрой» было заглушкой: сброс мира + одна приветственная
+    // строка, а обещанного «ты — голос» не было вовсе (вскрыто тестом 2.17).
+    // Рождаем через new G.Being (Math.random, не world.rng) — поток мира не
+    // сдвигается, баланс обычной жизни не тронут.
+    if (G.Fate && G.Fate.plus) {
+      try {
+        var vp = JSON.parse(G.Save.get("igra.voiceplus") || "null");
+        if (vp && vp.name) {
+          var voice = new G.Being(this.player.x + 70, this.player.y - 40, "empathy");
+          voice.temper = "singer";
+          voice.name = vp.name;
+          voice.named = true;
+          voice.nameKey = null;
+          voice.babyKey = null;
+          voice.bond = 0.7;
+          voice.fear = 0;
+          voice.isVoice = true;
+          this.world.beings.push(voice);
+          var self2 = this;
+          setTimeout(function () {
+            G.Voice.sayText(G.voiceLine(vp.name), true);
+          }, 4200);
+        }
+      } catch (e) {}
+    }
     G.Memory.firstAt = Date.now();
     G.Memory.sessions = 1;
     G.Memory.setFromDna(this.dna, true);
@@ -1314,6 +1342,9 @@ var IGRA = IGRA || {};
 
   G.Game.prototype.forgetSelf = function () {
     G.Save.clear();
+    // «Забыть меня» отменяет и «ты — голос»: голос, оставшийся в voiceplus,
+    // не должен вечно встречать того, кто попросил стереть всё.
+    try { G.Save.del("igra.voiceplus"); } catch (e) {}
     location.reload();
   };
 

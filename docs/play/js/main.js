@@ -14,6 +14,9 @@ var IGRA = IGRA || {};
     // пятью касаниями по логотипу (см. ui.js). Ускоряет только развилку
     // судьбы — ради проверки обеих концовок на устройстве.
     G.DEBUG.fast = (G.Save && G.Save.get("igra.debug.fast") === "1");
+    // «Ты — голос»: если есть voiceplus (прожитое «стать игрой»), в новой
+    // жизни игрок — уже голос, а не игрок (см. Fate.plus и startBirth).
+    G.Fate.plus = (G.Save && !!G.Save.get("igra.voiceplus"));
     var game = new G.Game();
     G.app = game;
     G.UI.bind(game);

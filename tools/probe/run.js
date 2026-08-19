@@ -3525,5 +3525,41 @@ group("быстрый конец для теста");
      "chosen=" + (AG.Fate.chosen || "(пусто)"));
 })();
 
+// ——— «стать игрой» — это голос, а не заглушка ———
+// Тест 2.17 вскрыл: become было сбросом мира + одной строкой, а обещанного
+// «ты — голос» не было. Теперь в NG+ (есть voiceplus) рождается существо с
+// прошлым именем — игрок сам, ставший голосом. Проверяем факт: спутник
+// рождается, несёт имя, голос говорит от него.
+group("«стать игрой» — это голос, а не заглушка");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  var g = Aim.makeGame(AG, 7);
+  AG.Fate.plus = true;
+  var store = AG._store;
+  store["igra.voiceplus"] = JSON.stringify({ name: "Картограф тумана", dna: { values: { curiosity: 1 } } });
+  var before = g.world.beings.length;
+  g.state = "title";
+  try { g.startBirth(); } catch (e) {}
+  var voice = null;
+  for (var i = 0; i < g.world.beings.length; i++) {
+    if (g.world.beings[i].isVoice) voice = g.world.beings[i];
+  }
+  ok(!!voice, "в NG+ рождается голос-спутник",
+     voice ? "isVoice найден" : "не родился");
+  ok(voice && voice.name === "Картограф тумана", "он носит твоё прошлое имя",
+     voice ? "«" + voice.name + "»" : "—");
+  ok(voice && voice.bond > 0.5, "и он уже предан — это ты сам",
+     voice ? "bond " + voice.bond : "—");
+  // реплика голоса полна на двух языках
+  var ru = AG.voiceLine("X");
+  AG.Lang.id = "en";
+  var en = AG.voiceLine("X");
+  AG.Lang.id = "ru";
+  ok(/[а-я]/.test(ru) && /[a-z]/.test(en) && !/[а-я]/.test(en),
+     "голос говорит на двух языках",
+     ru + " / " + en);
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
