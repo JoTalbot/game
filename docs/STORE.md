@@ -61,7 +61,7 @@ A genre that did not exist: reflektum.
 - feature graphic 1024×500: `docs/feature.png` (генерируется `python3 tools/make-art.py`)
 - og-картинка 1200×630: `docs/og.jpg`
 - 4–8 скриншотов: титул, взгляд, сад, голод, небо, сигила, сезон
-  - готовые атмосферные кадры 1080×1920: `docs/screens/screen-1.png`…`screen-6.png`
+  - готовые атмосферные кадры 1080×1920: `docs/screens/screen-1.png`…`screen-8.png`
   - генерируются: `python3 tools/make-screens.py`
 - трейлер: `docs/TRAILER.md`
 - политика: `docs/PRIVACY.md`

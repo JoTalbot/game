@@ -3225,5 +3225,29 @@ group("сигила несёт поступки, а не только ДНК");
      "засечек-заливок " + lived.fill + " против " + empty.fill);
 })();
 
+// ——— английский берег не беднее русского ———
+// en-пулы молча разъезжались с ru: boss, sky, debtStar и ещё девять жили
+// в одну строку против двух-трёх русских — en-игрок слышал повторы там,
+// где ru-игрок слышал разные слова. Проверка полноты (есть ли ключ) этого
+// не ловит: ключ есть, а строк в нём меньше. Стережём длину и кириллицу.
+group("голос: английские пулы не короче русских и без кириллицы");
+(function () {
+  var ru = G.LINES;
+  var en = G.LINES_EN;
+  if (!ru || !en) { ok(false, "раскладки доступны стенду", "нет G.LINES/G.LINES_EN"); return; }
+  var short = [];
+  var cyr = [];
+  Object.keys(ru).forEach(function (k) {
+    if (!Object.prototype.hasOwnProperty.call(ru, k)) return;
+    if (!en[k]) { short.push(k + ": нет en"); return; }
+    if (en[k].length < ru[k].length) short.push(k + " ru" + ru[k].length + ">en" + en[k].length);
+    en[k].forEach(function (s) { if (/[а-яА-Я]/.test(s)) cyr.push(k); });
+  });
+  ok(short.length === 0, "каждый английский пул не короче русского",
+     short.length ? short.join(", ") : "длины равны");
+  ok(cyr.length === 0, "в английских пулах нет кириллицы",
+     cyr.length ? cyr.join(", ") : "чисто");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
