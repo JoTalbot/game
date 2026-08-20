@@ -1383,6 +1383,13 @@ var IGRA = IGRA || {};
     // Телефон, который не тянет, обязан получить послабление сам —
     // человек не должен искать настройку, которой в игре и нет.
     if (G.Quality && G.Quality.watch && this.state === "play") G.Quality.watch(dt);
+    // Послабление обязано дойти до холста: dpr 1.4 → 1 без resize
+    // оставлял битмап прежним, а fx.cap 420 не слышал particles=160.
+    if (G.Quality && G.Quality.dpr && G.Quality.dpr < (this.dpr || 1) - 0.05) this.resize();
+    if (this.fx && G.Quality && G.Quality.particles < this.fx.cap) {
+      this.fx.cap = G.Quality.particles;
+      while (this.fx.list.length > this.fx.cap) this.fx.list.shift();
+    }
 
     try {
       this.update(dt);

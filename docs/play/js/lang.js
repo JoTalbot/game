@@ -336,13 +336,16 @@ var IGRA = IGRA || {};
     init: function () {
       if (this.ready) return;
       this.ready = true;
+      var remembered = false;
+      try { remembered = G.Save && G.Save.get && G.Save.get("igra.quality.low") === "1"; } catch (e) {}
       var mem = navigator.deviceMemory || 4;
       var cores = navigator.hardwareConcurrency || 4;
-      var low = mem <= 2 || cores <= 3 || Math.min(window.innerWidth, window.innerHeight) < 380;
+      var low = remembered || mem <= 2 || cores <= 3 || Math.min(window.innerWidth, window.innerHeight) < 380;
       this.dpr = low ? 1 : Math.min(window.devicePixelRatio || 1, 2);
       this.particles = low ? 160 : 420;
       this.fog = low ? 7 : 16;
       this.glow = !low;
+      this.demoted = !!low;
     },
 
     // Живая проверка: паспорт телефона врёт.
@@ -373,12 +376,16 @@ var IGRA = IGRA || {};
       // спотыкается то тут, то там.
       //
       // Смотрим в окне: сколько кадров подряд наблюдаем и какая часть из
-      // них тяжёлая. Полторы тысячи кадров — это около полуминуты игры,
+      // них тяжёлая. 480 кадров — около восьми секунд ровной игры,
       // достаточно, чтобы отличить «телефон не тянет» от «мигнула
       // сборка мусора при рождении узла».
+      //
+      // Окно 1500 (~полминуты) не закрылось в отчёте 2.23: сессия 0.6 мин
+      // при 43 fps ≈ 1419 кадров, «слабый» так и не зажёгся, хотя тяжёлых
+      // было 205 (доля ~14%). Короткое окно обязано успеть в короткой сессии.
       this._seen = (this._seen || 0) + 1;
       if (dt > 1 / 30) this._heavy = (this._heavy || 0) + 1;
-      if (this._seen < 1500) return;
+      if (this._seen < 480) return;
       var share = (this._heavy || 0) / this._seen;
       this._seen = 0;
       this._heavy = 0;
@@ -389,8 +396,10 @@ var IGRA = IGRA || {};
       if (share > 0.04) {
         this.demoted = true;
         this.glow = false;
+        this.dpr = 1;
         this.particles = Math.min(this.particles, 160);
         this.fog = Math.min(this.fog, 7);
+        try { if (G.Save && G.Save.set) G.Save.set("igra.quality.low", "1"); } catch (e) {}
       }
     }
   };

@@ -178,8 +178,14 @@ var IGRA = IGRA || {};
       }
 
       // fog banks in world space
+      // Туман — украшение, не смысл. Раньше glow() звался без decor:
+      // слабый телефон гасил ореолы звёзд, а 16 огромных пятен тумана
+      // оставались самыми дорогими градиентами кадра. Отчёт 2.23:
+      // 43 fps, «слабый» так и не зажёгся.
       ctx.globalCompositeOperation = "lighter";
-      for (var f = 0; f < this.fog.length; f++) {
+      var fogN = this.fog.length;
+      if (G.Quality && G.Quality.fog != null) fogN = Math.min(fogN, G.Quality.fog);
+      for (var f = 0; f < fogN; f++) {
         var fg = this.fog[f];
         fg.x += fg.vx * game.dt;
         fg.y += fg.vy * game.dt;
@@ -193,7 +199,8 @@ var IGRA = IGRA || {};
           fp.y,
           fg.r * cam.z,
           [col[0], col[1], col[2]],
-          fg.a * (0.7 + 0.3 * Math.sin(fg.p))
+          fg.a * (0.7 + 0.3 * Math.sin(fg.p)),
+          true
         );
       }
       ctx.globalCompositeOperation = "source-over";

@@ -2000,17 +2000,21 @@ group("слабый телефон: обещанное послабление и
   // прошёл мимо всего стенда. Слабый телефон мог не получить
   // послабления вовсе, и никто бы не заметил.
   (function () {
-    var Q = Aim2.bootEngine().Quality;
+    var Gq = Aim2.bootEngine();
+    try { Gq.Save.del("igra.quality.low"); } catch (e) {}
+    var Q = Gq.Quality;
     var nav = global.navigator;
     global.navigator = { deviceMemory: 2, hardwareConcurrency: 2 };
     Q.ready = false; Q.glow = true;
     Q.init();
-    ok(!Q.glow && Q.particles <= 160, "слабый телефон получает послабление при старте",
-       "память 2 ГБ, 2 ядра → glow=" + Q.glow + ", частиц " + Q.particles);
+    ok(!Q.glow && Q.particles <= 160 && Q.dpr === 1, "слабый телефон получает послабление при старте",
+       "память 2 ГБ, 2 ядра → glow=" + Q.glow + ", частиц " + Q.particles + ", dpr=" + Q.dpr);
 
-    var Q2 = Aim2.bootEngine().Quality;
+    var Gq2 = Aim2.bootEngine();
+    try { Gq2.Save.del("igra.quality.low"); } catch (e) {}
+    var Q2 = Gq2.Quality;
     global.navigator = { deviceMemory: 8, hardwareConcurrency: 8 };
-    Q2.ready = false; Q2.glow = false;
+    Q2.ready = false; Q2.glow = false; Q2.demoted = false;
     Q2.init();
     ok(Q2.glow, "сильный телефон остаётся красивым",
        "память 8 ГБ, 8 ядер → glow=" + Q2.glow);
@@ -2052,6 +2056,7 @@ group("слабый телефон: обещанное послабление и
       var Q = Aim2.bootEngine().Quality;
       Q.ready = true; Q.glow = true; Q.demoted = false;
       Q._seen = 0; Q._heavy = 0;
+      Q.dpr = 1.4;
       var step = share > 0 ? Math.round(1 / share) : 0;
       for (var i = 0; i < frames; i++) Q.watch(step && i % step === 0 ? 1 / 20 : 1 / 60);
       return Q;
@@ -2073,6 +2078,34 @@ group("слабый телефон: обещанное послабление и
     ok(run(0, 6000).glow, "ровная игра остаётся красивой", "без рывков свет горит");
     ok(run(0.01, 6000).glow, "редкий провал не гасит свет",
        "1% тяжёлых кадров — красота на месте");
+
+    // Отчёт 2.23: 0.6 мин ≈ 33 с, 43 fps ≈ 1419 кадров. Окно 1500 не
+    // закрылось — «слабый» не зажёгся, dpr остался 1.4. Короткое окно
+    // обязано успеть, и послабление обязано резать битмап, не только свет.
+    var soon = run(0.08, 500);
+    ok(!soon.glow && soon.dpr === 1, "короткая сессия тоже успевает похудеть",
+       "500 кадров при 8% тяжёлых → glow=" + soon.glow + ", dpr=" + soon.dpr);
+
+    // Память: следующий запуск не ждёт снова. Спрашиваем тот же G,
+    // что писал ключ — иначе стенд мерит чужой store.
+    (function () {
+      var Gmem = Aim2.bootEngine();
+      try { Gmem.Save.del("igra.quality.low"); } catch (e) {}
+      var Qm = Gmem.Quality;
+      Qm.ready = true; Qm.glow = true; Qm.demoted = false;
+      Qm._seen = 0; Qm._heavy = 0; Qm.dpr = 1.4;
+      for (var i = 0; i < 500; i++) Qm.watch(i % 12 === 0 ? 1 / 20 : 1 / 60);
+      ok(Gmem.Save.get("igra.quality.low") === "1", "послабление запоминается",
+         "igra.quality.low=" + Gmem.Save.get("igra.quality.low"));
+      Qm.ready = false; Qm.glow = true; Qm.demoted = false; Qm.dpr = 2;
+      var navMem = global.navigator;
+      global.navigator = { deviceMemory: 8, hardwareConcurrency: 8 };
+      Qm.init();
+      ok(!Qm.glow && Qm.dpr === 1, "следующий запуск уже слабый — паспорт не врёт повторно",
+         "glow=" + Qm.glow + ", dpr=" + Qm.dpr);
+      try { Gmem.Save.del("igra.quality.low"); } catch (e) {}
+      global.navigator = navMem;
+    })();
   })();
 
   ok(lo.grad >= 20, "свет смысла горит и на слабом телефоне",
