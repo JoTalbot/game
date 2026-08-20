@@ -465,14 +465,14 @@ group("мир: портрет дышит, а не упирается в пото
      "сумма осей: 1-я минута " + early.toFixed(2) + ", 8-я " + late.toFixed(2));
 
   // 5. Вехи не кончаются на двадцати: человек за сессию вырастил 141.
-  var far = ["ms40", "ms70", "ms120"];
+  var far = ["ms40", "ms70", "ms120", "ms200", "ms350"];
   var missing = [];
   for (var m = 0; m < far.length; m++) {
     if (!G6.LINES_EN[far[m]]) missing.push(far[m] + " (en)");
     if (!G6.Voice.keys || G6.Voice.keys().indexOf(far[m]) < 0) missing.push(far[m] + " (ru)");
   }
   ok(!missing.length, "у дальних вех есть слова на обоих языках",
-     missing.length ? missing.join(", ") : "40, 70, 120");
+     missing.length ? missing.join(", ") : "40, 70, 120, 200, 350");
 
   // Сезон обязан идти за доминантой. Отчёт: природа «сбой», сезон
   // «тишина» — они разошлись и не сходились тринадцать минут. Осыпь
@@ -3208,7 +3208,8 @@ group("голос: ни один пул не немой");
     // наблюдения директора — say(read()) → watch*
     watchRooted: 1, watchScatter: 1, watchNoAnchor: 1, watchStill: 1, watchTogether: 1,
     // вехи — say(msKey) по MILESTONES
-    ms5: 1, ms10: 1, ms20: 1, ms40: 1, ms70: 1, ms120: 1,
+    ms5: 1, ms10: 1, ms20: 1, ms40: 1, ms70: 1, ms120: 1, ms200: 1, ms350: 1,
+    shore3: 1, shore8: 1, shore15: 1,
     // породы — say(map[kind]) в director.js (встреча породы)
     stillBorn: 1, kind: 1, glitch: 1, music: 1, firstNode: 1,
     // тернарные вызовы в engine.js
@@ -3765,6 +3766,59 @@ group("порода видна формой, не только цветом");
   }
   ok(same === 0, "семь следов — семь разных форм",
      same ? same + " пар совпали" : "все различны");
+})();
+
+
+// ——— долгая жизнь видна ———
+// Отчёт 2.25: «нет прогресса, нет достижений, нет цели». Вехи кончались
+// на 120, человек вырастил 422 и сменил 19 кож — мир молчал. Достижений-
+// меню не будет: прогресс обязан быть виден на семени и назван голосом.
+group("долгая жизнь видна, а не в меню");
+(function () {
+  var game = H.makeWorld(G, 7);
+  function playerMarks(meta) {
+    game.world.meta = meta;
+    var ctx = H.ctxStub();
+    ctx.canvas = { width: 800, height: 600 };
+    G.Renderer.drawPlayer(ctx, game.cam, game, 0, [200, 200, 220]);
+    return {
+      arc: ctx.calls.filter(function (x) { return x === "arc"; }).length,
+      stroke: ctx.calls.filter(function (x) { return x === "stroke"; }).length
+    };
+  }
+  var young = playerMarks(0);
+  var old = playerMarks(12);
+  ok(old.arc > young.arc && old.stroke > young.stroke,
+     "долгое семя носит кольца лет — видно без меню",
+     "arc " + young.arc + " → " + old.arc + ", stroke " + young.stroke + " → " + old.stroke);
+
+  var need = ["ms200", "ms350", "shore3", "shore8", "shore15"];
+  var missing = [];
+  need.forEach(function (k) {
+    if (!G.LINES[k] || !G.LINES_EN[k] || G.LINES_EN[k].length < G.LINES[k].length) missing.push(k);
+    else if (/[а-яА-Я]/.test(G.LINES_EN[k].join(""))) missing.push(k + " cyr");
+  });
+  ok(!missing.length, "дальние вехи и берега названы на двух языках",
+     missing.length ? missing.join(", ") : "200/350, 3/8/15");
+
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  var g = Aim.makeGame(AG, 7);
+  g.world.meta = 2;
+  var heard = [];
+  var real = AG.Voice.say.bind(AG.Voice);
+  AG.Voice.say = function (k, f) { heard.push(k); return real(k, f); };
+  var later = [];
+  var realTO = setTimeout;
+  setTimeout = function (fn) { later.push(fn); return 0; };
+  try { g.finishMeta(); } catch (e) {}
+  setTimeout = realTO;
+  later.forEach(function (fn) { try { fn(); } catch (e) {} });
+  AG.Voice.say = real;
+  ok(g.world.meta === 3 && heard.indexOf("shore3") >= 0,
+     "третья кожа названа берегом, не молчанием",
+     "meta=" + g.world.meta + " слышно: " + (heard.join(",") || "тишина"));
 })();
 
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");

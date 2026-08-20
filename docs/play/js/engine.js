@@ -628,11 +628,12 @@ var IGRA = IGRA || {};
     var self = this;
     // не поверх имени: вторая правда приходит следом
     setTimeout(function () {
-      // Память метаморфозы — третья правда: даже когда удержать было
-      // нечего (сеятель), новый берег помнит его породы цветами.
-      // Сеятелю это честнее, чем «я пришла налегке»: он не пуст,
-      // он помнит. Садовнику хватает metaKept — его память видна.
-      if (self._metaMemory > 0 && self._metaKept <= 0) G.Voice.say("metaMemory");
+      // Долгая жизнь названа. Вехи кончались на 120, а человек дошёл
+      // до 422 и 19 берегов в тишине («нет прогресса»). Пороги кожи —
+      // 3, 8, 15 — говорят вместо generic kept/bare: это уже не первый сад.
+      var ageKey = { 3: "shore3", 8: "shore8", 15: "shore15" }[self.world.meta];
+      if (ageKey) G.Voice.say(ageKey);
+      else if (self._metaMemory > 0 && self._metaKept <= 0) G.Voice.say("metaMemory");
       else G.Voice.say(self._metaKept > 0 ? "metaKept" : "metaBare");
     }, 4200);
     this.save();

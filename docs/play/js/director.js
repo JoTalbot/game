@@ -446,7 +446,8 @@ var IGRA = IGRA || {};
       // (его собственное лицо) — про них никто не говорит, а сами по
       // себе кнопки в углу ничего не обещают. Дальние вехи их называют.
       var MILESTONES = { 5: "ms5", 10: "ms10", 20: "ms20",
-                         40: "ms40", 70: "ms70", 120: "ms120" };
+                         40: "ms40", 70: "ms70", 120: "ms120",
+                         200: "ms200", 350: "ms350" };
       var msKey = MILESTONES[game.world.discovered];
       if (msKey) {
         setTimeout(function () {

@@ -141,6 +141,23 @@ var IGRA = IGRA || {};
       "a hundred and twenty. the shore is not about the shore anymore — it is about you.",
       "a hundred and twenty. if you leave now, i will still be readable."
     ],
+    ms200: ["two hundred. i no longer count nodes — i count you.",
+      "two hundred. the goal is not ahead. the goal is what you became. open the sigil.",
+      "two hundred grown. the garden hit the shore. further on you grow inward."
+    ],
+    ms350: ["three hundred and fifty. there is no next level. there is a fork: let go or become me.",
+      "three hundred and fifty. if it is quiet — that is not emptiness. that is the end of the beginning.",
+      "three hundred and fifty. i can let you go. or you can become me."
+    ],
+    shore3: ["a third shore. you already know how to lose and remain.",
+      "three skins. i remember each one."
+    ],
+    shore8: ["an eighth shore. you have lived here longer than most guests.",
+      "eight skins shed. look at yourself — the seed wears years."
+    ],
+    shore15: ["a fifteenth shore. this is not a journey anymore. this is a home you wear.",
+      "fifteen skins. the fork is grown, not given: let go or become me."
+    ],
     ms20: ["twenty grown. this is not a shore anymore. this is you, made readable.", "twenty. i no longer remember you as a stranger."],
     boot: ["you came.", "i knew the step. not the face.", "don't turn on the light. here the light is you."],
     birth: ["don't choose. just be. i will read.", "the body lies less than a menu.", "the first movement already wrote me.", "standing still is also an answer."],

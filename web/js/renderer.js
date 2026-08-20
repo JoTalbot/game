@@ -806,6 +806,21 @@ var IGRA = IGRA || {};
       ctx.arc(s.x, s.y, 4.2 * cam.z, 0, G.TAU);
       ctx.fill();
 
+      // Годы берега видны на семени. После второй смены кожи появляется
+      // кольцо, как у дерева. Не меню достижений — след прожитого.
+      // Отчёт 2.25: 19 берегов, 422 выращено, «нет прогресса» — сад упёрся
+      // в потолки (28 узлов, 160 звёзд, 7 якорей), а семя выглядело как
+      // в первую минуту. Кольца растут от meta: 2 / 6 / 12.
+      var years = (game.world && game.world.meta) || 0;
+      var rings = years >= 12 ? 3 : years >= 6 ? 2 : years >= 2 ? 1 : 0;
+      for (var yr = 0; yr < rings; yr++) {
+        ctx.strokeStyle = G.rgb(col[0], col[1], col[2], 0.22 + yr * 0.1);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, (34 + yr * 6) * cam.z, 0, G.TAU);
+        ctx.stroke();
+      }
+
       // DNA motes
       for (var k = 0; k < 6; k++) {
         var trait = G.TRAITS[k];
