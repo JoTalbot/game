@@ -271,7 +271,7 @@ function nearestUnformed(game) {
 // узел, к которому не возвращались. Число вызовов у яркого и у погасшего
 // узла одинаковое — меняются только цвета, и раньше стенд их не видел.
 function ctxStub() {
-  var o = { calls: [], alphas: [], _fill: "", _stroke: "" };
+  var o = { calls: [], alphas: [], stops: [], _fill: "", _stroke: "" };
   function noteAlpha(v) {
     var m = /rgba?\([^)]*?,\s*([\d.]+)\s*\)/.exec(String(v));
     if (m) o.alphas.push(parseFloat(m[1]));
@@ -296,7 +296,7 @@ function ctxStub() {
   });
   o.createRadialGradient = o.createLinearGradient = function () {
     o.calls.push("gradient");
-    return { addColorStop: function (stop, color) { noteAlpha(color); } };
+    return { addColorStop: function (stop, color) { noteAlpha(color); o.stops.push(color); } };
   };
   Object.defineProperty(o, "fillStyle", {
     get: function () { return o._fill; },

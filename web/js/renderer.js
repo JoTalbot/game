@@ -101,8 +101,15 @@ var IGRA = IGRA || {};
       );
       var hour = new Date().getHours();
       var night = hour < 6 || hour > 21 ? 0.72 : hour < 8 || hour > 18 ? 0.88 : 1;
-      var seasonTint = G.Memory && G.Memory.seasonTrait === "aggression" ? 1.15 : 1;
-      bg.addColorStop(0, G.rgb(col[0] * 0.12 * seasonTint, col[1] * 0.12 * night, col[2] * 0.16 * night, 1));
+      // Сезон красит берег: фон дышит цветом твоей доминантной оси. Раньше
+      // подкрашивал только жар (умножал красный канал), остальные пять
+      // сезонов были невидимы — «сезон — это закон берега» читалось только
+      // надписью. Теперь каждый сезон тонирует фон своим цветом, мягко:
+      // фон остаётся тёмным (цвет × ~0.16), меняется лишь тон.
+      var seasonTrait = G.Memory ? G.Memory.seasonTrait : null;
+      var sc = seasonTrait ? (G.TRAIT_COLOR[seasonTrait] || null) : null;
+      var base = sc || col;
+      bg.addColorStop(0, G.rgb(base[0] * 0.16, base[1] * 0.14 * night, base[2] * 0.18 * night, 1));
       bg.addColorStop(0.45, night < 0.8 ? "#05040a" : "#07080d");
       bg.addColorStop(1, "#030308");
       ctx.fillStyle = bg;
@@ -559,13 +566,18 @@ var IGRA = IGRA || {};
         ctx.stroke();
         // Корни: то, к чему человек возвращался, держится за мир нитями.
         // Одна нить за каждое возвращение — считать не нужно, видно и так.
-        if (n.roots > 0.05) {
-          var rc = Math.round(n.roots * 3);
-          ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.16 + n.roots * 0.18);
+        // Число нитей — от `returns` (честный счётчик возвращений), а не от
+        // непрерывного roots: при roots 0.34 round давал одну нить, при 0.68
+        // две, но человек не видел разницы между «вернулся дважды» и
+        // «вернулся и держал». Теперь одна нить = одно возвращение.
+        var returns = (n.returns != null ? n.returns : Math.round(n.roots * 3));
+        if (returns > 0) {
+          var rc = Math.min(3, returns);
+          ctx.strokeStyle = G.rgb(c[0], c[1], c[2], 0.16 + Math.min(1, returns / 3) * 0.22);
           ctx.lineWidth = 1;
           for (var ri = 0; ri < rc; ri++) {
             var ra = Math.PI * 0.5 + (ri - (rc - 1) / 2) * 0.42;
-            var rl = r * (0.9 + n.roots * 0.9);
+            var rl = r * (0.9 + Math.min(1, returns / 3) * 0.9);
             var sway = Math.sin(t * 0.7 + n.phase + ri) * r * 0.12;
             ctx.beginPath();
             ctx.moveTo(p.x + Math.cos(ra) * r * 0.5, p.y + Math.sin(ra) * r * 0.5);
@@ -575,6 +587,16 @@ var IGRA = IGRA || {};
               p.x + Math.cos(ra) * rl + sway,
               p.y + Math.sin(ra) * rl
             );
+            ctx.stroke();
+          }
+          // Полный корень — узел держится сам. Тёплый венчик, отличимый от
+          // якоря: корень — привычка (мягкое тепло), якорь — воля (острый
+          // янтарный обод). Видно без слов, что это уже «своё».
+          if (returns >= 3) {
+            ctx.strokeStyle = G.rgb(255, 210, 150, 0.35 + 0.15 * Math.sin(t * 1.5 + n.phase));
+            ctx.lineWidth = 1.4;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r * 1.45, 0, G.TAU);
             ctx.stroke();
           }
         }

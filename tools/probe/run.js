@@ -3587,5 +3587,51 @@ group("сигила зовёт");
      "ru " + (AG.LINES.sigil || []).length + " / en " + (AG.LINES_EN.sigil || []).length);
 })();
 
+// ——— корни и сезон видны глазом ———
+// Две фишки «сделать невидимое видимым»: (1) узел рисует одну нить за одно
+// возвращение и тёплый венчик на полном корне (3 возвращения); (2) фон
+// подкрашен цветом сезона, а не только жаром. Проверяем фактом (число
+// мазков), а не формулой.
+group("корни и сезон видны глазом");
+(function () {
+  var game = H.makeWorld(G, 7);
+  var n = game.world.nodes[0];
+  n.state = "alive"; n.kind = "relic"; n.r = 18; n.care = 0.8; n.roots = 1;
+  function draw(returns) {
+    n.returns = returns;
+    var ctx = H.ctxStub();
+    ctx.canvas = { width: 800, height: 600 };
+    G.Renderer.drawNode(ctx, game.cam, n, 0, game);
+    return {
+      threads: ctx.calls.filter(function (x) { return x === "quadraticCurveTo"; }).length,
+      arcs: ctx.calls.filter(function (x) { return x === "arc"; }).length
+    };
+  }
+  var bare = draw(0);
+  var once = draw(1);
+  var thrice = draw(3);
+  ok(once.threads > bare.threads, "одно возвращение рисует нить — видно, что был",
+     "нитей " + bare.threads + " → " + once.threads);
+  ok(thrice.threads > once.threads, "три возвращения — три нити, а не одна",
+     "нитей " + once.threads + " → " + thrice.threads);
+  ok(thrice.arcs > once.arcs, "полный корень рисует венчик — отличим от нитей",
+     "arc " + once.arcs + " → " + thrice.arcs + " (венчик на 3 возвращениях)");
+  // Сезон красит фон: жар и тишина дают разный тон первого стопа градиента.
+  var s0 = G.Memory.seasonTrait;
+  function bgColor() {
+    var ctx = H.ctxStub();
+    ctx.canvas = { width: 800, height: 600 };
+    G.Renderer.draw(ctx, game);
+    return ctx.stops ? ctx.stops[0] : null;
+  }
+  G.Memory.seasonTrait = "aggression";
+  var a = bgColor();
+  G.Memory.seasonTrait = "contemplation";
+  var b = bgColor();
+  G.Memory.seasonTrait = s0;
+  ok(a && b && a !== b, "фон различает сезоны цветом",
+     "жар " + JSON.stringify(a) + " / тишина " + JSON.stringify(b));
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
