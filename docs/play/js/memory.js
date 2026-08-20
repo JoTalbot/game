@@ -184,13 +184,12 @@ var IGRA = IGRA || {};
         if (old.isYesterday) {
           if (!old.dead) {
             old.dead = true;
-            w.stars.push({
+            w.addStar({
               x: old.x * 0.15, y: old.y * 0.15,
               c: (G.TRAIT_COLOR && G.TRAIT_COLOR[old.hue]) || [200, 210, 255],
               kind: old.hue || "spark", tw: Math.random() * G.TAU,
               ox: old.x, oy: old.y
             });
-            if (w.stars.length > 160) w.stars.splice(0, w.stars.length - 160);
             if (G.Audio && G.Audio.forget) G.Audio.forget("empathy");
           }
           w.beings.splice(yi, 1);

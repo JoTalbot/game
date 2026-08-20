@@ -99,7 +99,8 @@ var IGRA = IGRA || {};
       for (var i = 0; i < game.world.nodes.length; i++) {
         var n = game.world.nodes[i];
         if (n.state === "alive") {
-          game.world.stars.push({
+          // Иначе «отпустить» обходит кап 160 — небо пухнет в финале.
+          game.world.addStar({
             x: n.x * 0.14,
             y: n.y * 0.14,
             c: n.color(),

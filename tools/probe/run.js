@@ -3028,9 +3028,13 @@ group("небо: все звёзды рождаются через addStar");
   // боевую сессию небо переполнялось и раздувало сейв. Теперь у капа
   // один вход, и сторож читает исходник: любой новый stars.push мимо
   // addStar покраснеет, а не всплывёт через месяц в отчёте с телефона.
+  // Список файлов врёт: fate.js и memory.js пушили мимо, сторож не видел.
+  // Читаем весь web/js, кроме world.js — там единственный законный вход.
   var outside = [];
-  ["organs.js", "engine.js", "director.js", "renderer.js", "ui.js"].forEach(function (f) {
-    var lines = fs.readFileSync(__dirname + "/../../web/js/" + f, "utf8").split("\n");
+  var dir = __dirname + "/../../web/js/";
+  fs.readdirSync(dir).forEach(function (f) {
+    if (!/\.js$/.test(f) || f === "world.js") return;
+    var lines = fs.readFileSync(dir + f, "utf8").split("\n");
     lines.forEach(function (line, i) {
       var t = line.replace(/\/\/.*$/, "");
       if (t.indexOf("stars.push") >= 0 || t.indexOf("stars.length > 160") >= 0) {
@@ -3038,7 +3042,7 @@ group("небо: все звёзды рождаются через addStar");
       }
     });
   });
-  ok(outside.length === 0, "звёзды в органах и движке — только через addStar",
+  ok(outside.length === 0, "звёзды во всех органах — только через addStar",
     outside.length ? outside.join(", ") : "все входы в addStar");
   var wj = fs.readFileSync(__dirname + "/../../web/js/world.js", "utf8").split("\n");
   var pushes = [];
@@ -3059,6 +3063,63 @@ group("небо: все звёзды рождаются через addStar");
     w.hitWound(u.x, u.y, 5, 5, null);
   }
   ok(w.stars.length <= 160, "убитые раны не переполняют небо", w.stars.length + " звёзд");
+})();
+
+// ——— небо: конец и вчерашний тоже через addStar ———
+// release и смена «вчерашнего тебя» пушили звёзды мимо капа.
+// Сторож выше читает исходник; здесь — факт: небо не пухнет, вход один.
+group("небо: конец и вчерашний через addStar");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  AG.Voice.say = function () {};
+  AG.Voice.sayText = function () {};
+  if (AG.Audio) {
+    AG.Audio.metamorphosis = function () {};
+    AG.Audio.forget = function () {};
+  }
+  var g = Aim.makeGame(AG, 7);
+  g.time = 2400;
+  AG.DEBUG.fast = true;
+  AG.Fate.chosen = "";
+  g.world.stars = [];
+  var i;
+  for (i = 0; i < 150; i++) {
+    g.world.addStar({ x: i, y: i, c: [200, 200, 255], kind: "spark", tw: 0 });
+  }
+  for (i = 0; i < 40; i++) {
+    var n = new AG.Node(i * 8, i * 8, "spark");
+    n.state = "alive";
+    g.world.nodes.push(n);
+  }
+  var added = 0;
+  var realAdd = g.world.addStar.bind(g.world);
+  g.world.addStar = function (s) { added++; return realAdd(s); };
+  AG.Fate.release(g);
+  g.world.addStar = realAdd;
+  ok(added >= 40, "отпустить кладёт звёзды через addStar", "вызовов " + added);
+  ok(g.world.stars.length <= 160, "отпустить не переполняет небо",
+     g.world.stars.length + " звёзд");
+
+  g = Aim.makeGame(AG, 11);
+  g.world.stars = [];
+  for (i = 0; i < 160; i++) {
+    g.world.addStar({ x: i, y: 0, c: [180, 190, 220], kind: "spark", tw: 0 });
+  }
+  var old = new AG.Being(12, 18, "empathy");
+  old.isYesterday = true;
+  old.dead = false;
+  old.hue = "empathy";
+  g.world.beings.push(old);
+  added = 0;
+  realAdd = g.world.addStar.bind(g.world);
+  g.world.addStar = function (s) { added++; return realAdd(s); };
+  AG.Memory.spawnYesterday(g, { empathy: 1 }, "X");
+  g.world.addStar = realAdd;
+  ok(added === 1, "вчерашний уходит через addStar", "вызовов " + added);
+  ok(g.world.stars.length <= 160, "вчерашний не переполняет небо",
+     g.world.stars.length + " звёзд");
 })();
 
 // ——— спутник говорит сам ———
