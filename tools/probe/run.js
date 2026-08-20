@@ -3471,7 +3471,7 @@ group("отчёт: пульс — не промах");
     try { g.onUp(); } catch (e) {}
   }
   tap(10.00);
-  tap(10.20); // < 0.28 с после первого — пульс
+  tap(10.20); // < 0.40 с после первого — пульс
   var ge = AG.Report.gestures;
   ok(ge.pulse === 1, "двойное касание даёт один пульс",
      "пульсов " + ge.pulse);
@@ -3495,10 +3495,42 @@ group("пульс работает и без сил");
   AG.Report.reset();
   g.input.down = true;
   g.time = 10; try { g.onDown(); } catch (e) {}
-  g.time = 10.2; try { g.onDown(); } catch (e) {} // < 0.28 с — пульс
+  g.time = 10.2; try { g.onDown(); } catch (e) {} // < 0.40 с — пульс
   g.input.down = false;
   ok(AG.Report.acts.pulses === 1, "без сил пульс всё же срабатывает",
      "pulses=" + AG.Report.acts.pulses + " (энергия была 5)");
+})();
+
+// ——— пульс ловит руку ———
+// 0.28 с быстрее пальца на стекле. Окно 0.40: успевает двойное касание,
+// не путается с двумя отдельными тыками.
+group("пульс ловит руку");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  function pair(g, t0, t1) {
+    AG.Report.reset();
+    g.dna.pulses = 0;
+    g.player.pulseT = 0;
+    function tap(t) {
+      g.time = t;
+      g.input.down = true;
+      AG.Report.gestureStart();
+      try { g.onDown(); } catch (e) {}
+      g.input.down = false;
+      try { g.onUp(); } catch (e) {}
+    }
+    tap(t0);
+    tap(t1);
+    return AG.Report.acts.pulses;
+  }
+  var g = Aim.makeGame(AG, 7);
+  g.state = "play";
+  var slow = pair(g, 20.00, 20.36);
+  ok(slow === 1, "медленный палец всё ещё пульс", "dt=0.36 pulses=" + slow);
+  var late = pair(g, 40.00, 40.55);
+  ok(late === 0, "два отдельных тыка — не пульс", "dt=0.55 pulses=" + late);
 })();
 
 // ——— титул не рождает заново при живом сейве ———
