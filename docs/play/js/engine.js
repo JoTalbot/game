@@ -526,6 +526,7 @@ var IGRA = IGRA || {};
     this._sinceReturn = null;
     G.Fate.offered = false;
     G.Fate.chosen = "";
+    G.Fate.atMeta = null;
     this._skyNudged = false;
     this._skyFull = false;
     this._sigilNudged = false;
@@ -1212,7 +1213,7 @@ var IGRA = IGRA || {};
       organs: G.Director.organs,
       named: G.Director.named,
       lastMeta: G.Director.lastMeta,
-      fate: { offered: G.Fate.offered, chosen: G.Fate.chosen },
+      fate: { offered: G.Fate.offered, chosen: G.Fate.chosen, atMeta: G.Fate.atMeta },
       // Память возвращения не сохранялась ВООБЩЕ. Орган памяти был
       // написан целиком — сессии, дни, сезон, «вчерашний ты», приветствие
       // вернувшегося, сон берега без человека — и не работал ни разу: в
@@ -1345,6 +1346,7 @@ var IGRA = IGRA || {};
     if (data.fate) {
       G.Fate.offered = !!data.fate.offered;
       G.Fate.chosen = data.fate.chosen || "";
+      G.Fate.atMeta = data.fate.atMeta != null ? data.fate.atMeta : null;
     }
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.time = data.time || 0;
@@ -1353,8 +1355,8 @@ var IGRA = IGRA || {};
     // become на 7.8 мин при берегах 2 — финал пришёл раньше, чем мир прожит.
     if ((this.time || 0) < 1200) G.Fate.offered = false;
     // Конец на живом берегу — ложь. Снимаем chosen и голый offered,
-    // пишем диск сразу: иначе следующий короткий паспорт снова врёт.
-    var fateDirty = G.Fate.unstick();
+    // но берег этот уже видел развилку: atMeta держит кожу.
+    var fateDirty = G.Fate.unstick(this.world.meta);
     this._sinceReturn = 0;
     // Возвращение — это событие, а не тихая загрузка файла. Здесь берег
     // досыпает часы без человека, считает день и сессию, растит

@@ -897,11 +897,12 @@ group("судьба: финал приходит в конце, а не в на�
     gb.dna.age = 1500;
     Gb.Fate.chosen = "become";
     Gb.Fate.offered = true;
+    Gb.Fate.atMeta = 5;
     gb.state = "title";
     try { gb.startBirth(); } catch (e) {}
-    ok(gb.time === 0 && gb.dna.age === 0 && !Gb.Fate.chosen,
+    ok(gb.time === 0 && gb.dna.age === 0 && !Gb.Fate.chosen && Gb.Fate.atMeta == null,
        "рождение обнуляет часы мира, а не наследует чужие",
-       "время " + gb.time + ", возраст " + gb.dna.age + ", судьба «" + Gb.Fate.chosen + "»");
+       "время " + gb.time + ", возраст " + gb.dna.age + ", судьба «" + Gb.Fate.chosen + "», atMeta=" + Gb.Fate.atMeta);
     ok(!Gb.Fate.ready(gb), "новорождённому не предлагают финал");
   })();
 
@@ -3596,11 +3597,9 @@ group("«стать игрой» — это голос, а не заглушка
 })();
 
 // ——— судьба не залипает на живом берегу ———
-// Отчёты 2.23 и 2.25: «судьба: become» при миру 36–39 мин, сад на месте.
-// become обязан стереть сейв. Если берег загрузился с chosen=become —
-// человек закрыл отчёт или убил приложение на полуслове. 2.15 снимал
-// только chosen у release, а offered оставался true и ready молчал.
-// Спрашиваем мир после настоящего load, не формулу.
+// Отчёты 2.28: каждый вход после 48 с снова «become»/«release».
+// unstick снимает жест, но берег этот уже видел конец — atMeta.
+// Конец раз на кожу, не на каждую сессию. Спрашиваем мир после load.
 group("судьба не залипает на живом берегу");
 (function () {
   var Aim = require("./aim.js");
@@ -3615,15 +3614,22 @@ group("судьба не залипает на живом берегу");
   g.world.discovered = 120;
   AG.Fate.offered = true;
   AG.Fate.chosen = "become";
+  AG.Fate.atMeta = null;
   g.save();
   ok(!AG.Fate.ready(g), "пока chosen жив — развилка закрыта");
 
   var g2 = Aim.makeGame(AG, 7);
   ok(g2.load(), "сейв с прерванным become поднимается");
   ok(!AG.Fate.chosen && !AG.Fate.offered,
-     "прерванный become не хоронит развилку",
+     "прерванный become не хоронит жест в chosen",
      "chosen=" + (AG.Fate.chosen || "(пусто)") + " offered=" + AG.Fate.offered);
-  ok(AG.Fate.ready(g2), "на живом зрелом берегу развилка снова возможна");
+  ok(AG.Fate.atMeta === 5, "берег запомнил кожу, на которой уже стоял конец",
+     "atMeta=" + AG.Fate.atMeta);
+  ok(!AG.Fate.ready(g2), "на той же коже развилка снова не встаёт",
+     "ready=" + AG.Fate.ready(g2) + " meta=" + g2.world.meta);
+  g2.world.meta = 6;
+  ok(AG.Fate.ready(g2), "после смены кожи развилка снова возможна",
+     "meta=" + g2.world.meta + " atMeta=" + AG.Fate.atMeta);
 
   AG.Fate.offered = true;
   AG.Fate.chosen = "release";
@@ -3632,12 +3638,12 @@ group("судьба не залипает на живом берегу");
   g2.save();
   var g3 = Aim.makeGame(AG, 7);
   g3.load();
-  ok(!AG.Fate.chosen && !AG.Fate.offered && AG.Fate.ready(g3),
-     "и прерванный release тоже отпускает развилку",
-     "chosen=" + (AG.Fate.chosen || "(пусто)") + " offered=" + AG.Fate.offered);
+  ok(!AG.Fate.chosen && !AG.Fate.offered && AG.Fate.atMeta === 5 && !AG.Fate.ready(g3),
+     "и прерванный release тоже помнит кожу, а не зовёт снова",
+     "chosen=" + (AG.Fate.chosen || "(пусто)") + " atMeta=" + AG.Fate.atMeta);
 
-  // offered без chosen — человек закрыл экран «назад». 2.15 хоронил
-  // развилку навсегда. На живом берегу это «ещё нет».
+  // offered без chosen — человек закрыл экран «назад». На той же коже
+  // это «уже видел», не новый шанс.
   AG.Fate.offered = true;
   AG.Fate.chosen = "";
   g3.time = 2400;
@@ -3645,22 +3651,24 @@ group("судьба не залипает на живом берегу");
   g3.save();
   var g4 = Aim.makeGame(AG, 7);
   g4.load();
-  ok(!AG.Fate.offered && !AG.Fate.chosen && AG.Fate.ready(g4),
-     "отмахнутая развилка не хоронит конец",
-     "chosen=" + (AG.Fate.chosen || "(пусто)") + " offered=" + AG.Fate.offered);
+  ok(!AG.Fate.offered && !AG.Fate.chosen && AG.Fate.atMeta === 5 && !AG.Fate.ready(g4),
+     "отмахнутая развилка на той же коже не зовёт снова",
+     "chosen=" + (AG.Fate.chosen || "(пусто)") + " atMeta=" + AG.Fate.atMeta);
+  g4.world.meta = 6;
+  ok(AG.Fate.ready(g4), "новая кожа снова открывает конец");
 
   // Диск обязан совпасть с памятью: короткий паспорт читает живое,
   // но следующий запуск читает файл.
   var disk = JSON.parse(AG._store["igra.save.v1"] || "{}");
-  ok(disk.fate && !disk.fate.chosen && !disk.fate.offered,
-     "диск тоже отпустил прерванный конец",
-     disk.fate ? "chosen=" + (disk.fate.chosen || "(пусто)") : "нет fate");
+  ok(disk.fate && !disk.fate.chosen && !disk.fate.offered && disk.fate.atMeta === 5,
+     "диск помнит кожу конца, а не живой жест",
+     disk.fate ? "atMeta=" + disk.fate.atMeta : "нет fate");
 })();
 
 // ——— конец не на пороге ———
-// Отчёты 2.26/2.27: 6–12 секунд, ноль касаний, «судьба: become».
-// Шов отпустил жест — и развилка накрыла берег в первый кадр.
-// Кольца лет под ней не видны. Вернувшемуся — дыхание, потом конец.
+// Отчёты 2.28: дыхание 48 с жило, но после него конец вставал снова
+// на той же коже. atMeta держит берег: 60 с без offer; новая кожа —
+// после дыхания offer. Рождение своего порога не трогает.
 group("конец не на пороге");
 (function () {
   var Aim = require("./aim.js");
@@ -3675,6 +3683,7 @@ group("конец не на пороге");
   g.world.discovered = 423;
   AG.Fate.offered = true;
   AG.Fate.chosen = "become";
+  AG.Fate.atMeta = null;
   g.save();
 
   var g2 = Aim.makeGame(AG, 7);
@@ -3686,18 +3695,25 @@ group("конец не на пороге");
     if (at < 0) at = g2._sinceReturn;
     return orig(gm);
   };
-  for (var i = 0; i < 30 * 60; i++) {
+  // Живой update может сам сменить кожу — тогда тест мерит мету, не atMeta.
+  g2.beginMeta = function () {};
+  for (var i = 0; i < 60 * 60; i++) {
+    g2.world.meta = 19;
     try { g2.update(1 / 60); } catch (e) {}
   }
-  ok(at < 0, "первые полминуты после возвращения берег без конца",
-     at < 0 ? "тихо " + (g2._sinceReturn || 0).toFixed(1) + "с" : "конец на " + at.toFixed(1) + "с");
-  for (var j = 0; j < 30 * 60; j++) {
+  ok(at < 0 && AG.Fate.atMeta === 19, "минута на той же коже — берег без конца",
+     at < 0 ? "тихо " + (g2._sinceReturn || 0).toFixed(1) + "с, atMeta=" + AG.Fate.atMeta
+            : "конец на " + at.toFixed(1) + "с");
+  g2.world.meta = 20;
+  g2._sinceReturn = 0;
+  at = -1;
+  for (var j = 0; j < 70 * 60; j++) {
     try { g2.update(1 / 60); } catch (e) {}
     if (at >= 0) break;
   }
   AG.Fate.offer = orig;
-  ok(at >= 40 && at <= 70, "после дыхания развилка приходит сама",
-     at >= 0 ? "на " + at.toFixed(1) + "с после возвращения" : "НЕ пришла");
+  ok(at >= 40 && at <= 70, "после смены кожи и дыхания развилка приходит сама",
+     at >= 0 ? "на " + at.toFixed(1) + "с после новой кожи" : "НЕ пришла");
 
   // Рождение своего порога не трогает: без возвращения конца нет
   // раньше 20 минут (сторожит соседняя группа).
@@ -3705,6 +3721,7 @@ group("конец не на пороге");
   born.state = "play";
   AG.Fate.offered = false;
   AG.Fate.chosen = "";
+  AG.Fate.atMeta = null;
   ok(born._sinceReturn == null, "рождение не ставит таймер возвращения");
 })();
 

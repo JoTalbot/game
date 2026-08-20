@@ -5,6 +5,10 @@ var IGRA = IGRA || {};
   G.Fate = {
     offered: false,
     chosen: "",
+    // На каком берегу развилка уже стояла. null — ещё ни разу.
+    // Отчёты 2.28: каждый вход после 48 с снова «become»/«release».
+    // Конец — раз на кожу, не на каждую сессию.
+    atMeta: null,
     // «Стать игрой» прожито: в новой жизни ты — голос, а не игрок.
     // Выставляется в boot() по наличию voiceplus (переживает перезагрузку,
     // потому что живёт отдельным ключом, который clear() сейва не трогает).
@@ -26,17 +30,17 @@ var IGRA = IGRA || {};
     // сейв; если сад загрузился, жест не дожил. offered без chosen —
     // человек закрыл экран кнопкой «назад»: это «ещё нет», а не финал.
     // 2.15 снимал только chosen у release, и второй конец умирал.
-    unstick: function () {
+    unstick: function (meta) {
       var dirty = false;
-      if (this.chosen === "release" || this.chosen === "become") {
+      var had = this.chosen === "release" || this.chosen === "become" ||
+                (this.offered && !this.chosen);
+      if (had) {
+        // Жест был — берег этот уже видел конец. Не предлагать снова,
+        // пока кожа не сменится.
+        if (this.atMeta == null && meta != null) this.atMeta = meta;
         this.chosen = "";
         this.offered = false;
         dirty = true;
-      } else if (this.offered && !this.chosen) {
-        this.offered = false;
-        dirty = true;
-      }
-      if (dirty) {
         var scr = document.getElementById("fate-screen");
         if (scr) scr.classList.remove("on");
       }
@@ -52,6 +56,7 @@ var IGRA = IGRA || {};
       if (G.DEBUG && G.DEBUG.fast) {
         return (game.time || 0) > 25;
       }
+      if (this.atMeta != null && (game.world.meta || 0) <= this.atMeta) return false;
       if ((game.time || 0) < 1200) return false;
       return game.world.meta >= 2 ||
              game.dna.age > 900 ||
@@ -62,6 +67,7 @@ var IGRA = IGRA || {};
       if (this.offered) return;
       if ((game.time || 0) < 1200 && !(G.DEBUG && G.DEBUG.fast)) return;
       this.offered = true;
+      this.atMeta = game.world.meta || 0;
       // Тест-режим одноразовый: развилка сработала — флаг гасится и в памяти,
       // и в сейве. Иначе «быстрый конец» застревал навсегда и приходил после
       // каждого старта (жалоба «после старта быстро наступает конец»).
