@@ -1842,6 +1842,19 @@ group("оболочка: игра не съедает касания интер�
      "оболочка не отдаёт жест прокрутке, пока палец на стекле");
   ok(/setLongClickable\(false\)/.test(jcode) && /onLongClick/.test(jcode),
      "долгое удержание не поднимает системное меню выделения");
+  ok(/setAutoHandwritingEnabled\(false\)/.test(jcode),
+     "рукописный ввод Android 15 не забирает удержание");
+  ok(/setCustomSelectionActionModeCallback/.test(jcode) &&
+     /onCreateActionMode[\s\S]{0,80}return false/.test(jcode),
+     "выделение текста Chromium не рвёт жест");
+  ok(/ACTION_MOVE/.test(jcode) && /requestDisallowInterceptTouchEvent\(true\)/.test(jcode),
+     "пока палец движется — оболочка всё ещё держит жест");
+  var cssAll = fs.readFileSync(path.join(__dirname, "..", "..", "web", "css", "game.css"), "utf8");
+  ok(/-webkit-touch-callout:\s*none/.test(cssAll) &&
+     /-webkit-user-select:\s*none/.test(cssAll),
+     "берег не зовёт системное меню выделения");
+  ok(/contextmenu/.test(eng) && /selectstart/.test(eng),
+     "холст глушит contextmenu и selectstart");
   ok(/overScrollBy[\s\S]{0,220}return false/.test(jcode) &&
      /scrollTo\(int[\s\S]{0,80}super\.scrollTo\(0, 0\)/.test(jcode),
      "WebView не уводит содержимое собственной прокруткой");

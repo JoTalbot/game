@@ -7,6 +7,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,12 +101,18 @@ public class MainActivity extends Activity {
                 @Override
                 public boolean onTouchEvent(MotionEvent ev) {
                     int a = ev.getActionMasked();
-                    if (a == MotionEvent.ACTION_DOWN) {
+                    if (a == MotionEvent.ACTION_DOWN || a == MotionEvent.ACTION_MOVE) {
                         // «Не перехватывать» — просьба ко всей цепочке
                         // родителей: пока палец лежит, жест наш.
-                        getParent().requestDisallowInterceptTouchEvent(true);
-                    } else if (a == MotionEvent.ACTION_UP || a == MotionEvent.ACTION_CANCEL) {
-                        getParent().requestDisallowInterceptTouchEvent(false);
+                        // MOVE тоже: иначе родитель передумывает на ходу.
+                        requestDisallowInterceptTouchEvent(true);
+                        if (getParent() != null) {
+                            getParent().requestDisallowInterceptTouchEvent(true);
+                        }
+                    } else if (a == MotionEvent.ACTION_UP) {
+                        if (getParent() != null) {
+                            getParent().requestDisallowInterceptTouchEvent(false);
+                        }
                     }
                     return super.onTouchEvent(ev);
                 }
@@ -137,6 +146,22 @@ public class MainActivity extends Activity {
             webView.setOnLongClickListener(new View.OnLongClickListener() {
                 public boolean onLongClick(View v) { return true; }
             });
+            // Отчёт 2.31 №2: система забрала жест ×6, медиана 0.71 с.
+            // Android 15 (Oukitel) на long-press включает рукописный ввод
+            // и Chromium-выделение — оба шлют touchcancel до рождения (1.35 с).
+            if (Build.VERSION.SDK_INT >= 33) {
+                webView.setAutoHandwritingEnabled(false);
+            }
+            ActionMode.Callback killSelect = new ActionMode.Callback() {
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) { return false; }
+                public boolean onPrepareActionMode(ActionMode mode, Menu menu) { return false; }
+                public boolean onActionItemClicked(ActionMode mode, MenuItem item) { return false; }
+                public void onDestroyActionMode(ActionMode mode) {}
+            };
+            webView.setCustomSelectionActionModeCallback(killSelect);
+            if (Build.VERSION.SDK_INT >= 23) {
+                webView.setCustomInsertionActionModeCallback(killSelect);
+            }
             webView.setNestedScrollingEnabled(false);
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());

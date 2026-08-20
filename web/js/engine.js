@@ -240,6 +240,12 @@ var IGRA = IGRA || {};
       self.input.hold = 0;
       self.input.hx = null;
     }, { passive: true });
+    // Отчёт 2.31 №2: система забрала жест ×6, медиана 0.71 с.
+    // Chromium WebView на long-press (~0.5 с) поднимает выделение и
+    // шлёт touchcancel. Меню и selectstart — та же рука.
+    function noSelect(e) { e.preventDefault(); }
+    el.addEventListener("contextmenu", noSelect);
+    el.addEventListener("selectstart", noSelect);
     window.addEventListener("keydown", function (e) {
       self.input.keys[e.code] = true;
       if (e.code === "Space") {
