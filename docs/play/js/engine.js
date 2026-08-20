@@ -1332,12 +1332,16 @@ var IGRA = IGRA || {};
     if (data.fate) {
       G.Fate.offered = !!data.fate.offered;
       G.Fate.chosen = data.fate.chosen || "";
-      // «Отпустить» — это прожитый конец, а не вечное состояние. Раньше
-      // вернувшийся после release навсегда оставался с chosen="release":
-      // развилка больше не предлагалась, и второй конец («стать игрой»)
-      // был недостижим без удаления сейва. Сбрасываем — вернувшийся может
-      // снова дорасти до развилки и выбрать другой путь.
-      if (G.Fate.chosen === "release") G.Fate.chosen = "";
+      // Конец, записанный на ЖИВОМ берегу, — прерванный жест, а не прожитый.
+      // become обязан стереть сейв; если берег загрузился с chosen=become,
+      // человек закрыл отчёт или убил приложение на полуслове (отчёты 2.23
+      // и 2.25: «судьба: become» при миру 36–39 мин, сад на месте).
+      // offered тоже блокирует ready — 2.15 снимал только chosen у release,
+      // и второй конец оставался недостижим. Снимаем оба.
+      if (G.Fate.chosen === "release" || G.Fate.chosen === "become") {
+        G.Fate.chosen = "";
+        G.Fate.offered = false;
+      }
     }
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.time = data.time || 0;

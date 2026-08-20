@@ -3594,6 +3594,48 @@ group("«стать игрой» — это голос, а не заглушка
      ru + " / " + en);
 })();
 
+// ——— судьба не залипает на живом берегу ———
+// Отчёты 2.23 и 2.25: «судьба: become» при миру 36–39 мин, сад на месте.
+// become обязан стереть сейв. Если берег загрузился с chosen=become —
+// человек закрыл отчёт или убил приложение на полуслове. 2.15 снимал
+// только chosen у release, а offered оставался true и ready молчал.
+// Спрашиваем мир после настоящего load, не формулу.
+group("судьба не залипает на живом берегу");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  AG.Voice.sayText = function () {};
+
+  var g = Aim.makeGame(AG, 7);
+  g.time = 2400;
+  g.dna.age = 2000;
+  g.world.meta = 5;
+  g.world.discovered = 120;
+  AG.Fate.offered = true;
+  AG.Fate.chosen = "become";
+  g.save();
+  ok(!AG.Fate.ready(g), "пока chosen жив — развилка закрыта");
+
+  var g2 = Aim.makeGame(AG, 7);
+  ok(g2.load(), "сейв с прерванным become поднимается");
+  ok(!AG.Fate.chosen && !AG.Fate.offered,
+     "прерванный become не хоронит развилку",
+     "chosen=" + (AG.Fate.chosen || "(пусто)") + " offered=" + AG.Fate.offered);
+  ok(AG.Fate.ready(g2), "на живом зрелом берегу развилка снова возможна");
+
+  AG.Fate.offered = true;
+  AG.Fate.chosen = "release";
+  g2.time = 2400;
+  g2.world.meta = 5;
+  g2.save();
+  var g3 = Aim.makeGame(AG, 7);
+  g3.load();
+  ok(!AG.Fate.chosen && !AG.Fate.offered && AG.Fate.ready(g3),
+     "и прерванный release тоже отпускает развилку",
+     "chosen=" + (AG.Fate.chosen || "(пусто)") + " offered=" + AG.Fate.offered);
+})();
+
 // ——— сигила зовёт, и её нельзя подделать ———
 // Сигила — твоё лицо в игре, но человек почти никогда её не открывал
 // (отчёты: «сигилу 0»). Зов был слабый (сквозь вехи и «небо — сигила»).
