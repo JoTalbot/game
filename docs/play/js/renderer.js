@@ -564,6 +564,11 @@ var IGRA = IGRA || {};
         ctx.beginPath();
         ctx.arc(p.x, p.y, r * 0.85, 0, G.TAU);
         ctx.stroke();
+        // Порода видна формой, не только цветом. Шесть органов CONCEPT
+        // (реликвия, шип, тишина, эхо, осколок, тон) рисовались одним
+        // кругом — берег читался палитрой, а не жестом. Метка внутри ядра:
+        // мало операций, слабый телефон цел, корни и якорь не путаются.
+        this.drawKindMark(ctx, p.x, p.y, r, n.kind, c, warm);
         // Корни: то, к чему человек возвращался, держится за мир нитями.
         // Одна нить за каждое возвращение — считать не нужно, видно и так.
         // Число нитей — от `returns` (честный счётчик возвращений), а не от
@@ -627,6 +632,55 @@ var IGRA = IGRA || {};
         ctx.arc(p.x, p.y, r * 1.35, -Math.PI / 2, -Math.PI / 2 + G.TAU * pr);
         ctx.stroke();
       }
+    },
+
+    drawKindMark: function (ctx, x, y, r, kind, c, warm) {
+      var a = 0.22 + 0.38 * (warm != null ? warm : 1);
+      ctx.strokeStyle = G.rgb(c[0], c[1], c[2], a);
+      ctx.fillStyle = G.rgb(c[0], c[1], c[2], a * 0.85);
+      ctx.lineWidth = 1;
+      var s = r * 0.38;
+      if (kind === "relic") {
+        ctx.beginPath();
+        ctx.moveTo(x, y - s);
+        ctx.lineTo(x + s * 0.72, y);
+        ctx.lineTo(x, y + s);
+        ctx.lineTo(x - s * 0.72, y);
+        ctx.closePath();
+        ctx.stroke();
+      } else if (kind === "thorn") {
+        ctx.beginPath();
+        for (var i = 0; i < 3; i++) {
+          var ang = -Math.PI / 2 + i * (G.TAU / 3);
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + Math.cos(ang) * s, y + Math.sin(ang) * s);
+        }
+        ctx.stroke();
+      } else if (kind === "echo") {
+        ctx.beginPath();
+        ctx.arc(x, y, r * 0.48, 0, G.TAU);
+        ctx.stroke();
+      } else if (kind === "shard") {
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.15, y - s);
+        ctx.lineTo(x + s, y + s * 0.55);
+        ctx.lineTo(x - s, y + s * 0.32);
+        ctx.closePath();
+        ctx.stroke();
+      } else if (kind === "tone") {
+        ctx.beginPath();
+        for (var j = 0; j < 3; j++) {
+          var a2 = -Math.PI / 2 + j * (G.TAU / 3);
+          ctx.arc(x + Math.cos(a2) * s * 0.7, y + Math.sin(a2) * s * 0.7, 1.5, 0, G.TAU);
+        }
+        ctx.fill();
+      } else if (kind === "still") {
+        ctx.beginPath();
+        ctx.moveTo(x - s * 0.7, y);
+        ctx.lineTo(x + s * 0.7, y);
+        ctx.stroke();
+      }
+      // spark — семя: круг и есть форма
     },
 
     drawBeing: function (ctx, cam, b, t) {

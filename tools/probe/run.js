@@ -3633,5 +3633,64 @@ group("корни и сезон видны глазом");
      "жар " + JSON.stringify(a) + " / тишина " + JSON.stringify(b));
 })();
 
+// ——— порода видна формой ———
+// Шесть органов CONCEPT рисовались одним кругом: реликвия, шип, эхо,
+// осколок, тон, тишина отличались только цветом оси. Берег читался
+// палитрой, а не жестом — «механика, которую не видно, не существует».
+// Метка внутри ядра. Спрашиваем факт (разный набор мазков), а не формулу.
+group("порода видна формой, не только цветом");
+(function () {
+  var game = H.makeWorld(G, 7);
+  var n = game.world.nodes[0];
+  n.state = "alive"; n.r = 18; n.care = 0.8; n.roots = 0; n.returns = 0;
+  function sig(kind) {
+    n.kind = kind;
+    var ctx = H.ctxStub();
+    ctx.canvas = { width: 800, height: 600 };
+    G.Renderer.drawNode(ctx, game.cam, n, 0, game);
+    return ctx.calls.slice();
+  }
+  function count(arr, name) {
+    var n = 0;
+    for (var i = 0; i < arr.length; i++) if (arr[i] === name) n++;
+    return n;
+  }
+  var spark = sig("spark");
+  var relic = sig("relic");
+  var thorn = sig("thorn");
+  var echo = sig("echo");
+  var shard = sig("shard");
+  var tone = sig("tone");
+  var still = sig("still");
+  ok(relic.join() !== spark.join() && count(relic, "closePath") > count(spark, "closePath"),
+     "реликвия — грань, не круг",
+     "closePath spark " + count(spark, "closePath") + " → relic " + count(relic, "closePath"));
+  ok(thorn.join() !== spark.join() && count(thorn, "lineTo") > count(spark, "lineTo"),
+     "шип — три луча",
+     "lineTo spark " + count(spark, "lineTo") + " → thorn " + count(thorn, "lineTo"));
+  ok(echo.join() !== spark.join() && count(echo, "arc") > count(spark, "arc"),
+     "эхо — кольцо внутри",
+     "arc spark " + count(spark, "arc") + " → echo " + count(echo, "arc"));
+  ok(shard.join() !== relic.join() && count(shard, "closePath") > 0,
+     "осколок ломаный, не ромб реликвии",
+     "shard closePath " + count(shard, "closePath") + ", relic lineTo " + count(relic, "lineTo") +
+     " vs shard " + count(shard, "lineTo"));
+  ok(tone.join() !== spark.join() && count(tone, "fill") > count(spark, "fill"),
+     "тон — три зерна вокруг",
+     "fill spark " + count(spark, "fill") + " → tone " + count(tone, "fill"));
+  ok(still.join() !== spark.join() && count(still, "lineTo") > count(spark, "lineTo"),
+     "тишина — черта покоя",
+     "lineTo spark " + count(spark, "lineTo") + " → still " + count(still, "lineTo"));
+  var kinds = [spark, relic, thorn, echo, shard, tone, still];
+  var same = 0;
+  for (var a = 0; a < kinds.length; a++) {
+    for (var b = a + 1; b < kinds.length; b++) {
+      if (kinds[a].join() === kinds[b].join()) same++;
+    }
+  }
+  ok(same === 0, "семь следов — семь разных форм",
+     same ? same + " пар совпали" : "все различны");
+})();
+
 console.log("\n" + (fail ? "✗ " : "✓ ") + pass + " прошло, " + fail + " упало\n");
 process.exit(fail ? 1 : 0);
