@@ -431,7 +431,6 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    @Override
     public void onActionModeStarted(ActionMode mode) {
         // Chromium на long-press (~0.5 с) поднимает выделение и рвёт
         // жест touchcancel. Отчёт 2.31 №2: система ×6, медиана 0.71 с.
@@ -439,6 +438,7 @@ public class MainActivity extends Activity {
         if (mode != null) mode.finish();
     }
 
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
