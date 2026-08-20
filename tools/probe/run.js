@@ -3635,6 +3635,77 @@ group("судьба не залипает на живом берегу");
   ok(!AG.Fate.chosen && !AG.Fate.offered && AG.Fate.ready(g3),
      "и прерванный release тоже отпускает развилку",
      "chosen=" + (AG.Fate.chosen || "(пусто)") + " offered=" + AG.Fate.offered);
+
+  // offered без chosen — человек закрыл экран «назад». 2.15 хоронил
+  // развилку навсегда. На живом берегу это «ещё нет».
+  AG.Fate.offered = true;
+  AG.Fate.chosen = "";
+  g3.time = 2400;
+  g3.world.meta = 5;
+  g3.save();
+  var g4 = Aim.makeGame(AG, 7);
+  g4.load();
+  ok(!AG.Fate.offered && !AG.Fate.chosen && AG.Fate.ready(g4),
+     "отмахнутая развилка не хоронит конец",
+     "chosen=" + (AG.Fate.chosen || "(пусто)") + " offered=" + AG.Fate.offered);
+
+  // Диск обязан совпасть с памятью: короткий паспорт читает живое,
+  // но следующий запуск читает файл.
+  var disk = JSON.parse(AG._store["igra.save.v1"] || "{}");
+  ok(disk.fate && !disk.fate.chosen && !disk.fate.offered,
+     "диск тоже отпустил прерванный конец",
+     disk.fate ? "chosen=" + (disk.fate.chosen || "(пусто)") : "нет fate");
+})();
+
+// ——— конец не на пороге ———
+// Отчёты 2.26/2.27: 6–12 секунд, ноль касаний, «судьба: become».
+// Шов отпустил жест — и развилка накрыла берег в первый кадр.
+// Кольца лет под ней не видны. Вернувшемуся — дыхание, потом конец.
+group("конец не на пороге");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  AG.Voice.sayText = function () {};
+
+  var g = Aim.makeGame(AG, 7);
+  g.time = 2400;
+  g.dna.age = 2000;
+  g.world.meta = 19;
+  g.world.discovered = 423;
+  AG.Fate.offered = true;
+  AG.Fate.chosen = "become";
+  g.save();
+
+  var g2 = Aim.makeGame(AG, 7);
+  g2.load();
+  g2.state = "play";
+  var at = -1;
+  var orig = AG.Fate.offer.bind(AG.Fate);
+  AG.Fate.offer = function (gm) {
+    if (at < 0) at = g2._sinceReturn;
+    return orig(gm);
+  };
+  for (var i = 0; i < 30 * 60; i++) {
+    try { g2.update(1 / 60); } catch (e) {}
+  }
+  ok(at < 0, "первые полминуты после возвращения берег без конца",
+     at < 0 ? "тихо " + (g2._sinceReturn || 0).toFixed(1) + "с" : "конец на " + at.toFixed(1) + "с");
+  for (var j = 0; j < 30 * 60; j++) {
+    try { g2.update(1 / 60); } catch (e) {}
+    if (at >= 0) break;
+  }
+  AG.Fate.offer = orig;
+  ok(at >= 40 && at <= 70, "после дыхания развилка приходит сама",
+     at >= 0 ? "на " + at.toFixed(1) + "с после возвращения" : "НЕ пришла");
+
+  // Рождение своего порога не трогает: без возвращения конца нет
+  // раньше 20 минут (сторожит соседняя группа).
+  var born = Aim.makeGame(AG, 11);
+  born.state = "play";
+  AG.Fate.offered = false;
+  AG.Fate.chosen = "";
+  ok(born._sinceReturn == null, "рождение не ставит таймер возвращения");
 })();
 
 // ——— сигила зовёт, и её нельзя подделать ———

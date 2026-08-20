@@ -22,6 +22,27 @@ var IGRA = IGRA || {};
     // на берегу — рано в любом случае. Дальше достаточно одного из трёх
     // свидетельств зрелости: две метаморфозы, долгий возраст ДНК или
     // большой сад, переживший прилив.
+    // Конец на живом берегу — прерванный жест. become обязан стереть
+    // сейв; если сад загрузился, жест не дожил. offered без chosen —
+    // человек закрыл экран кнопкой «назад»: это «ещё нет», а не финал.
+    // 2.15 снимал только chosen у release, и второй конец умирал.
+    unstick: function () {
+      var dirty = false;
+      if (this.chosen === "release" || this.chosen === "become") {
+        this.chosen = "";
+        this.offered = false;
+        dirty = true;
+      } else if (this.offered && !this.chosen) {
+        this.offered = false;
+        dirty = true;
+      }
+      if (dirty) {
+        var scr = document.getElementById("fate-screen");
+        if (scr) scr.classList.remove("on");
+      }
+      return dirty;
+    },
+
     ready: function (game) {
       if (this.offered || this.chosen) return false;
       // Тестовый «быстрый конец»: развилка приходит почти сразу — только по

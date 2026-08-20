@@ -46,6 +46,9 @@ var IGRA = IGRA || {};
     this.running = false;
     this.sky = false;
     this.gazeTarget = null;
+    // null = эта жизнь с рождения, развилка живёт своим порогом.
+    // 0+ = секунды после возвращения: конец не встаёт на пороге.
+    this._sinceReturn = null;
   };
 
   G.Game.prototype.resize = function () {
@@ -520,6 +523,7 @@ var IGRA = IGRA || {};
     // кулдауны голоса), считало его старше, чем он есть.
     this.time = 0;
     this.dna.age = 0;
+    this._sinceReturn = null;
     G.Fate.offered = false;
     G.Fate.chosen = "";
     this._skyNudged = false;
@@ -731,7 +735,15 @@ var IGRA = IGRA || {};
 
     this.world.update(dt, this.player, this.dna, this.fx, this);
     G.Director.observe(dt, this);
-    if (G.Fate.ready(this) && this.state === "play" && this.dna.age > 8) {
+    // Вернувшемуся конец не на пороге. Отчёты 2.26/2.27: 6–12 секунд,
+    // ноль касаний, «судьба: become» — шов отпустил жест, и развилка
+    // накрыла берег в первый кадр. Кольца лет под ней не видны.
+    // Дыхание после возвращения; рождение своего порога не трогает.
+    if (this._sinceReturn != null && this.state === "play") {
+      this._sinceReturn += dt;
+    }
+    var home = this._sinceReturn == null || this._sinceReturn >= 48;
+    if (home && G.Fate.ready(this) && this.state === "play" && this.dna.age > 8) {
       G.Fate.offer(this);
     }
     // Подсказка неба и сигилы для молчуна: отчёт 0.4.80 — 61 выращено, небо 0, сигила 0.
@@ -1333,30 +1345,24 @@ var IGRA = IGRA || {};
     if (data.fate) {
       G.Fate.offered = !!data.fate.offered;
       G.Fate.chosen = data.fate.chosen || "";
-      // Конец, записанный на ЖИВОМ берегу, — прерванный жест, а не прожитый.
-      // become обязан стереть сейв; если берег загрузился с chosen=become,
-      // человек закрыл отчёт или убил приложение на полуслове (отчёты 2.23
-      // и 2.25: «судьба: become» при миру 36–39 мин, сад на месте).
-      // offered тоже блокирует ready — 2.15 снимал только chosen у release,
-      // и второй конец оставался недостижим. Снимаем оба.
-      if (G.Fate.chosen === "release" || G.Fate.chosen === "become") {
-        G.Fate.chosen = "";
-        G.Fate.offered = false;
-      }
     }
     this.prevDnaSnap = G.Director.snapshot(this.dna);
     this.time = data.time || 0;
     // Ранний сейв мог принести offered=true до порога 20 мин (баг до
     // 0.4.52: порог был 22 узла, а не время). Отчёт 0.4.80 показал
     // become на 7.8 мин при берегах 2 — финал пришёл раньше, чем мир прожит.
-    // Чиним при загрузке: если часы моложе порога, развилки ещё нет.
     if ((this.time || 0) < 1200) G.Fate.offered = false;
+    // Конец на живом берегу — ложь. Снимаем chosen и голый offered,
+    // пишем диск сразу: иначе следующий короткий паспорт снова врёт.
+    var fateDirty = G.Fate.unstick();
+    this._sinceReturn = 0;
     // Возвращение — это событие, а не тихая загрузка файла. Здесь берег
     // досыпает часы без человека, считает день и сессию, растит
     // «вчерашнего тебя», если суть сменилась, и Игра здоровается.
     // Зовём последним: сон берега трогает узлы и существа, они должны
     // быть уже восстановлены.
     G.Memory.onReturn(this, data.memory || {});
+    if (fateDirty) this.save();
     return true;
   };
 
