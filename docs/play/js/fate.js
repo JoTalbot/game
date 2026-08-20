@@ -41,6 +41,13 @@ var IGRA = IGRA || {};
       if (this.offered) return;
       if ((game.time || 0) < 1200 && !(G.DEBUG && G.DEBUG.fast)) return;
       this.offered = true;
+      // Тест-режим одноразовый: развилка сработала — флаг гасится и в памяти,
+      // и в сейве. Иначе «быстрый конец» застревал навсегда и приходил после
+      // каждого старта (жалоба «после старта быстро наступает конец»).
+      if (G.DEBUG && G.DEBUG.fast) {
+        G.DEBUG.fast = false;
+        try { G.Save.del("igra.debug.fast"); } catch (e) {}
+      }
       G.Voice.say("fate");
       G.Voice.sayText(G.Lang.t("fate"), true);
       var scr = document.getElementById("fate-screen");

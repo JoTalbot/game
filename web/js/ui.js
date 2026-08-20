@@ -155,9 +155,16 @@ var IGRA = IGRA || {};
           if (tapCount >= 5) {
             tapCount = 0;
             G.DEBUG = G.DEBUG || {};
-            G.DEBUG.fast = true;
-            try { G.Save.set("igra.debug.fast", "1"); } catch (err) {}
-            G.UI.hint("тест: конец близко");
+            // Переключатель, а не только «вкл»: пять касаний снова — выкл.
+            // Иначе тест-режим застревал навсегда (сейв), и конец наступал
+            // после каждого старта (жалоба «после старта быстро наступает
+            // конец игры»).
+            G.DEBUG.fast = !G.DEBUG.fast;
+            try {
+              if (G.DEBUG.fast) G.Save.set("igra.debug.fast", "1");
+              else G.Save.del("igra.debug.fast");
+            } catch (err) {}
+            G.UI.hint(G.DEBUG.fast ? "тест: конец близко" : "тест выключен");
             setTimeout(function () { G.UI.hint(""); }, 3000);
           }
         }
