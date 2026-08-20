@@ -13,7 +13,7 @@
 **Смена 20.08 (после 2.31): система не забирает жест.**
 
 - **Почему.** 0.71 с — long-press WebView (выделение / почерк Android 15), не прокрутка из 0.4.52. JS touchcancel при пустом touches рвал взгляд.
-- **Лечение.** CSS callout/user-select. Холст: contextmenu+selectstart. Java: handwriting off, selection ActionMode отказ, disallow на MOVE.
+- **Лечение.** CSS callout/user-select. Холст: contextmenu+selectstart. Java: handwriting off, Activity.onActionModeStarted finish, disallow на MOVE. (WebView.setCustomSelection* нет в android.jar CI.)
 - **Не трогал.** Пульс, порог 126, день 1, кадр.
 
 **Смена 20.08 (после 2.30): небо капится и в конце.**

@@ -1844,8 +1844,7 @@ group("оболочка: игра не съедает касания интер�
      "долгое удержание не поднимает системное меню выделения");
   ok(/setAutoHandwritingEnabled\(false\)/.test(jcode),
      "рукописный ввод Android 15 не забирает удержание");
-  ok(/setCustomSelectionActionModeCallback/.test(jcode) &&
-     /onCreateActionMode[\s\S]{0,80}return false/.test(jcode),
+  ok(/onActionModeStarted/.test(jcode) && /mode\.finish\(\)/.test(jcode),
      "выделение текста Chromium не рвёт жест");
   ok(/ACTION_MOVE/.test(jcode) && /requestDisallowInterceptTouchEvent\(true\)/.test(jcode),
      "пока палец движется — оболочка всё ещё держит жест");

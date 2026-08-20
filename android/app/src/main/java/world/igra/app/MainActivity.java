@@ -8,8 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.ActionMode;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -151,16 +149,6 @@ public class MainActivity extends Activity {
             // и Chromium-выделение — оба шлют touchcancel до рождения (1.35 с).
             if (Build.VERSION.SDK_INT >= 33) {
                 webView.setAutoHandwritingEnabled(false);
-            }
-            ActionMode.Callback killSelect = new ActionMode.Callback() {
-                public boolean onCreateActionMode(ActionMode mode, Menu menu) { return false; }
-                public boolean onPrepareActionMode(ActionMode mode, Menu menu) { return false; }
-                public boolean onActionItemClicked(ActionMode mode, MenuItem item) { return false; }
-                public void onDestroyActionMode(ActionMode mode) {}
-            };
-            webView.setCustomSelectionActionModeCallback(killSelect);
-            if (Build.VERSION.SDK_INT >= 23) {
-                webView.setCustomInsertionActionModeCallback(killSelect);
             }
             webView.setNestedScrollingEnabled(false);
             webView.setWebViewClient(new AssetClient(getAssets()));
@@ -443,6 +431,14 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    @Override
+    public void onActionModeStarted(ActionMode mode) {
+        // Chromium на long-press (~0.5 с) поднимает выделение и рвёт
+        // жест touchcancel. Отчёт 2.31 №2: система ×6, медиана 0.71 с.
+        // Гасим режим на активности — методы WebView CI не видит в android.jar.
+        if (mode != null) mode.finish();
+    }
+
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
