@@ -80,6 +80,9 @@ var IGRA = IGRA || {};
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.add("on");
       G.Haptic.play("end");
+      // Иначе atMeta живёт только до dirtySave (8 с). Убил приложение
+      // на развилке — следующий вход снова предлагает конец на той же коже.
+      if (game && game.save) game.save();
     },
 
     release: function (game) {
@@ -111,6 +114,7 @@ var IGRA = IGRA || {};
     become: function (game) {
       if ((game.time || 0) < 1200 && !(G.DEBUG && G.DEBUG.fast) && !this.chosen) return;
       this.chosen = "become";
+      if (game && game.save) game.save();
       var scr = document.getElementById("fate-screen");
       if (scr) scr.classList.remove("on");
       try {

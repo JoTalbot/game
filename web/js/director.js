@@ -222,7 +222,9 @@ var IGRA = IGRA || {};
           G.dist(p.x, p.y, game.world.boss.x, game.world.boss.y) < 260;
         if (nearWound || nearBoss) {
           this._pulseTold = true;
-          G.Voice.say("pulseHint");
+          // Без force реплика садится в очередь и тухнет под приветствием
+          // и судьбой. Отчёты 2.3–2.29: пульсов 0 при живом боссе.
+          G.Voice.say("pulseHint", true);
         }
       }
 

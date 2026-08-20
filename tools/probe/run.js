@@ -3725,6 +3725,59 @@ group("конец не на пороге");
   ok(born._sinceReturn == null, "рождение не ставит таймер возвращения");
 })();
 
+// ——— конец сразу на диск ———
+// offer писал atMeta только в память: dirtySave раз в 8 с. Убил
+// приложение на развилке — следующий вход снова «become» на той же коже.
+group("конец сразу на диск");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  AG.Voice.sayText = function () {};
+  var g = Aim.makeGame(AG, 7);
+  g.time = 2400;
+  g.dna.age = 2000;
+  g.world.meta = 7;
+  g.world.discovered = 120;
+  AG.Fate.offered = false;
+  AG.Fate.chosen = "";
+  AG.Fate.atMeta = null;
+  AG.Fate.offer(g);
+  var disk = JSON.parse(AG._store["igra.save.v1"] || "{}");
+  ok(disk.fate && disk.fate.offered && disk.fate.atMeta === 7,
+     "offer сразу кладёт кожу конца на диск",
+     disk.fate ? "atMeta=" + disk.fate.atMeta + " offered=" + disk.fate.offered : "нет fate");
+})();
+
+// ——— пульс назван, когда босс кусает ———
+// Отчёты 2.3–2.29: пульсов 0 при живом боссе. Реплика pulseHint садилась
+// в очередь и тухла. Теперь force — слово доходит, когда жест нужен.
+group("пульс назван, когда босс кусает");
+(function () {
+  var Aim = require("./aim.js");
+  var AG = Aim.bootEngine();
+  require("./dom.js").install();
+  var g = Aim.makeGame(AG, 7);
+  g.state = "play";
+  g.dna.age = 120;
+  g.dna.pulses = 0;
+  AG.Director._pulseTold = false;
+  g.world.boss = {
+    x: g.player.x, y: g.player.y, r: 28,
+    phase: 0, stun: 0, weak: 0, vx: 0, vy: 0, lunge: 0, t: 0,
+    hp: 10, maxHp: 10, parts: []
+  };
+  var heard = [];
+  var real = AG.Voice.say.bind(AG.Voice);
+  AG.Voice.say = function (k, f) { heard.push(k); return real(k, f); };
+  AG.now = function () { return g.time; };
+  AG.Director.observe(1 / 60, g);
+  AG.Voice.say = real;
+  ok(heard.indexOf("pulseHint") >= 0, "рядом с боссом Игра называет пульс",
+     heard.join(",") || "тишина");
+  ok(AG.Director._pulseTold, "и только один раз за сессию");
+})();
+
 // ——— сигила зовёт, и её нельзя подделать ———
 // Сигила — твоё лицо в игре, но человек почти никогда её не открывал
 // (отчёты: «сигилу 0»). Зов был слабый (сквозь вехи и «небо — сигила»).
