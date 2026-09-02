@@ -80,6 +80,8 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+context.addEventListener = function () {};
+context.removeEventListener = function () {};
 const sandbox = vm.createContext(context);
 for (const src of files) {
   const code = fs.readFileSync(path.join(root, "web", src), "utf8");
