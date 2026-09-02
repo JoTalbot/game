@@ -92,7 +92,7 @@ var IGRA = IGRA || {};
       var duplicate = false;
       for (var j = 0; j < w.nodes.length; j++) {
         var n0 = w.nodes[j];
-        if (n0 && G.dist2(n0.x, n0.y, x, y) < 80 * 80 && n0.kind === m.kind) { duplicate = true; break; }
+        if (n0 && G.dist2(n0.x, n0.y, x, y) < 80 * 80 && (n0.kind === "memory" ? n0.memoryOf : n0.kind) === m.kind) { duplicate = true; break; }
       }
       if (duplicate) continue;
       var n = new G.Node(x, y, "memory");
