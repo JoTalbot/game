@@ -24,8 +24,8 @@ var IGRA = IGRA || {};
   function parse(raw) {
     if (!raw) return null;
     try {
-      var value = JSON.parse(raw);
-      return value && typeof value === "object" ? value : null;
+      var data = JSON.parse(raw);
+      return data && typeof data === "object" ? data : null;
     } catch (e) {
       return null;
     }
@@ -36,8 +36,10 @@ var IGRA = IGRA || {};
       var n = native();
       if (n) {
         try {
-          var nativeValue = parse(n.read(KEY));
-          if (nativeValue) return nativeValue;
+          var data = parse(n.read(KEY));
+          // Если нативное значение повреждено, не блокируем запасной
+          // localStorage: старый браузерный сейв всё ещё может быть цел.
+          if (data) return data;
         } catch (e) {}
       }
       try {
@@ -94,20 +96,19 @@ var IGRA = IGRA || {};
       try {
         if (n) {
           n.write(key, "1");
-          var ok = n.read(key) === "1";
-          try { n.remove(key); } catch (cleanup) {}
-          return ok;
+          var nativeOk = n.read(key) === "1";
+          try { n.remove(key); } catch (e) {}
+          return nativeOk;
         }
         localStorage.setItem(key, "1");
-        var localOk = localStorage.getItem(key) === "1";
+        var ok = localStorage.getItem(key) === "1";
         localStorage.removeItem(key);
-        return localOk;
+        return ok;
       } catch (e) {
-        if (n) {
-          try { n.remove(key); } catch (cleanup) {}
-        } else {
-          try { localStorage.removeItem(key); } catch (cleanup2) {}
-        }
+        try {
+          if (n) n.remove(key);
+          else localStorage.removeItem(key);
+        } catch (ignore) {}
         return false;
       }
     },
