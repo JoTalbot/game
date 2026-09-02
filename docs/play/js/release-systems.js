@@ -74,12 +74,12 @@ var IGRA = IGRA || {};
   }
   function advanceAct(s, game, next, why) { if (next <= s.act) return false; s.act = clamp(next, 1, 3); s.actTurns = 0; var c = cause(s, "act-transition", why, "act-" + s.act, { act: s.act }); event(s, "act-" + s.act, c, s.act, "world density changed"); physical(game, s, "birth", s.act); return true; }
 
-  // Canonical trajectory bridge: profile() exposes path/dominant/secondary.
-  // The richer build() may expose kind, but it is not the persisted profile contract.
+  // Build the canonical profile from the active game. Trajectory.profile() is
+  // a persisted cache and can describe a different test/life after a reset.
   function chooseTrajectory(s, game) {
     var life = G.Life && G.Life.profile ? G.Life.profile() : null;
     var rel = G.Relationships && G.Relationships.profile ? G.Relationships.profile() : null;
-    var tr = G.Trajectory && G.Trajectory.profile ? G.Trajectory.profile() : null;
+    var tr = G.Trajectory && G.Trajectory.build ? G.Trajectory.build(game) : (G.Trajectory && G.Trajectory.profile ? G.Trajectory.profile() : null);
     var key = tr && tr.path ? String(tr.path) : "balanced";
     if (key === "balanced" && rel && (rel.trust || 0) >= 0.55) key = "bonding";
     var b = life && life.behavior ? life.behavior : {};
@@ -130,7 +130,15 @@ var IGRA = IGRA || {};
     migrate: function (legacy) { var s = this.state(); if (!legacy || typeof legacy !== "object") return s; if (legacy.version && Number(legacy.version) < 1) s.migratedFrom = Number(legacy.version); if (legacy.world && legacy.world.discovered) s.events.push({ id: "legacy-discovered", causeId: "legacy", act: 1, physical: "migrated", t: Date.now() }); if (legacy.dna && legacy.dna.age) s.body.habits.push("legacy-age"); trim(s.body.habits, 6); save(s); return s; },
     validate: function () { var s = this.state(); return { bounded: s.causes.length <= MAX_CAUSES && s.events.length <= MAX_EVENTS && s.places.length <= 8 && s.beings.length <= 6 && s.rare.length <= 10, serializable: (function () { try { JSON.stringify(s); return true; } catch (e) { return false; } })(), causal: s.causes.every(function (c) { return !!c.id && !!c.type; }), distinctFinales: (new Set(s.finals.map(function (f) { return f.choice; }))).size >= 2, acts: s.act >= 3, places: s.places.length >= 8, beings: s.beings.length >= 6, rare: s.rare.length >= 10, trajectories: Object.keys(s.trajectories).length >= 3, ready: !!s.ready }; }
   };
-  if (G.Director && G.Director.observe) { var oldObserve = G.Director.observe; G.Director.observe = function (dt, game) { oldObserve.call(this, dt, game); G.ReleaseSystems.observe(dt, game); }; }
-  if (G.Fate) { var oldRelease = G.Fate.release, oldBecome = G.Fate.become; G.Fate.release = function (game) { G.ReleaseSystems.chooseFinale("release", game); return oldRelease.call(this, game); }; G.Fate.become = function (game) { G.ReleaseSystems.chooseFinale("become", game); return oldBecome.call(this, game); }; }
-  G.ReleaseSystems.state();
+  ensurePlaces(G.ReleaseSystems.state()); ensureBeings(G.ReleaseSystems.state());
+
+  if (G.Director && G.Director.observe) {
+    var prevObserve = G.Director.observe;
+    G.Director.observe = function (dt, game) { prevObserve.call(this, dt, game); if (G.ReleaseSystems) G.ReleaseSystems.observe(dt, game); };
+  }
+  if (G.Fate) {
+    var oldRelease = G.Fate.release, oldBecome = G.Fate.become;
+    if (oldRelease) G.Fate.release = function (game) { if (G.ReleaseSystems) G.ReleaseSystems.chooseFinale("release", game); return oldRelease.apply(this, arguments); };
+    if (oldBecome) G.Fate.become = function (game) { if (G.ReleaseSystems) G.ReleaseSystems.chooseFinale("become", game); return oldBecome.apply(this, arguments); };
+  }
 })(IGRA);
