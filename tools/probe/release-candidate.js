@@ -29,6 +29,7 @@ function scenario(name, values, behavior) {
   Object.keys(values).forEach(k => { game.dna.values[k] = values[k]; });
   const p = G.Trajectory.build(game);
   ok(!!p && !!p.path, `${name}: canonical trajectory is produced from real gameplay signals`);
+  console.log(`  ${name} path=${p.path} dominant=${p.dominant} secondary=${p.secondary}`);
   return { game, profile: p };
 }
 
@@ -38,7 +39,7 @@ const scenarios = [
   scenario("thorn", { aggression: 0.92, chaos: 0.20, curiosity: 0.10, contemplation: 0.10, empathy: 0.05, harmony: 0.05 }, { born: 1, returns: 2, pulses: 2, still: 1, motion: 3 })
 ];
 const paths = scenarios.map(x => x.profile.path);
-ok(new Set(paths).size === 3, "three real control scenarios produce three distinct trajectories");
+ok(new Set(paths).size === 3, `three real control scenarios produce three distinct trajectories: ${paths.join(" | ")}`);
 
 for (const x of scenarios) {
   const st = G.ReleaseSystems.state();
