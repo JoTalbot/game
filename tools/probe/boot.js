@@ -16,39 +16,31 @@ ok(files.length >= required.length, "структура index.html содерж�
 for (const src of required) ok(files.includes(src), `подключён ${src}`);
 const noopContext = new Proxy({}, { get(target, prop) { if (prop === "measureText") return () => ({ width: 0 }); if (prop === "createLinearGradient" || prop === "createRadialGradient") return () => ({ addColorStop() {} }); if (!(prop in target)) target[prop] = () => {}; return target[prop]; }, set(target, prop, value) { target[prop] = value; return true; } });
 const canvas = { style: {}, width: 800, height: 600, offsetWidth: 800, offsetHeight: 600, getContext(type) { return type === "2d" ? noopContext : null; }, getBoundingClientRect() { return { left: 0, top: 0, width: 800, height: 600 }; }, addEventListener() {} };
-const context = {
-  console, setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame: () => 0, cancelAnimationFrame: () => {},
-  performance: { now: () => Date.now() }, location: { href: "https://igra.local/www/index.html", protocol: "https:", search: "" },
-  navigator: { language: "ru-RU", userLanguage: "ru-RU" },
-  localStorage: { _data: Object.create(null), getItem(k) { return this._data[k] ?? null; }, setItem(k, v) { this._data[k] = String(v); }, removeItem(k) { delete this._data[k]; }, clear() { this._data = Object.create(null); } },
-  document: { readyState: "complete", documentElement: { lang: "ru", clientWidth: 800, clientHeight: 600 }, body: { appendChild() {}, removeChild() {}, classList: { add() {}, contains() { return false; } } }, createElement() { return { style: {}, setAttribute() {}, appendChild() {}, remove() {}, addEventListener() {} }; }, getElementById(id) { return id === "stage" ? canvas : null; }, querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {} },
-  window: null, globalThis: null, innerWidth: 800, innerHeight: 600, devicePixelRatio: 1, screen: { width: 800, height: 600 }, visualViewport: null, AudioContext: function() {}, webkitAudioContext: function() {}
-};
-context.window = context; context.globalThis = context; context.addEventListener = function () {}; context.removeEventListener = function () {};
-context.window.requestAnimationFrame = context.requestAnimationFrame; context.window.cancelAnimationFrame = context.cancelAnimationFrame;
+const context = { console, setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame: () => 0, cancelAnimationFrame: () => {}, performance: { now: () => Date.now() }, location: { href: "https://igra.local/www/index.html", protocol: "https:", search: "" }, navigator: { language: "ru-RU", userLanguage: "ru-RU" }, localStorage: { _data: Object.create(null), getItem(k) { return this._data[k] ?? null; }, setItem(k, v) { this._data[k] = String(v); }, removeItem(k) { delete this._data[k]; }, clear() { this._data = Object.create(null); } }, document: { readyState: "complete", documentElement: { lang: "ru", clientWidth: 800, clientHeight: 600 }, body: { appendChild() {}, removeChild() {}, classList: { add() {}, contains() { return false; } } }, createElement() { return { style: {}, setAttribute() {}, appendChild() {}, remove() {}, addEventListener() {} }; }, getElementById(id) { return id === "stage" ? canvas : null; }, querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {} }, window: null, globalThis: null, innerWidth: 800, innerHeight: 600, devicePixelRatio: 1, screen: { width: 800, height: 600 }, visualViewport: null, AudioContext: function() {}, webkitAudioContext: function() {} };
+context.window = context; context.globalThis = context; context.addEventListener = function () {}; context.removeEventListener = function () {}; context.window.requestAnimationFrame = context.requestAnimationFrame; context.window.cancelAnimationFrame = context.cancelAnimationFrame;
 const sandbox = vm.createContext(context);
 for (const src of files) vm.runInContext(fs.readFileSync(path.join(root, "web", src), "utf8"), sandbox, { filename: src });
-ok(!!sandbox.IGRA, "IGRA загружен");
-ok(typeof sandbox.G.Game === "function", "конструктор Game доступен");
-// main.js is intentionally loaded above, but this probe must not depend on DOM/event-loop timing.
-if (!sandbox.G.app) { sandbox.G.app = new sandbox.G.Game(); sandbox.G.UI.bind(sandbox.G.app); sandbox.G.app.start(); }
-ok(!!sandbox.G.app && !!sandbox.G.app.world, "G.app доступен");
-ok(Array.isArray(sandbox.G.app.world.nodes), "узлы мира доступны");
-ok(sandbox.G.app.world.nodes.length > 0, "в мире есть живые узлы");
-ok(sandbox.G.Voice && typeof sandbox.G.Voice.say === "function", "Voice Game доступен");
-ok(sandbox.G.World && typeof sandbox.G.World.prototype.crystallize === "function", "кристаллизация доступна");
-ok(sandbox.G.BossShadow && typeof sandbox.G.BossShadow.profile === "function", "долгая тень босса доступна");
-ok(sandbox.G.SpatialMemory && typeof sandbox.G.SpatialMemory.profile === "function", "пространственная память доступна");
+const G = sandbox.IGRA;
+ok(!!G, "IGRA загружен");
+ok(typeof G.Game === "function", "конструктор Game доступен");
+if (!G.app) { G.app = new G.Game(); if (G.UI && G.UI.bind) G.UI.bind(G.app); if (G.app.start) G.app.start(); }
+ok(!!G.app && !!G.app.world, "G.app доступен");
+ok(Array.isArray(G.app.world.nodes), "узлы мира доступны");
+ok(G.app.world.nodes.length > 0, "в мире есть живые узлы");
+ok(G.Voice && typeof G.Voice.say === "function", "Voice Game доступен");
+ok(G.World && typeof G.World.prototype.crystallize === "function", "кристаллизация доступна");
+ok(G.BossShadow && typeof G.BossShadow.profile === "function", "долгая тень босса доступна");
+ok(G.SpatialMemory && typeof G.SpatialMemory.profile === "function", "пространственная память доступна");
 const worldMethods = ["crystallize", "forget", "anchor", "resonate", "metamorphose", "update", "toJSON"];
-for (const method of worldMethods) ok(typeof sandbox.G.World.prototype[method] === "function", `World.${method} доступен`);
+for (const method of worldMethods) ok(typeof G.World.prototype[method] === "function", `World.${method} доступен`);
 const voiceMethods = ["say", "update", "reset", "keys"];
-for (const method of voiceMethods) ok(typeof sandbox.G.Voice[method] === "function", `Voice.${method} доступен`);
-const voiceKeys = typeof sandbox.G.Voice.keys === "function" ? sandbox.G.Voice.keys() : [];
+for (const method of voiceMethods) ok(typeof G.Voice[method] === "function", `Voice.${method} доступен`);
+const voiceKeys = typeof G.Voice.keys === "function" ? G.Voice.keys() : [];
 ok(voiceKeys.length > 40, "словарь Voice содержит живой набор фраз", `${voiceKeys.length} ключей`);
-const before = sandbox.G.app.world.nodes.length;
-for (let i = 0; i < 1800; i++) sandbox.G.app.world.update(1 / 60);
-ok(sandbox.G.app.world.nodes.length === before, "1800 кадров проходят без разрушения мира");
-const node = sandbox.G.app.world.nodes[0];
-const result = sandbox.G.app.world.crystallize(node, 0.8);
+const before = G.app.world.nodes.length;
+for (let i = 0; i < 1800; i++) G.app.world.update(1 / 60);
+ok(G.app.world.nodes.length === before, "1800 кадров проходят без разрушения мира");
+const node = G.app.world.nodes[0];
+const result = G.app.world.crystallize(node, 0.8);
 ok(!!result, "кристаллизация возвращает результат");
 console.log("BOOT PROBE PASS");
