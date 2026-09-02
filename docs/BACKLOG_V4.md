@@ -154,7 +154,7 @@ Release layer читает реальные поля `Life.behavior` (`born`, `r
 Release Candidate имеет собственную идентичность версии и versionCode, согласованные между JS, APK build script, Gradle и release-документацией. Базовую v2.33 нельзя выдавать за RC v3.
 
 ### IMP-RC-008. Real trajectory control scenarios
-**P0
+**P0**
 **Статус:** реализовано
 
 RC gate больше не подставляет три готовых счётчика траекторий. Три воспроизводимых контрольных сценария формируют разные `Trajectory.profile().path` из реальных DNA и `Life.behavior`, после чего эти канонические пути реально записываются ReleaseSystems. Это проверяет связку «поведение → траектория → release state» и снижает риск ложнозелёного RC gate.
