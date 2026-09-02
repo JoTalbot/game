@@ -17,7 +17,10 @@ for(const src of files) vm.runInContext(fs.readFileSync(path.join(root,"web",src
 const G=sandbox.IGRA;
 ok(!!G.ReleaseSystems,"ReleaseSystems loaded");
 ok(required.every(x=>files.includes(x)),"release module is in browser shell");
-G.Save.clear(); G.ReleaseSystems.reset();
+G.Save.clear();
+G.Save.set("igra.life.v1", JSON.stringify({version:1,born:true,skins:3,behavior:{born:1,returns:6,pulses:5,still:8,motion:30}}));
+if (G.Life && G.Life.resetCache) G.Life.resetCache();
+G.ReleaseSystems.reset();
 const s=G.ReleaseSystems.state();
 ok(s.places.length===8,"8 historical places seeded");
 ok(s.beings.length===6,"6 recurring identities seeded");
