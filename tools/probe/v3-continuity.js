@@ -8,12 +8,14 @@ function seed(){G.Save.set("igra.relationships.v1",JSON.stringify({version:1,enc
 function game(seed){var g=H.makeWorld(G,seed);G.Life.resetCache();G.Act.resetCache();G.Life.arc().initialized=true;G.Life.arc().skins=2;G.Life.arc().life=2;G.Act.state().phase=3;var n=g.world.nodes[0];n.x=g.player.x+18;n.y=g.player.y+18;n.state="alive";n.dead=false;return g;}
 function findNode(game,key){for(var i=0;i<game.world.nodes.length;i++)if(game.world.nodes[i]&&game.world.nodes[i][key])return game.world.nodes[i];return null;}
 console.log("\n— V3-020..030: integrated acceptance");
-clean();seed();var g=game(9901);G.V3Continuity.observe(1,g);ok( G.V3Continuity.profile().rare.length===1&&!!findNode(g,"personalEcho"),"V3-021 редкий момент из нескольких сигналов");G.V3Continuity.observe(1,g);ok(G.V3Continuity.profile().rare.length===1,"V3-021 идемпотентность");
+clean();seed();var g=game(9901);G.V3Continuity.observe(1,g);ok(G.V3Continuity.profile().rare.length===1&&!!findNode(g,"personalEcho"),"V3-021 редкий момент из нескольких сигналов");G.V3Continuity.observe(1,g);ok(G.V3Continuity.profile().rare.length===1,"V3-021 идемпотентность");
 G.V3Continuity.observe(1,g);var n=findNode(g,"placeMemory");ok(!!n&&G.V3Continuity.profile().places.length===1,"V3-024 место получает историю");
 var before=G.V3Continuity.profile().ecology;G.V3Continuity.onFinale(g,"release");var rel=G.V3Continuity.profile();ok(rel.finale==="release"&&rel.ecology<before&&rel.finales.length===1,"V3-022/V3-029 release оставляет причинный след");G.V3Continuity.onFinale(g,"become");var bec=G.V3Continuity.profile();ok(bec.finale==="become"&&bec.finales.length===2&&bec.ecology>rel.ecology,"V3-022/V3-029 become отличается");
 G.V3Continuity.onBirth(g);ok(G.V3Continuity.profile().lives>=2&&n.finalStart==="become","V3-029 следующая жизнь получает след финала");
 var r=g.world.beings[0]||n;r.legacy=true;G.V3Continuity.observe(1,g);ok(r.recognizesPlayer===true,"V3-023 связь распознаёт прошлую жизнь");ok(r.relationship&&r.relationship.direction,"V3-023 отношение имеет направление");
 var p=G.V3Continuity.profile();ok(p.act.length>=1&&p.act[p.act.length-1].phase===3,"V3-026 накопительная дуга хранит причинный перелом");ok(typeof G.Director._v3Ecology==="number"&&typeof G.Director._v3Path==="string","V3-025 ecology читается Director/органы");
-ok(p.forms.length<=6&&p.places.length<=10&&p.rare.length<=8,"V3-028 память ограничена и сжимается");
+ok(p.causal.length>0&&p.provenance.length>0,"IMP-031/032 причинный граф и происхождение следов");
+var replayA=G.V3Continuity.replay(["care","rescue","return"]),replayB=G.V3Continuity.replay(["care","rescue","return"]),replayC=G.V3Continuity.replay(["abandon","return"]);ok(replayA.signature===replayB.signature&&replayA.signature!==replayC.signature&&replayA.deterministic,"IMP-033 deterministic replay");
+ok(p.saveBytes<=p.saveBudget&&p.forms.length<=6&&p.places.length<=10&&p.rare.length<=8,"IMP-034 save budget и bounded memory");
 for(var i=0;i<3;i++){g=game(9910+i);G.Act.state().phase=i+1;G.V3Continuity.observe(1,g);}ok(G.V3Continuity.profile().forms.length>=0,"V3-028 производная память bounded");ok(G.V3Continuity.profile().coherent===true,"V3-030 цепь имеет продолжение после финала");
 console.log("\nИтого: "+pass+" passed, "+fail+" failed");if(fail)process.exit(1);
