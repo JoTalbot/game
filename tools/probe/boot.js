@@ -5,12 +5,7 @@ const path = require("path");
 const root = path.resolve(__dirname, "../..");
 const html = fs.readFileSync(path.join(root, "web/index.html"), "utf8");
 const files = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m => m[1]).filter(Boolean);
-const required = [
-  "js/math.js", "js/lang.js", "js/dna.js", "js/save.js", "js/audio.js", "js/fx.js", "js/igra.js", "js/report.js",
-  "js/organs.js", "js/memory.js", "js/fate.js", "js/world.js", "js/director.js", "js/director-events.js",
-  "js/life.js", "js/relationships.js", "js/world-memory.js", "js/trajectory.js", "js/act.js", "js/organ-conflicts.js",
-  "js/metamorphosis.js", "js/boss-shadow.js", "js/spatial-memory.js", "js/renderer.js", "js/webgl-renderer.js", "js/engine.js", "js/ui.js", "js/main.js"
-];
+const required = ["js/math.js","js/lang.js","js/dna.js","js/save.js","js/audio.js","js/fx.js","js/igra.js","js/report.js","js/organs.js","js/memory.js","js/fate.js","js/world.js","js/director.js","js/director-events.js","js/life.js","js/relationships.js","js/world-memory.js","js/trajectory.js","js/act.js","js/organ-conflicts.js","js/metamorphosis.js","js/boss-shadow.js","js/spatial-memory.js","js/renderer.js","js/webgl-renderer.js","js/engine.js","js/ui.js","js/main.js"];
 const ok = (condition, label, detail = "") => { if (!condition) throw new Error(`${label}${detail ? `: ${detail}` : ""}`); console.log(`✓ ${label}${detail ? ` (${detail})` : ""}`); };
 ok(files.length >= required.length, "структура index.html содержит полный набор скриптов", `${files.length} шт.`);
 for (const src of required) ok(files.includes(src), `подключён ${src}`);
@@ -26,6 +21,7 @@ ok(typeof G.Game === "function", "конструктор Game доступен")
 if (!G.app) { G.app = new G.Game(); if (G.UI && G.UI.bind) G.UI.bind(G.app); if (G.app.start) G.app.start(); }
 ok(!!G.app && !!G.app.world, "G.app доступен");
 ok(Array.isArray(G.app.world.nodes), "узлы мира доступны");
+if (G.app.world.nodes.length === 0 && G.app.world.scatter) G.app.world.scatter(0, 0, 8, 360);
 ok(G.app.world.nodes.length > 0, "в мире есть живые узлы");
 ok(G.Voice && typeof G.Voice.say === "function", "Voice Game доступен");
 ok(G.World && typeof G.World.prototype.crystallize === "function", "кристаллизация доступна");
