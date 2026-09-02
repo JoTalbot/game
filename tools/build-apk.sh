@@ -10,9 +10,9 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-2.33"
-VCODE=530
-VNAME="2.33"
+NAME="igra-3.0.0-rc1"
+VCODE=600
+VNAME="3.0.0-rc1"
 
 echo "==> sync web → assets"
 rm -rf "$APP/assets/www"
@@ -55,7 +55,6 @@ find "$WORK/classes" -name '*.class' > "$WORK/classes.list"
 
 echo "==> merge dex into apk"
 cp "$WORK/res.apk" "$WORK/merged.apk"
-# apk is a zip; add classes.dex at root
 (
   cd "$WORK"
   zip -q -u merged.apk classes.dex
@@ -78,8 +77,3 @@ fi
   --out "$OUT/$NAME.apk" \
   "$WORK/aligned.apk"
 "$BT/apksigner" verify --verbose "$OUT/$NAME.apk" | head -20
-
-cp -f "$OUT/$NAME.apk" "$OUT/igra.apk"
-cp -f "$OUT/$NAME.apk" "$ROOT/docs/igra.apk"
-ls -lh "$OUT/$NAME.apk"
-echo "==> done $OUT/$NAME.apk"
