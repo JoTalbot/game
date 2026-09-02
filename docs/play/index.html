@@ -2,119 +2,19 @@
 <html lang="ru">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#05060a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta
-      name="description"
-      content="ИГРА — онтогенетическая игра. Она рождается без жанра и выращивает механики из твоего внимания."
-    />
-    <meta property="og:title" content="ИГРА — она растёт из тебя" />
-    <meta property="og:description" content="Онтогенетическая игра. Без жанра. Мир выращивает механики из твоего внимания." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="assets/img/icon.png" />
-    <title>ИГРА</title>
-    <link rel="manifest" href="manifest.json" />
-    <link rel="icon" href="assets/img/icon.png" />
-    <link rel="apple-touch-icon" href="assets/img/icon.png" />
-    <link rel="stylesheet" href="css/fonts.css" />
-    <link rel="stylesheet" href="css/game.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#05060a" /><meta name="apple-mobile-web-app-capable" content="yes" /><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /><meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="ИГРА — онтогенетическая игра. Она рождается без жанра и выращивает механики из твоего внимания." />
+    <meta property="og:title" content="ИГРА — она растёт из тебя" /><meta property="og:description" content="Онтогенетическая игра. Без жанра. Мир выращивает механики из твоего внимания." /><meta property="og:type" content="website" /><meta property="og:image" content="assets/img/icon.png" />
+    <title>ИГРА</title><link rel="manifest" href="manifest.json" /><link rel="icon" href="assets/img/icon.png" /><link rel="apple-touch-icon" href="assets/img/icon.png" /><link rel="stylesheet" href="css/fonts.css" /><link rel="stylesheet" href="css/game.css" />
   </head>
-  <body class="title-mode">
-    <div id="app">
-      <canvas id="stage"></canvas>
-      <div id="grain"></div>
-      <div id="overlay">
-        <div id="brand">ИГРА</div>
-        <div id="season"></div>
-        <div id="hint"></div>
-        <div id="fit-debug"></div>
-        <div id="hud-right">
-          <button id="mute-btn" type="button">тишина</button>
-          <button id="lang-btn" type="button">EN</button>
-          <button id="sky-btn" type="button">небо</button>
-          <button id="sigil-btn" type="button">сигила</button>
-        </div>
-        <div id="law"></div>
-
-        <section id="title-screen">
-          <h1 id="word">ИГРА</h1>
-          <p id="tag">она растёт из тебя</p>
-          <div id="title-actions">
-            <button id="btn-continue" type="button">вернуться</button>
-            <button id="btn-born" type="button">родиться</button>
-          </div>
-          <p id="whisper">коснись пустоты</p>
-        </section>
-
-        <div id="veil">
-          <p id="igra-line"></p>
-        </div>
-
-        <section id="fate-screen">
-          <p id="fate-line">я могу отпустить тебя. или ты можешь стать мной.</p>
-          <div id="fate-actions">
-            <button id="btn-release" type="button">отпустить</button>
-            <button id="btn-become" type="button">стать игрой</button>
-          </div>
-        </section>
-
-        <section id="report-screen">
-          <h2 id="report-title">что скажешь берегу</h2>
-          <p id="report-sub"></p>
-          <div id="report-asks"></div>
-          <textarea id="report-note" rows="3" placeholder="своими словами (необязательно)"></textarea>
-          <pre id="report-text"></pre>
-          <div id="report-actions">
-            <button id="report-copy" type="button">скопировать</button>
-            <button id="report-close" type="button">назад в берег</button>
-          </div>
-        </section>
-
-        <section id="sigil-screen">
-          <canvas id="sigil-canvas" width="280" height="280"></canvas>
-          <h2 id="sigil-name"></h2>
-          <p id="sigil-sub"></p>
-          <div id="sigil-stats"></div>
-          <p id="sigil-verses"></p>
-          <p id="sigil-season"></p>
-          <div id="sigil-actions">
-            <button id="sigil-close" type="button">назад в берег</button>
-            <button id="btn-report" type="button">рассказать</button>
-            <button id="btn-share" type="button">унести сигилу</button>
-            <button id="btn-forget" type="button">забыть меня</button>
-          </div>
-          <label id="mouth-wrap">
-            рот (необязательно)
-            <input id="mouth-url" type="url" placeholder="https://… webhook Игры" autocomplete="off" />
-          </label>
-        </section>
-      </div>
-    </div>
-
-    <script src="js/math.js"></script>
-    <script src="js/lang.js"></script>
-    <script src="js/dna.js"></script>
-    <script src="js/save.js"></script>
-    <script src="js/audio.js"></script>
-    <script src="js/fx.js"></script>
-    <script src="js/igra.js"></script>
-    <script src="js/report.js"></script>
-    <script src="js/organs.js"></script>
-    <script src="js/memory.js"></script>
-    <script src="js/fate.js"></script>
-    <script src="js/world.js"></script>
-    <script src="js/director.js"></script>
-    <script src="js/life.js"></script>
-    <script src="js/renderer.js"></script>
-    <script src="js/webgl-renderer.js"></script>
-    <script src="js/engine.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/main.js"></script>
+  <body class="title-mode"><div id="app"><canvas id="stage"></canvas><div id="grain"></div><div id="overlay">
+    <div id="brand">ИГРА</div><div id="season"></div><div id="hint"></div><div id="fit-debug"></div><div id="hud-right"><button id="mute-btn" type="button">тишина</button><button id="lang-btn" type="button">EN</button><button id="sky-btn" type="button">небо</button><button id="sigil-btn" type="button">сигила</button></div><div id="law"></div>
+    <section id="title-screen"><h1 id="word">ИГРА</h1><p id="tag">она растёт из тебя</p><div id="title-actions"><button id="btn-continue" type="button">вернуться</button><button id="btn-born" type="button">родиться</button></div><p id="whisper">коснись пустоты</p></section><div id="veil"><p id="igra-line"></p></div>
+    <section id="fate-screen"><p id="fate-line">я могу отпустить тебя. или ты можешь стать мной.</p><div id="fate-actions"><button id="btn-release" type="button">отпустить</button><button id="btn-become" type="button">стать игрой</button></div></section>
+    <section id="report-screen"><h2 id="report-title">что скажешь берегу</h2><p id="report-sub"></p><div id="report-asks"></div><textarea id="report-note" rows="3" placeholder="своими словами (необязательно)"></textarea><pre id="report-text"></pre><div id="report-actions"><button id="report-copy" type="button">скопировать</button><button id="report-close" type="button">назад в берег</button></div></section>
+    <section id="sigil-screen"><canvas id="sigil-canvas" width="280" height="280"></canvas><h2 id="sigil-name"></h2><p id="sigil-sub"></p><div id="sigil-stats"></div><p id="sigil-verses"></p><p id="sigil-season"></p><div id="sigil-actions"><button id="sigil-close" type="button">назад в берег</button><button id="btn-report" type="button">рассказать</button><button id="btn-share" type="button">унести сигилу</button><button id="btn-forget" type="button">забыть меня</button></div><label id="mouth-wrap">рот (необязательно)<input id="mouth-url" type="url" placeholder="https://… webhook Игры" autocomplete="off" /></label></section>
+  </div></div>
+  <script src="js/math.js"></script><script src="js/lang.js"></script><script src="js/dna.js"></script><script src="js/save.js"></script><script src="js/audio.js"></script><script src="js/fx.js"></script><script src="js/igra.js"></script><script src="js/report.js"></script><script src="js/organs.js"></script><script src="js/memory.js"></script><script src="js/fate.js"></script><script src="js/world.js"></script><script src="js/director.js"></script><script src="js/life.js"></script><script src="js/relationships.js"></script><script src="js/renderer.js"></script><script src="js/webgl-renderer.js"></script><script src="js/engine.js"></script><script src="js/ui.js"></script><script src="js/main.js"></script>
   </body>
 </html>
