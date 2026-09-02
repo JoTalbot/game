@@ -1,0 +1,37 @@
+"use strict";
+var fs = require("fs"), vm = require("vm"), path = require("path"), H = require("./harness");
+var ROOT = path.resolve(__dirname, "..", "..");
+var G = H.boot();
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "life.js"), "utf8"), { filename: "life.js" });
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "relationships.js"), "utf8"), { filename: "relationships.js" });
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "world-memory.js"), "utf8"), { filename: "world-memory.js" });
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "trajectory.js"), "utf8"), { filename: "trajectory.js" });
+var pass = 0, fail = 0;
+function ok(c, s) { if (c) { pass++; console.log("  ✓ " + s); } else { fail++; console.log("  ✗ " + s); } }
+function setDNA(game, vals) { for (var i = 0; i < Object.keys(vals).length; i++) { var k = Object.keys(vals)[i]; game.dna.feed(k, vals[k], 0); game.dna.v[k] = vals[k]; } }
+console.log("\n— V3-005: уникальные траектории жизни");
+G.Save.set("igra.trajectory.v1", JSON.stringify({ version: 1, life: 1, seed: 0, path: "", dominant: "", secondary: "", turns: [], imprint: {} }));
+G.Life.resetCache(); G.Relationships.resetCache(); G.WorldMemory.resetCache(); G.Trajectory.resetCache();
+var game = H.makeWorld(G, 5501);
+setDNA(game, { curiosity: 0.7, aggression: 0.1, contemplation: 0.2, empathy: 0.1, chaos: 0.1, harmony: 0.1 });
+var a = G.Trajectory.build(game);
+ok(a && a.dominant === "curiosity", "первая жизнь получает путь из реального портрета");
+var firstSeed = a.seed, firstPath = a.path;
+G.Life.arc().behavior.pulses = 8;
+G.Life.arc().skins = 2;
+G.Relationships.observe(1, game);
+G.WorldMemory.remember(game, game.world.nodes[0], "chosen");
+G.Trajectory.resetCache();
+a = G.Trajectory.build(game);
+ok(a.seed !== firstSeed || a.path !== firstPath, "поведение, отношения и память меняют траекторию");
+var saved = G.Trajectory.profile();
+G.Trajectory.resetCache();
+ok(G.Trajectory.profile().path === saved.path && G.Trajectory.profile().seed === saved.seed, "траектория переживает перезагрузку");
+var other = H.makeWorld(G, 5502);
+setDNA(other, { curiosity: 0.1, aggression: 0.1, contemplation: 0.1, empathy: 0.1, chaos: 0.1, harmony: 0.8 });
+G.Life.resetCache(); G.Trajectory.resetCache();
+var b = G.Trajectory.build(other);
+ok(b.path !== saved.path, "другой портрет не получает ту же траекторию");
+ok(typeof b.seed === "number" && b.seed >= 0, "траектория имеет детерминированный числовой отпечаток");
+console.log("\nИтого: " + pass + " passed, " + fail + " failed");
+if (fail) process.exit(1);
