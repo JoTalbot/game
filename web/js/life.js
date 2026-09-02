@@ -59,8 +59,6 @@ var IGRA = IGRA || {};
     profile: function () {
       var a = this.arc(), counts = {}, i, t, best = a.lastTrait || "", bestN = 0;
       for (i = 0; i < a.traits.length; i++) { t = a.traits[i]; counts[t] = (counts[t] || 0) + 1; }
-      // При равной частоте решает последний зафиксированный след: профиль не дрейфует
-      // только из-за порядка обхода объекта.
       for (var k in counts) if (counts[k] > bestN || (counts[k] === bestN && k === a.lastTrait)) { bestN = counts[k]; best = k; }
       return { skins: a.skins || 0, traits: a.traits.slice(), counts: counts,
         dominant: best, lastTrait: a.lastTrait || "", awaken: !!a.awaken,
@@ -119,10 +117,20 @@ var IGRA = IGRA || {};
       var stage = Math.floor((a.skins || 0));
       var applied = game.__lifeConsequences || (game.__lifeConsequences = {});
       if ((b.returns || 0) >= 3 && !applied.return3) {
-        applied.return3 = true;
         var remembered = null;
         for (var i = 0; i < w.nodes.length; i++) if (!w.nodes[i].dead && w.nodes[i].state === "alive" && !w.nodes[i].legacy) { remembered = w.nodes[i]; break; }
-        if (remembered) { remembered.memory = true; remembered.care = Math.max(remembered.care || 0, 0.75); remembered.verse = G.Lang && G.Lang.id === "en" ? "you came back" : "ты вернулся"; }
+        if (!remembered && G.Node) {
+          remembered = new G.Node(game.player.x, game.player.y, "memory");
+          remembered.state = "alive"; remembered.growth = 1;
+          w.nodes.push(remembered);
+        }
+        if (remembered) {
+          remembered.memory = true;
+          remembered.care = Math.max(remembered.care || 0, 0.75);
+          remembered.verse = G.Lang && G.Lang.id === "en" ? "you came back" : "ты вернулся";
+          remembered.returnTrace = true;
+          applied.return3 = true;
+        }
       }
       if ((b.returns || 0) >= 7 && !applied.return7) {
         applied.return7 = true;
@@ -136,9 +144,8 @@ var IGRA = IGRA || {};
         wound.consequence = true; w.wounds.push(wound);
       }
       if ((b.still || 0) >= 90 && !applied.still90) {
-        applied.still90 = true;
         var quiet = w.nearestNode ? w.nearestNode(game.player.x, game.player.y, 180) : null;
-        if (quiet && !quiet.dead) { quiet.memory = true; quiet.care = Math.max(quiet.care || 0, 0.9); quiet.quiet = true; }
+        if (quiet && !quiet.dead) { quiet.memory = true; quiet.care = Math.max(quiet.care || 0, 0.9); quiet.quiet = true; applied.still90 = true; }
       }
       if (stage >= 1 && !applied.stage1) {
         applied.stage1 = true;
