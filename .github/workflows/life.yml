@@ -21,3 +21,5 @@ jobs:
         run: node tools/probe/consequences.js
       - name: Проверка отношений
         run: node tools/probe/relationships.js
+      - name: Проверка постоянной памяти мира
+        run: node tools/probe/world-memory.js
