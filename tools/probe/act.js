@@ -18,6 +18,8 @@ var before = G.Act.profile().turns; step(game); ok(G.Act.profile().turns > befor
 var being = new G.Being(game.player.x + 60, game.player.y + 60, "empathy"); game.world.beings.push(being); being.bond = 0.7;
 step(game); ok(G.Act.profile().phase >= 2, "связь переводит акт в следующий перелом");
 G.Life.arc().behavior.returns = 3; step(game); ok(G.Act.profile().phase >= 3, "возвращение становится физическим следом");
+// Наличие траектории не должно само перескакивать фазу 3 -> 4.
+G.Life.arc().skins = 0; G.Trajectory.profile(); step(game); ok(G.Act.profile().phase === 3, "траектория не перепрыгивает жизненный перелом");
 G.Life.arc().skins = 2; G.Life.arc().behavior.returns = 7; step(game); ok(G.Act.profile().phase >= 4, "новая кожа продолжает историю");
 G.Life.arc().skins = 3; G.WorldMemory.remember(game, game.world.nodes[0], "chosen"); step(game); ok(G.Act.profile().phase === 5 && G.Act.profile().complete, "первый круг завершается без финального экрана");
 var saved = G.Act.profile(); G.Act.resetCache(); ok(G.Act.profile().phase === saved.phase && G.Act.profile().complete === saved.complete, "состояние акта переживает перезагрузку");
