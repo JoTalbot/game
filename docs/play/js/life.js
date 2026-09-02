@@ -24,6 +24,15 @@ var IGRA = IGRA || {};
     initialized: false
   };
 
+  var TRAIT_KIND = {
+    curiosity: "relic",
+    aggression: "thorn",
+    contemplation: "still",
+    empathy: "echo",
+    chaos: "shard",
+    harmony: "tone"
+  };
+
   function cloneDefault() {
     return {
       born: DEFAULT.born,
@@ -53,6 +62,7 @@ var IGRA = IGRA || {};
             if (parsed[k] != null) a[k] = parsed[k];
           }
           if (!Array.isArray(a.traits)) a.traits = [];
+          a.skins = Math.max(0, Math.floor(Number(a.skins) || 0));
         }
       }
     } catch (e) {}
@@ -101,6 +111,39 @@ var IGRA = IGRA || {};
       return {
         skins: a.skins || 0,
         traits: a.traits.slice(),
+        awaken: !!a.awaken,
+        bond: !!a.bond,
+        shadow: !!a.shadow,
+        legacy: !!a.legacy,
+        threshold: !!a.threshold
+      };
+    },
+
+    // Профиль прошлых жизней. Это намеренно маленький API: будущий берег
+    // получает не сырые счётчики, а устойчивый «отпечаток» того, что уже
+    // было прожито. Так можно добавлять последствия, не связывая World с
+    // форматом сохранения life.v1.
+    profile: function () {
+      var a = this.arc();
+      var counts = {};
+      for (var i = 0; i < a.traits.length; i++) {
+        var t = a.traits[i];
+        counts[t] = (counts[t] || 0) + 1;
+      }
+      var best = a.lastTrait || "";
+      var bestN = 0;
+      for (var k in counts) {
+        if (counts[k] > bestN) {
+          bestN = counts[k];
+          best = k;
+        }
+      }
+      return {
+        skins: a.skins || 0,
+        traits: a.traits.slice(),
+        counts: counts,
+        dominant: best,
+        lastTrait: a.lastTrait || "",
         awaken: !!a.awaken,
         bond: !!a.bond,
         shadow: !!a.shadow,
@@ -267,17 +310,125 @@ var IGRA = IGRA || {};
       n.name = a.lastTrait ? traitLabel(a.lastTrait) : "memory";
       game.world.nodes.push(n);
       return n;
+    },
+
+    // Десять шагов v3-001 сходятся здесь: прошлое не только хранится,
+    // оно меняет следующий берег. Наследуем максимум три отпечатка,
+    // чтобы сильная жизнь была заметна, но не превращала каждый новый
+    // запуск в тот же сценарий.
+    applyLegacy: function (game) {
+      var a = this.arc();
+      if (!game || !game.world || !a.legacy) return false;
+      if (game.__lifeLegacyApplied) return false;
+      game.__lifeLegacyApplied = true;
+
+      var profile = this.profile();
+      var history = profile.traits.slice();
+      var seen = {};
+      var inherited = [];
+      for (var i = history.length - 1; i >= 0 && inherited.length < 3; i--) {
+        var trait = history[i];
+        var kind = TRAIT_KIND[trait];
+        if (kind && !seen[kind]) {
+          seen[kind] = true;
+          inherited.push(kind);
+        }
+      }
+      if (!inherited.length && profile.lastTrait && TRAIT_KIND[profile.lastTrait]) {
+        inherited.push(TRAIT_KIND[profile.lastTrait]);
+      }
+
+      // 1–3 старых отпечатка переписывают подсказки нескольких ещё
+      // неформированных узлов. Это не награда и не выбор из меню: берег
+      // сам предлагает знакомый путь, но игрок всё равно решает, что с ним
+      // делать.
+      var candidates = [];
+      for (var n = 0; n < game.world.nodes.length; n++) {
+        if (!game.world.nodes[n].dead && game.world.nodes[n].state === "unformed") {
+          candidates.push(game.world.nodes[n]);
+        }
+      }
+      for (var c = 0; c < inherited.length && c < candidates.length; c++) {
+        candidates[c].hint = inherited[c];
+        candidates[c].legacy = true;
+      }
+
+      // Близкий след последней жизни. После двух кож он становится
+      // узнаваемым местом, а не только записью в Save.
+      var legacy = new G.Node(
+        game.player.x + game.world.rng.range(-210, 210),
+        game.player.y + game.world.rng.range(-210, 210),
+        "memory"
+      );
+      legacy.state = "alive";
+      legacy.growth = 1;
+      legacy.care = 0.95;
+      legacy.roots = 0.7;
+      legacy.memory = true;
+      legacy.legacy = true;
+      legacy.name = profile.lastTrait ? traitLabel(profile.lastTrait) : "memory";
+      legacy.verse = G.Lang && G.Lang.id === "en"
+        ? "you have been here before"
+        : "ты уже был здесь";
+      game.world.nodes.push(legacy);
+
+      // Если в прошлой жизни была связь, новый берег получает не копию
+      // персонажа, а слабое эхо: один живой Being с маленькой привязанностью.
+      // Оно должно быть обнаруживаемым, но не гарантировать дружбу.
+      if (profile.bond && G.Being) {
+        var echo = new G.Being(
+          game.player.x + game.world.rng.range(-260, 260),
+          game.player.y + game.world.rng.range(-260, 260),
+          "empathy"
+        );
+        echo.bond = 0.32;
+        echo.legacy = true;
+        echo.memory = ["someone was here"];
+        game.world.beings.push(echo);
+      }
+
+      // Если осталась тень, следующий берег начинается с одного шрама.
+      // Это меняет ритм встречи, но не отнимает здоровье и не создаёт
+      // обязательный бой.
+      if (profile.shadow && G.Wound && game.world.wounds.length === 0) {
+        var wound = new G.Wound(
+          game.player.x + game.world.rng.range(-420, 420),
+          game.player.y + game.world.rng.range(-420, 420),
+          profile.lastTrait && TRAIT_KIND[profile.lastTrait]
+            ? TRAIT_KIND[profile.lastTrait]
+            : "spark"
+        );
+        wound.legacy = true;
+        game.world.wounds.push(wound);
+      }
+
+      // Порог трёх кож открывает ещё один тихий край, но без UI-замка:
+      // игрок просто обнаруживает, что берег стал чуть больше.
+      if (profile.threshold) {
+        game.world.bounds += 260;
+        game.world.scatter(game.player.x, game.player.y, 2, 620);
+      }
+
+      return true;
     }
   };
 
-  // life.js грузится после Director. Оборачиваем только наблюдение, не
-  // меняя его внутреннюю логику и не превращая Director в зависимость от
-  // v3-модуля. Старые сейвы и старые жизни продолжают работать.
+  // life.js грузится после Director и World. Оборачиваем наблюдение и
+  // рождение берега, не меняя их внутреннюю логику. Так v3-001 становится
+  // настоящим контуром: прошлое влияет на будущую сцену.
   if (G.Director && G.Director.observe) {
     var originalObserve = G.Director.observe;
     G.Director.observe = function (dt, game) {
       originalObserve.call(this, dt, game);
       if (G.Life) G.Life.observe(dt, game);
+    };
+  }
+
+  if (G.World && G.World.prototype && G.World.prototype.birthShore) {
+    var originalBirthShore = G.World.prototype.birthShore;
+    G.World.prototype.birthShore = function (player, dna) {
+      originalBirthShore.call(this, player, dna);
+      if (G.Life) G.Life.applyLegacy({ player: player, world: this, dna: dna });
     };
   }
 })(IGRA);
