@@ -53,7 +53,7 @@ var ctx = {
 ctx.addEventListener = function () {};
 ctx.removeEventListener = function () {};
 ctx.matchMedia = function () { return { matches: false, addListener: function () {}, addEventListener: function () {} }; };
-ctx.getComputedStyle = function () { return { getPropertyValue: function () { return ""; } }; };
+ctx.getComputedStyle = function () { return { getPropertyValue: function () { return ""; } };
 ctx.window = ctx; ctx.globalThis = ctx; ctx.self = ctx;
 ctx.AudioContext = function () {
   return new Proxy({}, { get: function () {
@@ -85,14 +85,11 @@ function ok(cond, name, note) {
   console.log("  " + (cond ? "✓" : "✗") + " " + name + (note ? "  (" + note + ")" : ""));
 }
 console.log("\n— живой запуск: игра поднимается как в браузере");
-ok(files.length === 18, "все скрипты index.html прочитаны", files.length + " шт");
+ok(files.length === 19, "все скрипты index.html прочитаны", files.length + " шт");
 ok(!!G, "IGRA собрана");
 ok(!!(G && G.app), "игра стартовала (G.app есть)");
 ok(!!(G && G.app && G.app.world), "мир создан");
 ok(!!(G && G.app && G.app.world && G.app.world.nodes), "берег засеян");
-// Число ключей вбивать нельзя: проверка «ровно 56» краснела на каждой
-// новой реплике, ничего не говоря о качестве. Важно не сколько их, а
-// что обе раскладки полны — иначе английский игрок увидит русский текст.
 var vkeys = G && G.Voice ? G.Voice.keys() : [];
 ok(vkeys.length > 40, "голос знает ключи", vkeys.length + " ключей");
 var noEn = vkeys.filter(function (k) {
@@ -105,16 +102,12 @@ var cyr = Object.keys((G.UI_STR && G.UI_STR.en) || {}).filter(function (k) {
 });
 ok(cyr.length === 0, "в английском интерфейсе нет кириллицы",
    cyr.length ? "русское: " + cyr.join(", ") : "чисто");
-
-// Раскладки должны быть равны по составу: ключ, забытый в en, молча
-// отдаёт русскую строку англоязычному игроку (G.Lang.t падает на ru).
 var uiMiss = Object.keys((G.UI_STR && G.UI_STR.ru) || {}).filter(function (k) {
   return !(G.UI_STR.en && k in G.UI_STR.en);
 });
 ok(uiMiss.length === 0, "обе раскладки интерфейса одного состава",
    uiMiss.length ? "нет в en: " + uiMiss.join(", ") : Object.keys(G.UI_STR.ru).length + " ключей");
 
-// Имена пород и осей — самые частые надписи в игре.
 var nameMiss = [];
 ["spark", "relic", "thorn", "still", "echo", "shard", "tone", "wound", "memory"].forEach(function (k) {
   if (!(G.KIND_EN && G.KIND_EN[k])) nameMiss.push("порода " + k);
@@ -125,11 +118,6 @@ var nameMiss = [];
 ok(nameMiss.length === 0, "у пород и осей есть английские имена",
    nameMiss.length ? nameMiss.join(", ") : "15 имён");
 
-// Мало проверить, что игра поднялась: она может подняться и тут же быть
-// нерабочей. Первая версия этого стенда оставалась зелёной, когда
-// crystallize переименовали в crystallizeTYPO — потому что кристаллизация
-// зовётся только по взгляду, а стенд ничего не играл. Поэтому дальше:
-// проверяем, что глаголы мира на месте, и реально крутим кадры.
 var VERBS = ["crystallize", "forget", "anchor", "resonate", "metamorphose", "update", "toJSON"];
 var missing = VERBS.filter(function (v) {
   return !G || !G.app || !G.app.world || typeof G.app.world[v] !== "function";
@@ -142,13 +130,10 @@ var vmiss = VOICE_VERBS.filter(function (v) { return !G || !G.Voice || typeof G.
 ok(vmiss.length === 0, "голос умеет всё, чем игра пользуется",
    vmiss.length ? "нет: " + vmiss.join(", ") : VOICE_VERBS.length + " глаголов");
 
-// Прокрутить полминуты живых кадров: мир обязан пережить обновление,
-// прилив и речь, ничего не уронив.
 var crashed = null;
 try {
   var g = G.app;
   for (var f = 0; f < 1800; f++) {
-    // подпись как в engine.js:479 — мир ждёт игрока, днк и эффекты
     g.world.update(1 / 60, g.player, g.dna, g.fx, g);
     if (G.Director && G.Director.update) G.Director.update(1 / 60, g);
     G.Voice.update(1 / 60);
@@ -156,12 +141,10 @@ try {
 } catch (e) { crashed = e.message; }
 ok(!crashed, "полминуты кадров без падения", crashed || "1800 кадров");
 
-// Кристаллизация — сердце игры: без неё берег мёртв.
 var grew = null;
 try {
   var w = G.app.world;
   var un = w.nodes.filter(function (n) { return n.state !== "alive"; })[0];
-  // подпись как в engine.js:662 — узел, жест, днк
   var gest = { still: 0.9, explore: 0.3, speed: 0, calm: 0.8, aggr: 0, care: 0.9 };
   if (un) { w.crystallize(un, gest, G.app.dna); grew = un.state === "alive"; }
   else grew = "нет неоформленных";
