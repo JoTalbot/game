@@ -3,8 +3,8 @@ const fs = require("fs"), vm = require("vm"), path = require("path"), H = requir
 const ROOT = path.resolve(__dirname, "../..");
 const html = fs.readFileSync(path.join(ROOT, "web/index.html"), "utf8");
 const files = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m => m[1]).filter(Boolean);
-const G = H.boot();
 global.location = global.location || { search: "", href: "https://igra.local/", protocol: "https:" };
+const G = H.boot();
 const ok = (v, label) => { if (!v) throw new Error(label); console.log(`✓ ${label}`); };
 for (const src of files) vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", src), "utf8"), { filename: src });
 ok(!!G.ReleaseSystems, "ReleaseSystems loaded");
@@ -38,7 +38,6 @@ const scenarios = [
 const paths = scenarios.map(x => x.profile.path);
 ok(new Set(paths).size === 3, "three real control scenarios produce three distinct trajectories");
 
-// Reuse one persistent release state and let each real scenario contribute a turn.
 for (const x of scenarios) {
   const st = G.ReleaseSystems.state();
   st.act = 2; st.actTurns = 89;
