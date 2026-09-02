@@ -54,16 +54,11 @@ var IGRA = IGRA || {};
       var s = this.state();
       return { version: 1, seen: s.seen.slice(), total: s.total };
     },
-
-    // Органы не должны жить как независимые кнопки. Когда два выращенных
-    // слоя оказываются рядом, они спорят за один и тот же кусок берега.
-    // Конфликт одноразов для пары, но оставляет состояние в самих органах.
     observe: function (dt, game) {
       if (!game || game.state !== "play" || !game.world || !game.player) return;
       var w = game.world, s = this.state();
       var blooms = w.blooms || [], cracks = w.cracks || [], beings = w.beings || [];
       var i, j, b, c, id;
-
       for (i = 0; i < blooms.length; i++) {
         b = blooms[i];
         if (!b || b.dead) continue;
@@ -81,8 +76,6 @@ var IGRA = IGRA || {};
           }
         }
       }
-
-      // Закон оставляет спутнику не только страх, но и конкретную память.
       for (i = 0; i < beings.length; i++) {
         b = beings[i];
         if (!b || b.dead || Number(b.bond) <= 0.45) continue;
@@ -99,9 +92,6 @@ var IGRA = IGRA || {};
           }
         }
       }
-
-      // Разные темпераменты оставляют взаимные воспоминания, но только один
-      // раз на пару. Так встреча становится частью характера существа.
       for (i = 0; i < beings.length; i++) {
         var a = beings[i];
         if (!a || a.dead) continue;
@@ -111,8 +101,8 @@ var IGRA = IGRA || {};
           if ((a.temper || "") === (d.temper || "")) continue;
           id = "being-being:" + (a.id != null ? a.id : i) + ":" + (d.id != null ? d.id : j);
           if (mark(s, id)) {
-            a.conflict = "other-temper";
-            d.conflict = "other-temper";
+            if (!a.conflict) a.conflict = "other-temper";
+            if (!d.conflict) d.conflict = "other-temper";
             rememberBeing(a, { kind: "encounter", with: d.temper || "unknown", time: Number(game.time) || 0 });
             rememberBeing(d, { kind: "encounter", with: a.temper || "unknown", time: Number(game.time) || 0 });
           }
@@ -120,7 +110,6 @@ var IGRA = IGRA || {};
       }
     }
   };
-
   G.OrganConflicts = Conflicts;
   if (G.Director && G.Director.observe) {
     var originalObserve = G.Director.observe;
