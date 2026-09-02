@@ -135,6 +135,24 @@ Freeze API/schema, версия, signing, clean install, upgrade-with-save, proc
 
 Один probe проверяет количественные Definition of Done, offline shell, schema/migration, idempotence, replay, контрастные пути, post-finale continuation и отсутствие FOMO/монетизационного ядра.
 
+### IMP-RC-005. Canonical trajectory bridge
+**P1**
+**Статус:** зарегистрировано
+
+Release layer должен использовать канонический результат `Trajectory.profile()` (`path`, `dominant`, `secondary`) вместо проверки поля `kind`, которого в profile нет. Контрастные жизненные траектории должны формироваться из реального поведения игрока, а не только из тестовой подстановки.
+
+### IMP-RC-006. Canonical life behavior bridge
+**P1**
+**Статус:** зарегистрировано
+
+Release layer должен читать реальные поля `Life.behavior` (`born`, `returns`, `pulses`, `still`, `motion`) и не зависеть от несуществующих `care`/`harm`. Поведенческий вклад должен влиять на выбор траектории и причинные следы.
+
+### IMP-RC-007. RC version identity
+**P0**
+**Статус:** зарегистрировано
+
+Release Candidate должен иметь собственную идентичность версии и versionCode, согласованные между JS, APK build script, Gradle, зеркалом и release-документацией. Базовую v2.33 нельзя выдавать за RC v3.
+
 ## Definition of Done
 
 - 3+ содержательных акта.
