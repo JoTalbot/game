@@ -47,6 +47,7 @@ for (const x of scenarios) {
   G.ReleaseSystems.observe(1, x.game);
 }
 let p = G.ReleaseSystems.profile();
+console.log(`  recorded trajectories=${JSON.stringify(p.trajectories)}`);
 ok(p.trajectories.length >= 3, "ReleaseSystems records three trajectories without seeded trajectory counters");
 ok(paths.every(pathName => p.trajectories.includes(pathName)), "recorded trajectory keys match canonical Trajectory.profile paths");
 
