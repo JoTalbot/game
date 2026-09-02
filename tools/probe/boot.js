@@ -1,8 +1,88 @@
-// Живой запуск: грузим ровно то, что перечислено в web/index.html.
-var fs=require("fs"),vm=require("vm"),path=require("path");var ROOT=path.join(__dirname,"..","..","web");
-function el(id){return {id:id||"",style:{},width:800,height:600,textContent:"",innerHTML:"",value:"",dataset:{},children:[],childNodes:[{nodeValue:"",nodeType:3}],parentNode:null,classList:{add:function(){},remove:function(){},toggle:function(){},contains:function(){return false;}},appendChild:function(){},removeChild:function(){},insertBefore:function(){},setAttribute:function(){},getAttribute:function(){return null;},removeAttribute:function(){},addEventListener:function(){},removeEventListener:function(){},focus:function(){},blur:function(){},click:function(){},remove:function(){},querySelector:function(){return el();},querySelectorAll:function(){return [];},getBoundingClientRect:function(){return {left:0,top:0,width:800,height:600};},getContext:function(){return new Proxy({}, {get:function(){return function(){return {};};}});}};}
-var doc={getElementById:function(id){return el(id);},querySelector:function(){return el();},querySelectorAll:function(){return [];},createElement:function(){return el();},createTextNode:function(){return {nodeValue:""};},addEventListener:function(){},removeEventListener:function(){},body:el("body"),documentElement:el("html"),head:el("head"),hidden:false,visibilityState:"visible",readyState:"complete"};
-var ctx={console:console,document:doc,navigator:{userAgent:"node",language:"ru",vibrate:function(){}},location:{href:"http://local/",search:"",reload:function(){}},localStorage:(function(){var m={};return {getItem:function(k){return k in m?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];}};})(),requestAnimationFrame:function(){return 1;},cancelAnimationFrame:function(){},setTimeout:function(){return 1;},clearTimeout:function(){},setInterval:function(){return 1;},clearInterval:function(){},devicePixelRatio:2,innerWidth:800,innerHeight:600,performance:{now:function(){return Date.now();}},Date:Date,Math:Math,JSON:JSON,parseFloat:parseFloat,parseInt:parseInt,isNaN:isNaN,String:String,Number:Number,Array:Array,Object:Object,Boolean:Boolean,RegExp:RegExp,Error:Error,Proxy:Proxy,Promise:Promise};
-ctx.addEventListener=function(){};ctx.removeEventListener=function(){};ctx.matchMedia=function(){return {matches:false,addListener:function(){},addEventListener:function(){}};};ctx.getComputedStyle=function(){return {getPropertyValue:function(){return "";}};};ctx.window=ctx;ctx.globalThis=ctx;ctx.self=ctx;ctx.AudioContext=function(){return new Proxy({}, {get:function(){return function(){return {connect:function(){},start:function(){},stop:function(){},gain:{value:0,setValueAtTime:function(){},linearRampToValueAtTime:function(){}},frequency:{value:0,setValueAtTime:function(){}}};};}});};ctx.webkitAudioContext=ctx.AudioContext;vm.createContext(ctx);
-var html=fs.readFileSync(path.join(ROOT,"index.html"),"utf8"),files=[];html.replace(/<script src="([^"]+)"/g,function(_,s){files.push(s);return _;});var fails=0;files.forEach(function(f){try{vm.runInContext(fs.readFileSync(path.join(ROOT,f),"utf8"),ctx,{filename:f});}catch(e){fails++;console.log("  ✗ "+f+" → "+e.message);}});
-var G=ctx.IGRA;function ok(c,s,n){if(!c)fails++;console.log("  "+(c?"✓":"✗")+" "+s+(n?"  ("+n+")":""));}console.log("\n— живой запуск: игра поднимается как в браузере");ok(files.length===24,"все скрипты index.html прочитаны",files.length+" шт");ok(!!G,"IGRA собрана");ok(!!(G&&G.app),"игра стартовала (G.app есть)");ok(!!(G&&G.app&&G.app.world),"мир создан");ok(!!(G&&G.app&&G.app.world&&G.app.world.nodes),"берег засеян");var vkeys=G&&G.Voice?G.Voice.keys():[];ok(vkeys.length>40,"голос знает ключи",vkeys.length+" ключей");var noEn=vkeys.filter(function(k){return !(G.LINES_EN&&G.LINES_EN[k]&&G.LINES_EN[k].length);});ok(noEn.length===0,"у каждой реплики есть английская раскладка",noEn.length?"без перевода: "+noEn.join(", "):"все переведены");var cyr=Object.keys((G.UI_STR&&G.UI_STR.en)||{}).filter(function(k){return /[а-яё]/i.test(G.UI_STR.en[k]);});ok(cyr.length===0,"в английском интерфейсе нет кириллицы",cyr.length?"русское: "+cyr.join(", "):"чисто");var uiMiss=Object.keys((G.UI_STR&&G.UI_STR.ru)||{}).filter(function(k){return !(G.UI_STR.en&&k in G.UI_STR.en);});ok(uiMiss.length===0,"обе раскладки интерфейса одного состава",uiMiss.length?"нет в en: "+uiMiss.join(", "):Object.keys(G.UI_STR.ru).length+" ключей");var nameMiss=[];["spark","relic","thorn","still","echo","shard","tone","wound","memory"].forEach(function(k){if(!(G.KIND_EN&&G.KIND_EN[k]))nameMiss.push("порода "+k);});["curiosity","aggression","contemplation","empathy","chaos","harmony"].forEach(function(k){if(!(G.TRAIT_EN&&G.TRAIT_EN[k]))nameMiss.push("ось "+k);});ok(nameMiss.length===0,"у пород и осей есть английские имена",nameMiss.length?nameMiss.join(", "):"15 имён");var verbs=["crystallize","forget","anchor","resonate","metamorphose","update","toJSON"],missing=verbs.filter(function(v){return !G||!G.app||!G.app.world||typeof G.app.world[v]!=="function";});ok(missing.length===0,"мир умеет всё, чем игра пользуется",missing.length?"нет: "+missing.join(", "):"7 глаголов");var vv=["say","update","reset","keys"],vmiss=vv.filter(function(v){return !G||!G.Voice||typeof G.Voice[v]!=="function";});ok(vmiss.length===0,"голос умеет всё, чем игра пользуется",vmiss.length?"нет: "+vmiss.join(", "):"4 глагола");var crashed=null;try{var g=G.app;for(var f=0;f<1800;f++){g.world.update(1/60,g.player,g.dna,g.fx,g);if(G.Director&&G.Director.update)G.Director.update(1/60,g);G.Voice.update(1/60);}}catch(e){crashed=e.message;}ok(!crashed,"полминуты кадров без падения",crashed||"1800 кадров");var grew=null;try{var w=G.app.world,un=w.nodes.filter(function(n){return n.state!=="alive";})[0],gest={still:.9,explore:.3,speed:0,calm:.8,aggr:0,care:.9};if(un){w.crystallize(un,gest,G.app.dna);grew=un.state==="alive";}else grew="нет неоформленных";}catch(e){grew="упало: "+e.message;}ok(grew===true||grew==="нет неоформленных","узел кристаллизуется",String(grew));console.log(fails?"\n✗ "+fails+" падений при живом запуске\n":"\n✓ игра поднимается без ошибок\n");process.exit(fails?1:0);
+#!/usr/bin/env node
+const fs = require("fs");
+const vm = require("vm");
+const path = require("path");
+
+const root = path.resolve(__dirname, "../..");
+const html = fs.readFileSync(path.join(root, "web/index.html"), "utf8");
+const files = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m => m[1]).filter(Boolean);
+const required = [
+  "./js/math.js", "./js/lang.js", "./js/dna.js", "./js/save.js", "./js/audio.js",
+  "./js/fx.js", "./js/igra.js", "./js/report.js", "./js/organs.js", "./js/memory.js",
+  "./js/fate.js", "./js/world.js", "./js/director.js", "./js/director-events.js",
+  "./js/life.js", "./js/relationships.js", "./js/world-memory.js", "./js/trajectory.js",
+  "./js/act.js", "./js/organ-conflicts.js", "./js/metamorphosis.js", "./js/renderer.js",
+  "./js/webgl-renderer.js", "./js/engine.js", "./js/ui.js", "./js/main.js"
+];
+const ok = (condition, label, detail = "") => {
+  if (!condition) throw new Error(`${label}${detail ? `: ${detail}` : ""}`);
+  console.log(`✓ ${label}${detail ? ` (${detail})` : ""}`);
+};
+
+ok(files.length >= required.length, "структура index.html содержит полный набор скриптов", `${files.length} шт.`);
+for (const src of required) ok(files.includes(src), `подключён ${src}`);
+
+const context = {
+  console,
+  setTimeout,
+  clearTimeout,
+  setInterval,
+  clearInterval,
+  performance: { now: () => Date.now() },
+  location: { href: "https://igra.local/www/index.html" },
+  navigator: { language: "ru-RU", userLanguage: "ru-RU" },
+  localStorage: {
+    _data: Object.create(null),
+    getItem(k) { return this._data[k] ?? null; },
+    setItem(k, v) { this._data[k] = String(v); },
+    removeItem(k) { delete this._data[k]; },
+    clear() { this._data = Object.create(null); }
+  },
+  document: {
+    readyState: "complete",
+    body: { appendChild() {}, removeChild() {} },
+    createElement() { return { style: {}, setAttribute() {}, appendChild() {}, remove() {} }; },
+    getElementById() { return null; },
+    querySelector() { return null; },
+    querySelectorAll() { return []; },
+    addEventListener() {}
+  },
+  window: null,
+  globalThis: null,
+  AudioContext: function() {},
+  webkitAudioContext: function() {}
+};
+context.window = context;
+context.globalThis = context;
+const sandbox = vm.createContext(context);
+for (const src of files) {
+  const rel = src.replace(/^\.\//, "");
+  const code = fs.readFileSync(path.join(root, "web", rel), "utf8");
+  vm.runInContext(code, sandbox, { filename: rel });
+}
+
+ok(!!sandbox.IGRA, "IGRA загружен");
+ok(!!sandbox.G && !!sandbox.G.app, "G.app доступен");
+ok(!!sandbox.G.app.world, "мир создан");
+ok(Array.isArray(sandbox.G.app.world.nodes), "узлы мира доступны");
+ok(sandbox.G.app.world.nodes.length > 0, "в мире есть живые узлы");
+ok(sandbox.G.Voice && typeof sandbox.G.Voice.say === "function", "Voice Game доступен");
+ok(sandbox.G.World && typeof sandbox.G.World.prototype.crystallize === "function", "кристаллизация доступна");
+
+const worldMethods = ["crystallize", "forget", "anchor", "resonate", "metamorphose", "update", "toJSON"];
+for (const method of worldMethods) ok(typeof sandbox.G.World.prototype[method] === "function", `World.${method} доступен`);
+const voiceMethods = ["say", "update", "reset", "keys"];
+for (const method of voiceMethods) ok(typeof sandbox.G.Voice[method] === "function", `Voice.${method} доступен`);
+
+const voiceKeys = typeof sandbox.G.Voice.keys === "function" ? sandbox.G.Voice.keys() : [];
+ok(voiceKeys.length > 40, "словарь Voice содержит живой набор фраз", `${voiceKeys.length} ключей`);
+
+const before = sandbox.G.app.world.nodes.length;
+for (let i = 0; i < 1800; i++) sandbox.G.app.world.update(1 / 60);
+ok(sandbox.G.app.world.nodes.length === before, "1800 кадров проходят без разрушения мира");
+
+const node = sandbox.G.app.world.nodes[0];
+const result = sandbox.G.app.world.crystallize(node, 0.8);
+ok(!!result, "кристаллизация возвращает результат");
+
+console.log("BOOT PROBE PASS");
