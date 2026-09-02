@@ -14,6 +14,11 @@ grep -F 's.setAllowUniversalAccessFromFileURLs(false);' "$f" >/dev/null
 grep -F 's.setSafeBrowsingEnabled(true);' "$f" >/dev/null
 grep -F 'android:usesCleartextTraffic="false"' "$m" >/dev/null
 
+grep -F 'shouldOverrideUrlLoading(WebView view, WebResourceRequest request)' "$f" >/dev/null
+grep -F 'shouldOverrideUrlLoading(WebView view, String url)' "$f" >/dev/null
+grep -F '"igra.local".equalsIgnoreCase(uri.getHost())' "$f" >/dev/null
+grep -F '"https".equalsIgnoreCase(uri.getScheme())' "$f" >/dev/null
+
 if grep -F 's.setAllowFileAccess(true);' "$f" >/dev/null; then
   echo 'unsafe file access enabled' >&2
   exit 1
