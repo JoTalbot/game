@@ -4,6 +4,8 @@ const ROOT = path.resolve(__dirname, "../..");
 const html = fs.readFileSync(path.join(ROOT, "web/index.html"), "utf8");
 const files = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m => m[1]).filter(Boolean);
 global.location = global.location || { search: "", href: "https://igra.local/", protocol: "https:" };
+global.requestAnimationFrame = global.requestAnimationFrame || function () { return 1; };
+global.cancelAnimationFrame = global.cancelAnimationFrame || function () {};
 const G = H.boot();
 const ok = (v, label) => { if (!v) throw new Error(label); console.log(`✓ ${label}`); };
 for (const src of files) vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", src), "utf8"), { filename: src });
