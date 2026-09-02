@@ -20,7 +20,8 @@ var IGRA = IGRA || {};
     lastTrait: "",
     lastAge: 0,
     lastMeta: 0,
-    lastSeen: 0
+    lastSeen: 0,
+    initialized: false
   };
 
   function cloneDefault() {
@@ -36,7 +37,8 @@ var IGRA = IGRA || {};
       lastTrait: DEFAULT.lastTrait,
       lastAge: DEFAULT.lastAge,
       lastMeta: DEFAULT.lastMeta,
-      lastSeen: DEFAULT.lastSeen
+      lastSeen: DEFAULT.lastSeen,
+      initialized: DEFAULT.initialized
     };
   }
 
@@ -107,10 +109,9 @@ var IGRA = IGRA || {};
       };
     },
 
-    // Отлавливаем именно новую жизнь: возраст ДНК в обычной игре только
-    // растёт. Если он резко вернулся назад после уже прожитой жизни,
-    // считаем это пересечением кожи. При обычной загрузке возраст не
-    // прыгает назад, поэтому счётчик не раздувается.
+    // Первый вход нового модуля в старое сохранение только запоминает
+    // исходную точку. Нельзя честному игроку внезапно подарить десятки
+    // «прожитых жизней» потому, что world.meta уже был большим до v3.
     observe: function (dt, game) {
       var a = this.arc();
       var dna = game && game.dna;
@@ -119,16 +120,48 @@ var IGRA = IGRA || {};
 
       var age = dna.age || 0;
       var meta = w.meta || 0;
-      var dirty = false;
-      var newSkin = false;
       var currentTrait = dna.dominant ? dna.dominant() : "";
+      var dirty = false;
+
+      if (!a.initialized) {
+        a.initialized = true;
+        a.lastAge = age;
+        a.lastMeta = meta;
+        a.lastSeen = Date.now();
+        if (age > 2) a.born = true;
+        persist(a);
+        this._ready = true;
+        return;
+      }
+
+      var newSkin = false;
 
       if (!a.born && age > 2) {
         a.born = true;
         dirty = true;
       }
 
-      if (a.lastAge > 120 && age + 20 < a.lastAge) {
+      if (meta > a.lastMeta) {
+        var crossed = meta - a.lastMeta;
+        a.skins = (a.skins || 0) + crossed;
+        newSkin = true;
+        if (currentTrait) {
+          a.lastTrait = currentTrait;
+          a.traits.push(currentTrait);
+          if (a.traits.length > 12) a.traits.shift();
+        }
+        a.lastMeta = meta;
+        dirty = true;
+        speak(
+          "новая кожа помнит больше, чем старый берег.",
+          "the new skin remembers more than the old shore."
+        );
+      }
+
+      // Запасной детектор для движка/старого сохранения, где meta мог не
+      // измениться между наблюдениями. Срабатывает только на явный сброс
+      // возраста, характерный для новой жизни.
+      if (!newSkin && a.lastAge > 120 && age + 20 < a.lastAge) {
         a.skins = (a.skins || 0) + 1;
         newSkin = true;
         if (currentTrait) {
@@ -141,18 +174,6 @@ var IGRA = IGRA || {};
           "новая кожа помнит больше, чем старый берег.",
           "the new skin remembers more than the old shore."
         );
-      }
-
-      if (meta > a.lastMeta) {
-        if (a.skins < meta) a.skins = meta;
-        if (currentTrait && a.lastTrait !== currentTrait) {
-          a.lastTrait = currentTrait;
-          a.traits.push(currentTrait);
-          if (a.traits.length > 12) a.traits.shift();
-        }
-        a.lastMeta = meta;
-        newSkin = true;
-        dirty = true;
       }
 
       if (!a.awaken && age >= 55) {
@@ -218,8 +239,6 @@ var IGRA = IGRA || {};
       if (dirty) persist(a);
       this._ready = true;
 
-      // После второй кожи прошлое получает физическое место в новом мире.
-      // Один объект на кожу, чтобы память не превращалась в склад мусора.
       if (newSkin && a.legacy) this.leaveLegacy(game);
     },
 
