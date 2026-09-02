@@ -1,4 +1,6 @@
 // Малый offline shell для браузерного берега.
+// Android/WebView носит игру в пакете, ему service worker не нужен. А вот
+// запасной берег на GitHub Pages должен открываться без сети.
 var CACHE = "igra-shell-v3";
 var ASSETS = [
   "./", "./index.html", "./manifest.json", "./assets/img/icon.png",
