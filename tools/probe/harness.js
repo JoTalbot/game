@@ -22,8 +22,6 @@ var ORDER = [
   "fate",
   "world",
   "director",
-  // v3 life arc wraps Director after all legacy logic is loaded.
-  "life",
   "renderer",
   // ui грузится последним, как в index.html: он трогает всё остальное
   "ui"
@@ -138,7 +136,6 @@ function makeWorld(G, seed) {
   // всех прогонов сразу.
   if (G.Director && G.Director.reset) G.Director.reset();
   if (G.Voice && G.Voice.reset) G.Voice.reset();
-  if (G.Life && G.Life.resetCache) G.Life.resetCache();
   return game;
 }
 
@@ -309,18 +306,24 @@ function ctxStub() {
     get: function () { return o._stroke; },
     set: function (v) { o._stroke = v; noteAlpha(v); }
   });
-  Object.defineProperty(o, "globalAlpha", {
-    get: function () { return o._alpha == null ? 1 : o._alpha; },
-    set: function (v) { o._alpha = v; o.alphas.push(v); }
-  });
+  o.measureText = function (s) {
+    return { width: String(s).length * 6 };
+  };
+  o.getImageData = function () {
+    return { data: [0, 0, 0, 0] };
+  };
   return o;
 }
 
 module.exports = {
+  useGameClock,
+  seedRandom,
   boot: boot,
   makeWorld: makeWorld,
   step: step,
   gaze: gaze,
   nearestUnformed: nearestUnformed,
-  ctxStub: ctxStub
+  ctxStub: ctxStub,
+  ROOT: ROOT,
+  ORDER: ORDER
 };
