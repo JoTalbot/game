@@ -31,6 +31,8 @@ jobs:
         run: node tools/probe/director-events.js
       - name: Проверка V3 глубокой непрерывности
         run: node tools/probe/v3-depth.js
+      - name: Проверка интегрированной V3 непрерывности
+        run: node tools/probe/v3-continuity.js
       - name: Проверка конфликтов органов
         run: node tools/probe/organ-conflicts.js
       - name: Проверка глубокой метаморфозы
