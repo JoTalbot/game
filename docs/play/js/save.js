@@ -21,19 +21,27 @@ var IGRA = IGRA || {};
     return null;
   }
 
+  function parse(raw) {
+    if (!raw) return null;
+    try {
+      var value = JSON.parse(raw);
+      return value && typeof value === "object" ? value : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   G.Save = {
     load: function () {
-      var raw = null;
       var n = native();
       if (n) {
-        try { raw = n.read(KEY); } catch (e) { raw = null; }
+        try {
+          var nativeValue = parse(n.read(KEY));
+          if (nativeValue) return nativeValue;
+        } catch (e) {}
       }
-      if (raw == null) {
-        try { raw = localStorage.getItem(KEY); } catch (e) { raw = null; }
-      }
-      if (!raw) return null;
       try {
-        return JSON.parse(raw);
+        return parse(localStorage.getItem(KEY));
       } catch (e) {
         return null;
       }
@@ -63,10 +71,10 @@ var IGRA = IGRA || {};
     exists: function () {
       var n = native();
       if (n) {
-        try { if (n.read(KEY)) return true; } catch (e) {}
+        try { if (parse(n.read(KEY))) return true; } catch (e) {}
       }
       try {
-        return !!localStorage.getItem(KEY);
+        return !!parse(localStorage.getItem(KEY));
       } catch (e) {
         return false;
       }
@@ -86,13 +94,20 @@ var IGRA = IGRA || {};
       try {
         if (n) {
           n.write(key, "1");
-          return n.read(key) === "1";
+          var ok = n.read(key) === "1";
+          try { n.remove(key); } catch (cleanup) {}
+          return ok;
         }
         localStorage.setItem(key, "1");
-        var ok = localStorage.getItem(key) === "1";
+        var localOk = localStorage.getItem(key) === "1";
         localStorage.removeItem(key);
-        return ok;
+        return localOk;
       } catch (e) {
+        if (n) {
+          try { n.remove(key); } catch (cleanup) {}
+        } else {
+          try { localStorage.removeItem(key); } catch (cleanup2) {}
+        }
         return false;
       }
     },
