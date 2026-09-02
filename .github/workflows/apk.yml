@@ -43,6 +43,9 @@ jobs:
       - name: Живой запуск
         run: node tools/probe/boot.js
 
+      - name: Сторож Android WebView
+        run: bash tools/check-android-security.sh
+
       - name: Сторож расхождений
         run: bash tools/check-sync.sh
 
@@ -56,20 +59,12 @@ jobs:
             https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           unzip -q cmdline.zip
           mv cmdline-tools latest
-          # Не `yes | sdkmanager`: sdkmanager закрывает трубу раньше, чем `yes`
-          # выдохнется, `yes` умирает от SIGPIPE, и pipefail роняет весь шаг.
-          # Первый прогон CI сломался ровно на этом. Кормим ровно столько «y»,
-          # сколько лицензий, и не даём трубе пережить читателя.
           printf 'y\n%.0s' $(seq 1 50) | "$SDK/cmdline-tools/latest/bin/sdkmanager" \
             --sdk_root="$SDK" --licenses >/dev/null
           "$SDK/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$SDK" \
             "platforms;android-34" "build-tools;34.0.0" >/dev/null
           echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
 
-      # Ключ подписи не лежит в репозитории (и не должен). Если в секретах
-      # есть настоящий — берём его, чтобы обновление ставилось поверх
-      # прошлого APK. Если нет, скрипт сам родит отладочный: игра соберётся,
-      # но человеку придётся снести старую перед установкой.
       - name: Ключ подписи
         env:
           KEYSTORE_B64: ${{ secrets.IGRA_KEYSTORE_B64 }}
@@ -99,10 +94,6 @@ jobs:
           path: dist/igra-${{ steps.ver.outputs.v }}.apk
           if-no-files-found: error
 
-      # Метку ставит человек — значит это релиз, и APK нужен в нём.
-      # Кладём и версионный файл, и постоянное имя igra.apk: на него
-      # ссылается посадочная страница (кнопка «скачать»), и эта ссылка
-      # не должна устаревать с каждым релизом.
       - name: Копия под постоянным именем
         if: startsWith(github.ref, 'refs/tags/v')
         run: cp "dist/igra-${{ steps.ver.outputs.v }}.apk" dist/igra.apk
