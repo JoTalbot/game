@@ -59,8 +59,6 @@ var IGRA = IGRA || {};
     profile: function () {
       var a = this.arc(), counts = {}, i, t, best = a.lastTrait || "", bestN = 0;
       for (i = 0; i < a.traits.length; i++) { t = a.traits[i]; counts[t] = (counts[t] || 0) + 1; }
-      // При равной частоте решает последний зафиксированный след: профиль не дрейфует
-      // только из-за порядка обхода объекта.
       for (var k in counts) if (counts[k] > bestN || (counts[k] === bestN && k === a.lastTrait)) { bestN = counts[k]; best = k; }
       return { skins: a.skins || 0, traits: a.traits.slice(), counts: counts,
         dominant: best, lastTrait: a.lastTrait || "", awaken: !!a.awaken,
@@ -68,7 +66,6 @@ var IGRA = IGRA || {};
         behavior: { born: a.behavior.born || 0, returns: a.behavior.returns || 0,
           pulses: a.behavior.pulses || 0, still: a.behavior.still || 0, motion: a.behavior.motion || 0 } };
     },
-
     observe: function (dt, game) {
       var a = this.arc(), dna = game && game.dna, w = game && game.world;
       if (!dna || !w) return;
@@ -112,42 +109,22 @@ var IGRA = IGRA || {};
       if (newSkin && a.legacy) this.leaveLegacy(game);
       this.applyConsequences(game);
     },
-
     applyConsequences: function (game) {
       var a = this.arc(), b = a.behavior || {}, w = game && game.world;
       if (!game || !w) return false;
-      var stage = Math.floor((a.skins || 0));
-      var applied = game.__lifeConsequences || (game.__lifeConsequences = {});
+      var stage = Math.floor(a.skins || 0), applied = game.__lifeConsequences || (game.__lifeConsequences = {});
       if ((b.returns || 0) >= 3 && !applied.return3) {
-        applied.return3 = true;
         var remembered = null;
         for (var i = 0; i < w.nodes.length; i++) if (!w.nodes[i].dead && w.nodes[i].state === "alive" && !w.nodes[i].legacy) { remembered = w.nodes[i]; break; }
-        if (remembered) { remembered.memory = true; remembered.care = Math.max(remembered.care || 0, 0.75); remembered.verse = G.Lang && G.Lang.id === "en" ? "you came back" : "ты вернулся"; }
+        if (!remembered && G.Node) { remembered = new G.Node(game.player.x, game.player.y, "memory"); remembered.state = "alive"; remembered.growth = 1; w.nodes.push(remembered); }
+        if (remembered) { remembered.memory = true; remembered.care = Math.max(remembered.care || 0, 0.75); remembered.verse = G.Lang && G.Lang.id === "en" ? "you came back" : "ты вернулся"; remembered.returnTrace = true; applied.return3 = true; }
       }
-      if ((b.returns || 0) >= 7 && !applied.return7) {
-        applied.return7 = true;
-        for (var r = 0; r < w.nodes.length; r++) if (w.nodes[r].memory && !w.nodes[r].dead) w.nodes[r].roots = Math.max(w.nodes[r].roots || 0, 0.65);
-      }
-      if ((b.pulses || 0) >= 4 && !applied.pulse4 && G.Wound && w.wounds.length === 0) {
-        applied.pulse4 = true;
-        var ang = G.rand(0, 1000) / 1000 * G.TAU;
-        var dist = 300 + G.rand(0, 100);
-        var wound = new G.Wound(game.player.x + Math.cos(ang) * dist, game.player.y + Math.sin(ang) * dist, "thorn");
-        wound.consequence = true; w.wounds.push(wound);
-      }
-      if ((b.still || 0) >= 90 && !applied.still90) {
-        applied.still90 = true;
-        var quiet = w.nearestNode ? w.nearestNode(game.player.x, game.player.y, 180) : null;
-        if (quiet && !quiet.dead) { quiet.memory = true; quiet.care = Math.max(quiet.care || 0, 0.9); quiet.quiet = true; }
-      }
-      if (stage >= 1 && !applied.stage1) {
-        applied.stage1 = true;
-        if ((b.born || 0) >= 20) w.scatter(game.player.x, game.player.y, 1, 360);
-        if ((b.returns || 0) >= 3) w.scatter(game.player.x, game.player.y, 1, 220);
-      }
+      if ((b.returns || 0) >= 7 && !applied.return7) { applied.return7 = true; for (var r = 0; r < w.nodes.length; r++) if (w.nodes[r].memory && !w.nodes[r].dead) w.nodes[r].roots = Math.max(w.nodes[r].roots || 0, 0.65); }
+      if ((b.pulses || 0) >= 4 && !applied.pulse4 && G.Wound && w.wounds.length === 0) { applied.pulse4 = true; var ang = G.rand(0, 1000) / 1000 * G.TAU, dist = 300 + G.rand(0, 100), wound = new G.Wound(game.player.x + Math.cos(ang) * dist, game.player.y + Math.sin(ang) * dist, "thorn"); wound.consequence = true; w.wounds.push(wound); }
+      if ((b.still || 0) >= 90 && !applied.still90) { var quiet = w.nearestNode ? w.nearestNode(game.player.x, game.player.y, 180) : null; if (quiet && !quiet.dead) { quiet.memory = true; quiet.care = Math.max(quiet.care || 0, 0.9); quiet.quiet = true; applied.still90 = true; } }
+      if (stage >= 1 && !applied.stage1) { applied.stage1 = true; if ((b.born || 0) >= 20) w.scatter(game.player.x, game.player.y, 1, 360); if ((b.returns || 0) >= 3) w.scatter(game.player.x, game.player.y, 1, 220); }
       return true;
     },
-
     leaveLegacy: function (game) {
       var a = this.arc();
       if (!game || !game.world || !a.legacy || game.__lifeLegacySkin === a.skins) return null;
@@ -158,7 +135,6 @@ var IGRA = IGRA || {};
       n.name = a.lastTrait ? traitLabel(a.lastTrait) : "memory";
       game.world.nodes.push(n); return n;
     },
-
     applyLegacy: function (game) {
       var a = this.arc();
       if (!game || !game.world || !a.legacy || game.world.__lifeLegacyApplied) return false;
@@ -178,13 +154,6 @@ var IGRA = IGRA || {};
       return true;
     }
   };
-
-  if (G.Director && G.Director.observe) {
-    var originalObserve = G.Director.observe;
-    G.Director.observe = function (dt, game) { originalObserve.call(this, dt, game); if (G.Life) G.Life.observe(dt, game); };
-  }
-  if (G.World && G.World.prototype && G.World.prototype.birthShore) {
-    var originalBirthShore = G.World.prototype.birthShore;
-    G.World.prototype.birthShore = function (player, dna) { originalBirthShore.call(this, player, dna); if (G.Life) G.Life.applyLegacy({ player: player, world: this, dna: dna }); };
-  }
+  if (G.Director && G.Director.observe) { var originalObserve = G.Director.observe; G.Director.observe = function (dt, game) { originalObserve.call(this, dt, game); if (G.Life) G.Life.observe(dt, game); }; }
+  if (G.World && G.World.prototype && G.World.prototype.birthShore) { var originalBirthShore = G.World.prototype.birthShore; G.World.prototype.birthShore = function (player, dna) { originalBirthShore.call(this, player, dna); if (G.Life) G.Life.applyLegacy({ player: player, world: this, dna: dna }); }; }
 })(IGRA);
