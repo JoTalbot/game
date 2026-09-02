@@ -31,7 +31,7 @@ game = H.makeWorld(G, 8112);
 p = game.player;
 game.world.beings = [
   { id: "a", x: p.x + 20, y: p.y + 20, dead: false, bond: 0.9, fear: 0, debt: 0, temper: "shy", memory: [] },
-  { id: "b", x: p.x + 80, y: p.y + 20, dead: false, bond: 0.7, fear: 0, debt: 0, temper: "curious", memory: [] }
+  { id: "b", x: p.x + 80, y: p.y + 20, dead: false, bond: 0.3, fear: 0, debt: 0, temper: "curious", memory: [] }
 ];
 game.world.cracks = [{ id: "law-1", x: p.x + 30, y: p.y + 30, dead: false, law: { id: "woundsSing" } }];
 G.OrganConflicts.observe(1, game);
