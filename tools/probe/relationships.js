@@ -1,0 +1,28 @@
+"use strict";
+var fs = require("fs"), vm = require("vm"), path = require("path"), H = require("./harness");
+var ROOT = path.resolve(__dirname, "..", "..");
+var G = H.boot();
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "life.js"), "utf8"), { filename: "life.js" });
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "relationships.js"), "utf8"), { filename: "relationships.js" });
+var pass = 0, fail = 0;
+function ok(c, s) { if (c) { pass++; console.log("  ✓ " + s); } else { fail++; console.log("  ✗ " + s); } }
+console.log("\n— V3-003: полноценные отношения");
+G.Save.set("igra.relationships.v1", JSON.stringify({ encounters: 4, trust: 0.62, fear: 0.18, debt: 0.12, losses: 0, rescues: 3, memories: ["к тебе можно приблизиться"], companion: true, legacy: 0 }));
+G.Life.resetCache(); G.Relationships.resetCache();
+var game = H.makeWorld(G, 4403);
+var b = new G.Being(game.player.x + 20, game.player.y, "empathy");
+b.bond = 0.5; b.fear = 0.2; b.memory = [{ ev: "touched" }]; game.world.beings.push(b);
+G.Relationships.observe(1, game);
+var p = G.Relationships.profile();
+ok(p.trust >= 0.62 && p.companion, "доверие и статус спутника переживают загрузку");
+ok(b.relationship && b.relationship.trust >= 0.62, "отношение получает устойчивый локальный отпечаток");
+ok(p.memories.indexOf("к тебе можно приблизиться") >= 0, "событие становится памятью отношения");
+b.memory.push({ ev: "struck" }); G.Relationships.observe(1, game); p = G.Relationships.profile();
+ok(p.debt > 0.12 && p.trust < 0.63, "боль снижает доверие и создаёт долг");
+G.Relationships.resetCache(); p = G.Relationships.profile();
+ok(p.companion && p.memories.length >= 1, "память отношения переживает сброс модуля");
+G.Relationships.onMetamorphosis(game);
+ok(game.world.beings.some(function (x) { return x.legacy && x.relationship && x.relationship.companion; }), "связь оставляет живое эхо после смены кожи");
+var before = game.world.beings.length; G.Relationships.onMetamorphosis(game); ok(game.world.beings.length === before + 1, "повторная смена кожи создаёт следующую главу, а не дубликат кадра");
+console.log("\nИтого: " + pass + " passed, " + fail + " failed");
+if (fail) process.exit(1);
