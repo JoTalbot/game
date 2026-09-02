@@ -4,6 +4,7 @@ const ROOT = path.resolve(__dirname, "../..");
 const html = fs.readFileSync(path.join(ROOT, "web/index.html"), "utf8");
 const files = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m => m[1]).filter(Boolean);
 const G = H.boot();
+global.location = global.location || { search: "", href: "https://igra.local/", protocol: "https:" };
 const ok = (v, label) => { if (!v) throw new Error(label); console.log(`✓ ${label}`); };
 for (const src of files) vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", src), "utf8"), { filename: src });
 ok(!!G.ReleaseSystems, "ReleaseSystems loaded");
