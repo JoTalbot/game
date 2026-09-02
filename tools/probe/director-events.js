@@ -32,6 +32,7 @@ G.DirectorEvents.resetCache(); ok(G.DirectorEvents.profile().fired[0] === firedI
 
 clean();
 game = H.makeWorld(G, 7711); game.time = 10; game.player.stillT = 80;
+game.dna.get = function (k) { return k === "contemplation" ? 0.7 : 0.2; };
 var n = game.world.nodes[0]; n.state = "alive"; n.dead = false; n.care = 0.2; n.roots = 0.1;
 G.Life.resetCache(); G.Life.arc().initialized = true; G.Life.arc().behavior = { born: 0, returns: 0, pulses: 0, still: 0, motion: 0 };
 step(game, 10); step(game, 90);
