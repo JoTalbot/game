@@ -38,6 +38,7 @@ const context = {
   },
   document: {
     readyState: "complete",
+    documentElement: { lang: "ru" },
     body: { appendChild() {}, removeChild() {} },
     createElement() { return { style: {}, setAttribute() {}, appendChild() {}, remove() {} }; },
     getElementById() { return null; },
