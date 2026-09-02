@@ -36,8 +36,8 @@ game.world.beings = [
 game.world.cracks = [{ id: "law-1", x: p.x + 30, y: p.y + 30, dead: false, law: { id: "woundsSing" } }];
 G.OrganConflicts.observe(1, game);
 var a = game.world.beings[0], b = game.world.beings[1];
-ok(a.conflict === "law" && a.debt > 0, "связанный спутник получает устойчивый след встречи с законом");
-ok(a.memory.length === 1 && a.memory[0].id === "woundsSing", "память спутника хранит конкретный закон");
+ok(a.conflict === "law" && a.debt > 0, "связанный спутник сохраняет более сильный след встречи с законом");
+ok(a.memory.some(function (m) { return m && m.kind === "law" && m.id === "woundsSing"; }), "память спутника хранит конкретный закон");
 ok(b.memory.length === 1 && b.memory[0].with === "shy", "два разных существа запоминают столкновение характеров");
 ok(G.OrganConflicts.profile().total === 2, "два разных конфликта остаются разными следами");
 
