@@ -33,7 +33,8 @@ G.DirectorEvents.resetCache(); ok(G.DirectorEvents.profile().fired[0] === firedI
 clean();
 game = H.makeWorld(G, 7711); game.time = 10; game.player.stillT = 80;
 game.dna.get = function (k) { return k === "contemplation" ? 0.7 : 0.2; };
-var n = game.world.nodes[0]; n.state = "alive"; n.dead = false; n.care = 0.2; n.roots = 0.1;
+var n = game.world.nodes[0]; n.x = game.player.x + 40; n.y = game.player.y + 40;
+n.state = "alive"; n.dead = false; n.care = 0.2; n.roots = 0.1;
 G.Life.resetCache(); G.Life.arc().initialized = true; G.Life.arc().behavior = { born: 0, returns: 0, pulses: 0, still: 0, motion: 0 };
 step(game, 10); step(game, 90);
 ok(n.quietMemory === true && n.care >= 0.96, "долгое внимание оставляет тихий физический след");
@@ -42,7 +43,8 @@ clean();
 game = H.makeWorld(G, 7712); game.time = 10;
 var oldGet = game.dna.get;
 game.dna.get = function (k) { return k === "harmony" ? 0.8 : oldGet.call(game.dna, k); };
-var tone = game.world.nodes[0]; tone.kind = "tone"; tone.state = "alive"; tone.dead = false; tone.care = 0.2;
+var tone = game.world.nodes[0]; tone.x = game.player.x + 40; tone.y = game.player.y + 40;
+tone.kind = "tone"; tone.state = "alive"; tone.dead = false; tone.care = 0.2;
 step(game, 10); step(game, 90);
 ok(tone.weather === true && tone.care > 0.2, "гармония меняет существующий мир, а не создаёт меню события");
 
