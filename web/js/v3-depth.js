@@ -1,0 +1,231 @@
+var IGRA = IGRA || {};
+(function (G) {
+  "use strict";
+
+  var KEY = "igra.v3-depth.v1";
+  var MAX_HISTORY = 12;
+  var MAX_PLACES = 10;
+  var cache = null;
+
+  function fresh() {
+    return { version: 1, rare: [], places: [], ecology: 0, act: 0, lives: 0, finale: "", finaleCount: 0, lastSignature: "", lastLife: -1 };
+  }
+  function load() {
+    var s = fresh();
+    try {
+      var raw = null;
+      if (G.Save && G.Save.get) raw = G.Save.get(KEY);
+      if (!raw && typeof localStorage !== "undefined") raw = localStorage.getItem(KEY);
+      if (raw) {
+        var p = JSON.parse(raw);
+        if (p && typeof p === "object") for (var k in s) if (p[k] != null) s[k] = p[k];
+      }
+    } catch (e) {}
+    if (!Array.isArray(s.rare)) s.rare = [];
+    if (!Array.isArray(s.places)) s.places = [];
+    s.rare = s.rare.slice(-MAX_HISTORY);
+    s.places = s.places.slice(-MAX_PLACES);
+    s.ecology = clamp(Number(s.ecology) || 0, -1, 1);
+    s.act = Math.max(0, Math.floor(Number(s.act) || 0));
+    s.lives = Math.max(0, Math.floor(Number(s.lives) || 0));
+    s.finaleCount = Math.max(0, Math.floor(Number(s.finaleCount) || 0));
+    return s;
+  }
+  function state() { if (!cache) cache = load(); return cache; }
+  function save() {
+    var raw = JSON.stringify(state());
+    try { if (G.Save && G.Save.set) G.Save.set(KEY, raw); } catch (e) {}
+    try { if (typeof localStorage !== "undefined") localStorage.setItem(KEY, raw); } catch (e2) {}
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function num(v) { return Number(v) || 0; }
+  function hash(parts) {
+    var h = 2166136261, text = parts.join("|");
+    for (var i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return (h >>> 0).toString(16);
+  }
+  function profileOf(name) {
+    try { return G[name] && G[name].profile ? G[name].profile() : null; } catch (e) { return null; }
+  }
+  function nodeId(n) { return n && n.id != null ? String(n.id) : ""; }
+  function near(p, nodes, radius) {
+    var best = null, bd = Infinity;
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i]; if (!n || n.dead) continue;
+      var dx = num(n.x) - num(p.x), dy = num(n.y) - num(p.y), d = Math.sqrt(dx * dx + dy * dy);
+      if (d < bd && d <= radius) { bd = d; best = n; }
+    }
+    return best;
+  }
+  function mark(n, field, amount) {
+    if (!n) return;
+    n[field] = clamp(num(n[field]) + amount, 0, 1);
+  }
+
+  var V3 = {
+    resetCache: function () { cache = null; },
+    profile: function () {
+      var s = state();
+      return { version: 1, rare: s.rare.slice(), places: s.places.slice(), ecology: s.ecology, act: s.act,
+        lives: s.lives, finale: s.finale, finaleCount: s.finaleCount, lastSignature: s.lastSignature, lastLife: s.lastLife };
+    },
+
+    // V3-021: персональный редкий момент. Сигнатура строится из уже
+    // прожитых систем, поэтому один и тот же random не выдаёт один и тот же
+    // «секрет» каждому человеку.
+    signature: function (game) {
+      var dna = game && game.dna;
+      var rel = profileOf("Relationships") || {};
+      var life = profileOf("Life") || {};
+      var wm = profileOf("WorldMemory") || {};
+      var act = profileOf("Act") || {};
+      var shadow = profileOf("BossShadow") || {};
+      var spatial = profileOf("SpatialMemory") || {};
+      var traits = [];
+      if (dna && G.TRAITS) for (var i = 0; i < G.TRAITS.length; i++) traits.push(Math.floor(num(dna.get(G.TRAITS[i])) * 4));
+      return hash(traits.concat([
+        Math.floor(num(rel.trust) * 4), Math.floor(num(rel.fear) * 4), Math.floor(num(rel.debt) * 4),
+        Math.floor(num(life.skins) || 0), Math.floor(num(wm.memories && wm.memories.length) || 0),
+        Math.floor(num(act.phase) || 0), Math.floor(num(shadow.total) || 0), Math.floor(num(spatial.visits) || 0)
+      ]));
+    },
+
+    onFinale: function (game, choice) {
+      var s = state();
+      var c = choice === "become" ? "become" : "release";
+      s.finale = c; s.finaleCount++;
+      s.ecology = clamp(s.ecology + (c === "become" ? 0.16 : -0.12), -1, 1);
+      s.act = Math.max(s.act, 5);
+      s.lives++;
+      save();
+      return this.profile();
+    },
+
+    onBirth: function (game) {
+      var s = state();
+      s.lives = Math.max(s.lives, 1);
+      if (s.finale === "become") s.ecology = clamp(s.ecology + 0.05, -1, 1);
+      if (s.finale === "release") s.ecology = clamp(s.ecology - 0.03, -1, 1);
+      s.act = Math.max(s.act, 1);
+      save();
+      this.apply(game);
+    },
+
+    observe: function (dt, game) {
+      if (!game || !game.world || !game.player || game.state !== "play") return;
+      var s = state();
+      var rel = profileOf("Relationships") || {};
+      var life = profileOf("Life") || {};
+      var act = profileOf("Act") || {};
+      var wm = profileOf("WorldMemory") || {};
+      var spatial = profileOf("SpatialMemory") || {};
+      var nodes = game.world.nodes || [];
+      var p = game.player;
+      var sig = this.signature(game);
+      var lifeNo = Math.floor(num(life.life) || num(life.lives) || s.lives || 0);
+
+      // V3-021: три+ независимых следа дают персональную комбинацию.
+      var signals = 0;
+      if (num(rel.trust) > 0.58 || num(rel.debt) > 0.45) signals++;
+      if (num(life.skins) >= 1) signals++;
+      if (num(wm.memories && wm.memories.length) >= 2) signals++;
+      if (num(spatial.visits) >= 2 || num(spatial.places && spatial.places.length) >= 2) signals++;
+      if (num(act.phase) >= 2) signals++;
+      if (Math.abs(s.ecology) > 0.1) signals++;
+      if (signals >= 3 && s.rare.indexOf(sig) < 0 && sig !== s.lastSignature && s.rare.length < MAX_HISTORY) {
+        var anchor = near(p, nodes, 240);
+        if (anchor) {
+          anchor.personalEcho = true;
+          anchor.personalSignature = sig;
+          anchor.care = Math.max(num(anchor.care), 0.91);
+          anchor.roots = Math.max(num(anchor.roots), 0.67);
+          s.rare.push(sig); s.lastSignature = sig; s.lastLife = lifeNo;
+          save();
+          if (G.Voice && G.Voice.say) G.Voice.say("rememberYou", true);
+        }
+      }
+
+      // V3-024: место получает историю, не становясь POI-картой.
+      var place = near(p, nodes, 110);
+      if (place && place.id != null) {
+        var id = nodeId(place), found = null;
+        for (var pi = 0; pi < s.places.length; pi++) if (s.places[pi].id === id) found = s.places[pi];
+        if (!found) { found = { id: id, visits: 0, lives: [], care: 0, root: 0 }; s.places.push(found); }
+        found.visits++;
+        if (found.lives.indexOf(lifeNo) < 0) found.lives.push(lifeNo);
+        if (found.lives.length > 4) found.lives.shift();
+        found.care = clamp(found.care + 0.03, 0, 1);
+        found.root = clamp(found.root + 0.02, 0, 1);
+        place.placeHistory = Math.min(4, found.visits);
+        place.placeMemory = true;
+        if (found.visits > 1) { place.care = Math.max(num(place.care), 0.82); place.roots = Math.max(num(place.roots), 0.58); }
+        if (s.places.length > MAX_PLACES) s.places.shift();
+      }
+
+      // V3-025: общий экологический след мягко меняет уже существующий берег.
+      var delta = (num(rel.trust) - num(rel.fear)) * 0.0007 + (num(act.phase) >= 3 ? 0.0004 : 0);
+      s.ecology = clamp(s.ecology + delta * Math.min(1, num(dt)), -1, 1);
+      this.apply(game);
+      save();
+    },
+
+    apply: function (game) {
+      if (!game || !game.world) return;
+      var s = state(), nodes = game.world.nodes || [], beings = game.world.beings || [];
+      var eco = s.ecology;
+      // V3-023/V3-025/V3-029: память финала и отношений выражается в уже
+      // существующих существах, а не отдельным интерфейсом.
+      for (var i = 0; i < beings.length; i++) {
+        var b = beings[i]; if (!b || b.dead) continue;
+        if (s.finale === "become") b.legacyEcho = true;
+        if (s.finale === "release") b.releaseEcho = true;
+        if (Math.abs(eco) > 0.08) b.ecologyAffinity = clamp(num(b.ecologyAffinity) + eco * 0.002, -1, 1);
+        if (b.relationship && b.relationship.memories > 0) b.longMemory = Math.min(1, num(b.longMemory) + 0.001);
+      }
+      // V3-028: история превращается в небольшие физические производные.
+      for (var n = 0; n < nodes.length; n++) {
+        var node = nodes[n]; if (!node || node.dead) continue;
+        if (node.placeMemory) { node.memoryAge = Math.min(4, num(node.memoryAge) + 0.001); node.care = Math.max(num(node.care), 0.5); }
+        if (node.personalEcho) node.echoStrength = Math.min(1, num(node.echoStrength) + 0.001);
+        if (s.finale === "become" && node.state === "alive") node.voiceLegacy = true;
+        if (s.finale === "release" && node.state === "alive") node.releaseLegacy = true;
+      }
+    }
+  };
+
+  G.V3Depth = V3;
+
+  // Keep finale history outside the ordinary save lifecycle as well. The
+  // existing `become` path intentionally clears the game save, so v3 history
+  // must survive that reset just like voiceplus does.
+  if (G.Fate) {
+    var oldRelease = G.Fate.release;
+    G.Fate.release = function (game) {
+      var result = oldRelease.apply(this, arguments);
+      if (G.V3Depth) G.V3Depth.onFinale(game, "release");
+      return result;
+    };
+    var oldBecome = G.Fate.become;
+    G.Fate.become = function (game) {
+      if (G.V3Depth) G.V3Depth.onFinale(game, "become");
+      return oldBecome.apply(this, arguments);
+    };
+  }
+
+  if (G.World && G.World.prototype && G.World.prototype.birthShore) {
+    var oldBirth = G.World.prototype.birthShore;
+    G.World.prototype.birthShore = function (player, dna) {
+      var result = oldBirth.apply(this, arguments);
+      if (G.V3Depth) G.V3Depth.onBirth({ player: player, world: this, dna: dna });
+      return result;
+    };
+  }
+
+  if (G.Director && G.Director.observe) {
+    var oldObserve = G.Director.observe;
+    G.Director.observe = function (dt, game) {
+      oldObserve.call(this, dt, game);
+      if (G.V3Depth) G.V3Depth.observe(dt, game);
+    };
+  }
+})(IGRA);
