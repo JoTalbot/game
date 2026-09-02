@@ -47,8 +47,8 @@ for (const x of scenarios) {
   G.ReleaseSystems.observe(1, x.game);
 }
 let p = G.ReleaseSystems.profile();
-ok(Object.keys(p.trajectories).length >= 3, "ReleaseSystems records three trajectories without seeded trajectory counters");
-ok(p.trajectories[paths[0]] && p.trajectories[paths[1]] && p.trajectories[paths[2]], "recorded trajectory keys match canonical Trajectory.profile paths");
+ok(p.trajectories.length >= 3, "ReleaseSystems records three trajectories without seeded trajectory counters");
+ok(paths.every(pathName => p.trajectories.includes(pathName)), "recorded trajectory keys match canonical Trajectory.profile paths");
 
 const game = scenarios[1].game;
 game.state = "play"; game.time = 2400; game.player = { x: 0, y: 0 };
