@@ -20,6 +20,28 @@ const ok = (condition, label, detail = "") => {
 ok(files.length >= required.length, "структура index.html содержит полный набор скриптов", `${files.length} шт.`);
 for (const src of required) ok(files.includes(src), `подключён ${src}`);
 
+const noopContext = new Proxy({}, {
+  get(target, prop) {
+    if (prop === "measureText") return () => ({ width: 0 });
+    if (prop === "createLinearGradient" || prop === "createRadialGradient") {
+      return () => ({ addColorStop() {} });
+    }
+    if (!(prop in target)) target[prop] = () => {};
+    return target[prop];
+  },
+  set(target, prop, value) { target[prop] = value; return true; }
+});
+const canvas = {
+  style: {},
+  width: 800,
+  height: 600,
+  offsetWidth: 800,
+  offsetHeight: 600,
+  getContext(type) { return type === "2d" ? noopContext : null; },
+  getBoundingClientRect() { return { left: 0, top: 0, width: 800, height: 600 }; },
+  addEventListener() {}
+};
+
 const context = {
   console,
   setTimeout,
@@ -27,7 +49,7 @@ const context = {
   setInterval,
   clearInterval,
   performance: { now: () => Date.now() },
-  location: { href: "https://igra.local/www/index.html" },
+  location: { href: "https://igra.local/www/index.html", protocol: "https:", search: "" },
   navigator: { language: "ru-RU", userLanguage: "ru-RU" },
   localStorage: {
     _data: Object.create(null),
@@ -38,16 +60,21 @@ const context = {
   },
   document: {
     readyState: "complete",
-    documentElement: { lang: "ru" },
-    body: { appendChild() {}, removeChild() {} },
-    createElement() { return { style: {}, setAttribute() {}, appendChild() {}, remove() {} }; },
-    getElementById() { return null; },
+    documentElement: { lang: "ru", clientWidth: 800, clientHeight: 600 },
+    body: { appendChild() {}, removeChild() {}, classList: { add() {}, contains() { return false; } } },
+    createElement() { return { style: {}, setAttribute() {}, appendChild() {}, remove() {}, addEventListener() {} }; },
+    getElementById(id) { return id === "stage" ? canvas : null; },
     querySelector() { return null; },
     querySelectorAll() { return []; },
     addEventListener() {}
   },
   window: null,
   globalThis: null,
+  innerWidth: 800,
+  innerHeight: 600,
+  devicePixelRatio: 1,
+  screen: { width: 800, height: 600 },
+  visualViewport: null,
   AudioContext: function() {},
   webkitAudioContext: function() {}
 };
