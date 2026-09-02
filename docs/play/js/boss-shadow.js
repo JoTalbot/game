@@ -56,7 +56,8 @@ var IGRA = IGRA || {};
           w.boss._shadowSeen = true;
           a.encounters++;
           a.nameKey = w.boss.nameKey;
-          a.trait = (G.DNA && G.DNA.get && G.DNA.get("aggression") >= G.DNA.get("harmony")) ? "aggression" : "chaos";
+          var dna = game.dna;
+          a.trait = (dna && dna.get && dna.get("aggression") >= dna.get("harmony")) ? "aggression" : "chaos";
           a.intensity = Math.min(1, a.intensity + 0.08);
           a.lastLife = lifeNumber();
           applyRelationships(a);
@@ -92,8 +93,6 @@ var IGRA = IGRA || {};
     apply: function (game) {
       var a = state(), w = game && game.world;
       if (!w) return;
-      // Тень не создаёт нового босса и не блокирует игру. Она меняет уже
-      // существующие органы: страх существ, память Director и форму следов.
       for (var i = 0; i < w.beings.length; i++) {
         var b = w.beings[i];
         if (!b || b.dead) continue;
@@ -112,7 +111,6 @@ var IGRA = IGRA || {};
         n.shadowLife = t.life;
         n.shadowOutcome = t.outcome;
         n.verse = "то, что ты победил, не исчезло";
-        if (G.Voice && a.intensity > 0.55) G.Voice.say("bossShadow");
       }
     }
   };
@@ -122,7 +120,16 @@ var IGRA = IGRA || {};
     G.Organs.killBoss = function (game, mercy) {
       var boss = game && game.world && game.world.boss;
       var result = originalKill.apply(this, arguments);
-      if (G.BossShadow && boss) G.BossShadow.onOutcome(game, boss, mercy ? "defeat" : "defeat");
+      if (G.BossShadow && boss) G.BossShadow.onOutcome(game, boss, "defeat");
+      return result;
+    };
+  }
+  if (G.Organs && G.Organs.updateBoss) {
+    var originalUpdateBoss = G.Organs.updateBoss;
+    G.Organs.updateBoss = function (game, dt) {
+      var boss = game && game.world && game.world.boss;
+      var result = originalUpdateBoss.apply(this, arguments);
+      if (G.BossShadow && boss && game.world.boss === null && !boss._shadowOutcome) G.BossShadow.onOutcome(game, boss, "escape");
       return result;
     };
   }
