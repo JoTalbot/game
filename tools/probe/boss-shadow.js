@@ -31,7 +31,7 @@ ok(mature.world.nodes.filter(function (n) { return n && n.shadow; }).length === 
 
 clean();
 game = H.makeWorld(G, 13015);
-game.world.boss = { x: 90, y: 0, r: 28, hp: 10, maxHp: 10, nameKey: 1, phase: 0, lunge: 0, stun: 0, weak: 0 };
+game.world.boss = { x: 500, y: 0, r: 28, hp: 10, maxHp: 10, nameKey: 1, phase: 0, lunge: 0, stun: 0, weak: 0 };
 G.BossShadow.observe(game);
 G.Organs.updateBoss(game, 51);
 p = G.BossShadow.profile();
