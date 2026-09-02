@@ -1,0 +1,90 @@
+var IGRA = IGRA || {};
+(function (G) {
+  "use strict";
+
+  var KEY = "igra.trajectory.v1";
+  var AXES = ["curiosity", "aggression", "contemplation", "empathy", "chaos", "harmony"];
+  var KINDS = { curiosity: "relic", aggression: "thorn", contemplation: "still", empathy: "echo", chaos: "shard", harmony: "tone" };
+  var cache = null;
+
+  function fresh() { return { version: 1, life: 0, seed: 0, path: "", dominant: "", secondary: "", turns: [], imprint: {} }; }
+  function clamp(n, a, b) { return Math.max(a, Math.min(b, Number(n) || 0)); }
+  function load() {
+    if (cache) return cache;
+    var a = fresh();
+    try {
+      var raw = G.Save && G.Save.get ? G.Save.get(KEY) : null;
+      var p = raw ? JSON.parse(raw) : null;
+      if (p && typeof p === "object") {
+        for (var k in a) if (p[k] != null) a[k] = p[k];
+        if (!Array.isArray(a.turns)) a.turns = [];
+        if (!a.imprint || typeof a.imprint !== "object") a.imprint = {};
+      }
+    } catch (e) {}
+    cache = a;
+    return a;
+  }
+  function save() { try { if (G.Save && G.Save.set) G.Save.set(KEY, JSON.stringify(load())); } catch (e) {} }
+  function value(dna, k) { return dna && dna.get ? clamp(dna.get(k), 0, 1) : 0; }
+  function rank(dna) {
+    var out = AXES.map(function (k) { return { k: k, v: value(dna, k) }; });
+    out.sort(function (a, b) { return b.v - a.v || AXES.indexOf(a.k) - AXES.indexOf(b.k); });
+    return out;
+  }
+  function hash(text) { var h = 2166136261; for (var i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24); } return h >>> 0; }
+
+  G.Trajectory = {
+    resetCache: function () { cache = null; },
+    profile: function () { var a = load(); return { life: a.life, path: a.path, dominant: a.dominant, secondary: a.secondary, turns: a.turns.slice(), imprint: Object.assign({}, a.imprint) }; },
+    build: function (game) {
+      var a = load(), dna = game && game.dna, life = G.Life && G.Life.profile ? G.Life.profile() : null;
+      if (!dna) return null;
+      var r = rank(dna), rel = G.Relationships && G.Relationships.profile ? G.Relationships.profile() : {};
+      var mem = G.WorldMemory && G.WorldMemory.profile ? G.WorldMemory.profile() : { memories: [] };
+      var b = life && life.behavior ? life.behavior : {};
+      var scores = {};
+      AXES.forEach(function (k, i) { scores[k] = r.reduce(function (s, x, n) { return s + x.v * (n === i ? 1.0 : 0.08); }, 0); });
+      scores.empathy += clamp(rel.trust, 0, 1) * 0.22 + clamp(rel.rescues, 0, 8) * 0.025;
+      scores.aggression += clamp(rel.fear, 0, 1) * 0.16;
+      scores.empathy += clamp(rel.bond, 0, 1) * 0.18;
+      scores.harmony += clamp(b.still, 0, 600) / 600 * 0.18;
+      scores.curiosity += clamp(b.motion, 0, 1200) / 1200 * 0.12;
+      scores.chaos += clamp(b.pulses, 0, 12) / 12 * 0.16;
+      scores.contemplation += clamp(mem.memories ? mem.memories.length : 0, 0, 12) / 12 * 0.18;
+      var keys = AXES.slice().sort(function (x, y) { return scores[y] - scores[x] || AXES.indexOf(x) - AXES.indexOf(y); });
+      var dom = keys[0], sec = keys[1];
+      var old = a.imprint[dom] || 0;
+      var path = dom + ":" + sec;
+      if (old > 0.35 && old !== scores[dom]) path += ":echo";
+      var signature = [dom, sec, Math.round(scores[dom] * 100), Math.round(scores[sec] * 100), mem.memories ? mem.memories.length : 0, rel.bond || 0].join("|");
+      var seed = hash(signature + ":" + (life ? life.skins : 0));
+      a.life = life ? life.skins : a.life;
+      a.seed = seed;
+      a.path = path;
+      a.dominant = dom;
+      a.secondary = sec;
+      a.imprint[dom] = Math.max(old, scores[dom]);
+      if (!a.turns.length || a.turns[a.turns.length - 1] !== path) { a.turns.push(path); if (a.turns.length > 12) a.turns.shift(); }
+      save();
+      return { path: path, dominant: dom, secondary: sec, kind: KINDS[dom], seed: seed, scores: scores };
+    },
+    apply: function (game) {
+      var p = this.build(game), w = game && game.world;
+      if (!p || !w || game.__trajectoryApplied === p.seed) return p;
+      game.__trajectoryApplied = p.seed;
+      var radius = 180 + (p.seed % 220), count = 1 + (p.seed % 3);
+      if (w.scatter) w.scatter(game.player.x, game.player.y, count, radius);
+      for (var i = 0; i < w.nodes.length; i++) {
+        var n = w.nodes[i];
+        if (!n || n.dead || n.state !== "unformed" || n.hint) continue;
+        if ((n.x - game.player.x) * (n.x - game.player.x) + (n.y - game.player.y) * (n.y - game.player.y) < radius * radius) { n.hint = p.kind; n.trajectory = p.path; break; }
+      }
+      return p;
+    }
+  };
+
+  if (G.Director && G.Director.observe) {
+    var original = G.Director.observe;
+    G.Director.observe = function (dt, game) { original.call(this, dt, game); if (G.Trajectory) G.Trajectory.apply(game); };
+  }
+})(IGRA);
