@@ -17,3 +17,5 @@ jobs:
           node-version: 20
       - name: Проверка жизненной дуги
         run: node tools/probe/life.js
+      - name: Проверка последствий поведения
+        run: node tools/probe/consequences.js
