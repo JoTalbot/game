@@ -19,3 +19,5 @@ jobs:
         run: node tools/probe/life.js
       - name: Проверка последствий поведения
         run: node tools/probe/consequences.js
+      - name: Проверка отношений
+        run: node tools/probe/relationships.js
