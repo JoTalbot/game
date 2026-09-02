@@ -29,6 +29,8 @@ jobs:
         run: node tools/probe/act.js
       - name: Проверка событий Director
         run: node tools/probe/director-events.js
+      - name: Проверка Director content pools
+        run: node tools/probe/director-content.js
       - name: Проверка V3 глубокой непрерывности
         run: node tools/probe/v3-depth.js
       - name: Проверка интегрированной V3 непрерывности
