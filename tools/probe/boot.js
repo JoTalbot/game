@@ -53,7 +53,7 @@ var ctx = {
 ctx.addEventListener = function () {};
 ctx.removeEventListener = function () {};
 ctx.matchMedia = function () { return { matches: false, addListener: function () {}, addEventListener: function () {} }; };
-ctx.getComputedStyle = function () { return { getPropertyValue: function () { return ""; } };
+ctx.getComputedStyle = function () { return { getPropertyValue: function () { return ""; } }; };
 ctx.window = ctx; ctx.globalThis = ctx; ctx.self = ctx;
 ctx.AudioContext = function () {
   return new Proxy({}, { get: function () {
