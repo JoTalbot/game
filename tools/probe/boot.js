@@ -57,7 +57,7 @@ ctx.getComputedStyle = function () { return { getPropertyValue: function () { re
 ctx.window = ctx; ctx.globalThis = ctx; ctx.self = ctx;
 ctx.AudioContext = function () {
   return new Proxy({}, { get: function () {
-    return function () { return { connect: function () {}, start: function () {}, stop: function (),
+    return function () { return { connect: function () {}, start: function () {}, stop: function () {},
       gain: { value: 0, setValueAtTime: function () {}, linearRampToValueAtTime: function () {} },
       frequency: { value: 0, setValueAtTime: function () {} } }; }; } });
 };
