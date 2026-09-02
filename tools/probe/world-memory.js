@@ -12,8 +12,7 @@ G.WorldMemory.resetCache();
 var game = H.makeWorld(G, 5517);
 var p = G.WorldMemory.profile();
 ok(p.memories.length === 1 && p.memories[0].verse === "ты был здесь", "память мира загружается из постоянного хранилища");
-// Новый берег для теста восстановления должен быть пустым: случайно
-// сгенерированный узел не должен ложно считаться восстановленной памятью.
+// Изолируем восстановление от случайной генерации и от автодобавления памяти.
 game.world.nodes = [];
 var made = G.WorldMemory.restore(game);
 ok(made === 1, "узнаваемое место возвращается на новый берег");
@@ -22,7 +21,9 @@ ok(n.memoryAnchor && n.memoryLife === 2 && n.roots >= 0.8, "след несёт 
 var before = game.world.nodes.length;
 G.WorldMemory.restore(game);
 ok(game.world.nodes.length === before, "повторная загрузка не плодит дубликаты");
-var chosen = new G.Node(game.player.x + 20, game.player.y, "garden");
+// Новый след должен быть достаточно далеко от восстановленного garden, иначе
+// корректная дедупликация заменит старую память вместо создания второй.
+var chosen = new G.Node(game.player.x + 400, game.player.y, "garden");
 chosen.state = "alive"; chosen.care = 0.95; chosen.roots = 0.75; chosen.verse = "здесь было тепло"; game.world.nodes.push(chosen);
 G.WorldMemory.remember(game, chosen, "chosen");
 G.WorldMemory.resetCache(); p = G.WorldMemory.profile();
