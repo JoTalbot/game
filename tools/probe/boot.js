@@ -7,12 +7,10 @@ const root = path.resolve(__dirname, "../..");
 const html = fs.readFileSync(path.join(root, "web/index.html"), "utf8");
 const files = [...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m => m[1]).filter(Boolean);
 const required = [
-  "./js/math.js", "./js/lang.js", "./js/dna.js", "./js/save.js", "./js/audio.js",
-  "./js/fx.js", "./js/igra.js", "./js/report.js", "./js/organs.js", "./js/memory.js",
-  "./js/fate.js", "./js/world.js", "./js/director.js", "./js/director-events.js",
-  "./js/life.js", "./js/relationships.js", "./js/world-memory.js", "./js/trajectory.js",
-  "./js/act.js", "./js/organ-conflicts.js", "./js/metamorphosis.js", "./js/renderer.js",
-  "./js/webgl-renderer.js", "./js/engine.js", "./js/ui.js", "./js/main.js"
+  "js/math.js", "js/lang.js", "js/dna.js", "js/save.js", "js/audio.js", "js/fx.js", "js/igra.js", "js/report.js",
+  "js/organs.js", "js/memory.js", "js/fate.js", "js/world.js", "js/director.js", "js/director-events.js",
+  "js/life.js", "js/relationships.js", "js/world-memory.js", "js/trajectory.js", "js/act.js", "js/organ-conflicts.js",
+  "js/metamorphosis.js", "js/renderer.js", "js/webgl-renderer.js", "js/engine.js", "js/ui.js", "js/main.js"
 ];
 const ok = (condition, label, detail = "") => {
   if (!condition) throw new Error(`${label}${detail ? `: ${detail}` : ""}`);
@@ -56,9 +54,8 @@ context.window = context;
 context.globalThis = context;
 const sandbox = vm.createContext(context);
 for (const src of files) {
-  const rel = src.replace(/^\.\//, "");
-  const code = fs.readFileSync(path.join(root, "web", rel), "utf8");
-  vm.runInContext(code, sandbox, { filename: rel });
+  const code = fs.readFileSync(path.join(root, "web", src), "utf8");
+  vm.runInContext(code, sandbox, { filename: src });
 }
 
 ok(!!sandbox.IGRA, "IGRA загружен");
