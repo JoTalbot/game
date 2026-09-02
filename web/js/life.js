@@ -65,9 +65,7 @@ var IGRA = IGRA || {};
 
   function traitLabel(trait) {
     if (!trait) return "";
-    return G.Lang && G.Lang.id === "en" ?
-      (G.traitName ? G.traitName(trait) : trait) :
-      (G.traitName ? G.traitName(trait) : trait);
+    return G.traitName ? G.traitName(trait) : trait;
   }
 
   function speak(ru, en) {
@@ -122,6 +120,7 @@ var IGRA = IGRA || {};
       var age = dna.age || 0;
       var meta = w.meta || 0;
       var dirty = false;
+      var newSkin = false;
       var currentTrait = dna.dominant ? dna.dominant() : "";
 
       if (!a.born && age > 2) {
@@ -131,6 +130,7 @@ var IGRA = IGRA || {};
 
       if (a.lastAge > 120 && age + 20 < a.lastAge) {
         a.skins = (a.skins || 0) + 1;
+        newSkin = true;
         if (currentTrait) {
           a.lastTrait = currentTrait;
           a.traits.push(currentTrait);
@@ -151,6 +151,7 @@ var IGRA = IGRA || {};
           if (a.traits.length > 12) a.traits.shift();
         }
         a.lastMeta = meta;
+        newSkin = true;
         dirty = true;
       }
 
@@ -182,7 +183,7 @@ var IGRA = IGRA || {};
         dirty = true;
       }
 
-      if (!a.shadow && ((w.boss && !w.boss.dead) || w.wounds.length >= 1)) {
+      if (!a.shadow && ((w.boss && !w.boss.dead) || (w.wounds && w.wounds.length >= 1))) {
         a.shadow = true;
         this._lastMilestone = "shadow";
         speak(
@@ -216,6 +217,10 @@ var IGRA = IGRA || {};
       a.lastSeen = Date.now();
       if (dirty) persist(a);
       this._ready = true;
+
+      // После второй кожи прошлое получает физическое место в новом мире.
+      // Один объект на кожу, чтобы память не превращалась в склад мусора.
+      if (newSkin && a.legacy) this.leaveLegacy(game);
     },
 
     // След памяти для нового берега. Вызывается после обнаружения новой
@@ -245,4 +250,15 @@ var IGRA = IGRA || {};
       return n;
     }
   };
+
+  // life.js грузится после Director. Оборачиваем только наблюдение, не
+  // меняя его внутреннюю логику и не превращая Director в зависимость от
+  // v3-модуля. Старые сейвы и старые жизни продолжают работать.
+  if (G.Director && G.Director.observe) {
+    var originalObserve = G.Director.observe;
+    G.Director.observe = function (dt, game) {
+      originalObserve.call(this, dt, game);
+      if (G.Life) G.Life.observe(dt, game);
+    };
+  }
 })(IGRA);
