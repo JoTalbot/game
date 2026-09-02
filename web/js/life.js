@@ -59,7 +59,9 @@ var IGRA = IGRA || {};
     profile: function () {
       var a = this.arc(), counts = {}, i, t, best = a.lastTrait || "", bestN = 0;
       for (i = 0; i < a.traits.length; i++) { t = a.traits[i]; counts[t] = (counts[t] || 0) + 1; }
-      for (var k in counts) if (counts[k] > bestN) { bestN = counts[k]; best = k; }
+      // При равной частоте решает последний зафиксированный след: профиль не дрейфует
+      // только из-за порядка обхода объекта.
+      for (var k in counts) if (counts[k] > bestN || (counts[k] === bestN && k === a.lastTrait)) { bestN = counts[k]; best = k; }
       return { skins: a.skins || 0, traits: a.traits.slice(), counts: counts,
         dominant: best, lastTrait: a.lastTrait || "", awaken: !!a.awaken,
         bond: !!a.bond, shadow: !!a.shadow, legacy: !!a.legacy, threshold: !!a.threshold,
@@ -116,19 +118,16 @@ var IGRA = IGRA || {};
       if (!game || !w) return false;
       var stage = Math.floor((a.skins || 0));
       var applied = game.__lifeConsequences || (game.__lifeConsequences = {});
-      // Возвращение к старому становится физической памятью, а не только числом.
       if ((b.returns || 0) >= 3 && !applied.return3) {
         applied.return3 = true;
         var remembered = null;
         for (var i = 0; i < w.nodes.length; i++) if (!w.nodes[i].dead && w.nodes[i].state === "alive" && !w.nodes[i].legacy) { remembered = w.nodes[i]; break; }
         if (remembered) { remembered.memory = true; remembered.care = Math.max(remembered.care || 0, 0.75); remembered.verse = G.Lang && G.Lang.id === "en" ? "you came back" : "ты вернулся"; }
       }
-      // Сильная забота делает следующий рост легче только там, где игрок действительно вернулся.
       if ((b.returns || 0) >= 7 && !applied.return7) {
         applied.return7 = true;
         for (var r = 0; r < w.nodes.length; r++) if (w.nodes[r].memory && !w.nodes[r].dead) w.nodes[r].roots = Math.max(w.nodes[r].roots || 0, 0.65);
       }
-      // Частый пульс оставляет напряжение в мире: появляется рана только если её ещё нет.
       if ((b.pulses || 0) >= 4 && !applied.pulse4 && G.Wound && w.wounds.length === 0) {
         applied.pulse4 = true;
         var ang = G.rand(0, 1000) / 1000 * G.TAU;
@@ -136,13 +135,11 @@ var IGRA = IGRA || {};
         var wound = new G.Wound(game.player.x + Math.cos(ang) * dist, game.player.y + Math.sin(ang) * dist, "thorn");
         wound.consequence = true; w.wounds.push(wound);
       }
-      // Долгое созерцание оставляет тихий, устойчивый узел рядом.
       if ((b.still || 0) >= 90 && !applied.still90) {
         applied.still90 = true;
         var quiet = w.nearestNode ? w.nearestNode(game.player.x, game.player.y, 180) : null;
         if (quiet && !quiet.dead) { quiet.memory = true; quiet.care = Math.max(quiet.care || 0, 0.9); quiet.quiet = true; }
       }
-      // На новом берегу накопленная повадка получает шанс встретиться снова, но не гарантирует событие.
       if (stage >= 1 && !applied.stage1) {
         applied.stage1 = true;
         if ((b.born || 0) >= 20) w.scatter(game.player.x, game.player.y, 1, 360);
@@ -164,8 +161,8 @@ var IGRA = IGRA || {};
 
     applyLegacy: function (game) {
       var a = this.arc();
-      if (!game || !game.world || !a.legacy || game.__lifeLegacyApplied) return false;
-      game.__lifeLegacyApplied = true;
+      if (!game || !game.world || !a.legacy || game.world.__lifeLegacyApplied) return false;
+      game.world.__lifeLegacyApplied = true;
       var p = this.profile(), history = p.traits.slice(), seen = {}, inherited = [], i, trait, kind;
       for (i = history.length - 1; i >= 0 && inherited.length < 3; i--) { trait = history[i]; kind = TRAIT_KIND[trait]; if (kind && !seen[kind]) { seen[kind] = true; inherited.push(kind); } }
       if (!inherited.length && p.lastTrait && TRAIT_KIND[p.lastTrait]) inherited.push(TRAIT_KIND[p.lastTrait]);
