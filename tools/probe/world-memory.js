@@ -12,6 +12,9 @@ G.WorldMemory.resetCache();
 var game = H.makeWorld(G, 5517);
 var p = G.WorldMemory.profile();
 ok(p.memories.length === 1 && p.memories[0].verse === "ты был здесь", "память мира загружается из постоянного хранилища");
+// Новый берег для теста восстановления должен быть пустым: случайно
+// сгенерированный узел не должен ложно считаться восстановленной памятью.
+game.world.nodes = [];
 var made = G.WorldMemory.restore(game);
 ok(made === 1, "узнаваемое место возвращается на новый берег");
 var n = game.world.nodes[game.world.nodes.length - 1];
