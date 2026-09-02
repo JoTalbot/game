@@ -23,3 +23,5 @@ jobs:
         run: node tools/probe/relationships.js
       - name: Проверка постоянной памяти мира
         run: node tools/probe/world-memory.js
+      - name: Проверка уникальных траекторий
+        run: node tools/probe/trajectory.js
