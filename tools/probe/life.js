@@ -78,5 +78,68 @@ G.Life.observe(1 / 60, oldGame);
 ok(G.Life.arc().skins === 0, "старый зрелый сейв получает baseline, а не 25 кож");
 ok(G.Life.arc().initialized === true, "старый сейв помечается инициализированным");
 
+console.log("\n— десять шагов наследования v3-001");
+G.Save.set("igra.life.v1", JSON.stringify({
+  born: true,
+  skins: 3,
+  awaken: true,
+  bond: true,
+  shadow: true,
+  legacy: true,
+  threshold: true,
+  traits: ["curiosity", "empathy", "aggression"],
+  lastTrait: "aggression",
+  lastAge: 200,
+  lastMeta: 3,
+  lastSeen: Date.now(),
+  initialized: true
+}));
+G.Life.resetCache();
+var inheritedGame = H.makeWorld(G, 9010);
+var inheritedProfile = G.Life.profile();
+var inheritedHints = inheritedGame.world.nodes.filter(function (n) {
+  return n.legacy && n.state === "unformed";
+});
+var inheritedMemory = inheritedGame.world.nodes.filter(function (n) {
+  return n.legacy && n.memory && n.state === "alive";
+});
+
+ok(inheritedProfile.dominant === "aggression", "профиль выбирает повторяемый последний/частый след");
+ok(inheritedHints.length >= 1, "прошлые черты доходят до новых узлов");
+ok(inheritedHints.some(function (n) { return n.hint === "thorn"; }), "агрессия наследуется как образ шипа");
+ok(inheritedHints.some(function (n) { return n.hint === "echo"; }), "эмпатия наследуется как образ эха");
+ok(inheritedMemory.length === 1, "новый берег получает один узнаваемый след");
+ok(inheritedGame.world.beings.length >= 1, "прошлая связь оставляет живое эхо");
+ok(inheritedGame.world.beings.some(function (b) { return b.legacy && b.bond === 0.32; }), "эхо связи начинается слабым, а не готовой дружбой");
+ok(inheritedGame.world.wounds.length === 1, "прошлая тень оставляет один шрам");
+ok(inheritedGame.world.wounds[0].legacy === true, "шрам помечен происхождением, а не случайным уроном");
+ok(inheritedGame.world.bounds === 2460, "третий порог расширяет следующий берег");
+
+// applyLegacy должен быть идемпотентным внутри одной сцены.
+var nodeCount = inheritedGame.world.nodes.length;
+var beingCount = inheritedGame.world.beings.length;
+var woundCount = inheritedGame.world.wounds.length;
+ok(G.Life.applyLegacy(inheritedGame) === false, "повторное наследование не дублирует сцену");
+ok(inheritedGame.world.nodes.length === nodeCount &&
+   inheritedGame.world.beings.length === beingCount &&
+   inheritedGame.world.wounds.length === woundCount, "идемпотентность сохраняет размер мира");
+
+// Без legacy новый мир не получает скрытых бонусов.
+G.Save.set("igra.life.v1", JSON.stringify({
+  skins: 1,
+  legacy: false,
+  threshold: false,
+  traits: ["harmony"],
+  lastTrait: "harmony",
+  initialized: true,
+  lastMeta: 1,
+  lastAge: 80
+}));
+G.Life.resetCache();
+var cleanGame = H.makeWorld(G, 9011);
+ok(cleanGame.world.beings.length === 0, "без legacy новый берег не получает эхо связи");
+ok(cleanGame.world.wounds.length === 0, "без legacy новый берег не получает шрам");
+ok(cleanGame.world.bounds === 2200, "без threshold размер берега не меняется");
+
 console.log("\nИтого: " + pass + " passed, " + fail + " failed");
 if (fail) process.exit(1);
