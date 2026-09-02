@@ -26,9 +26,6 @@ ok(typeof G.Game === "function", "конструктор Game доступен")
 if (!G.app) { G.app = new G.Game(); if (G.UI && G.UI.bind) G.UI.bind(G.app); if (G.app.start) G.app.start(); }
 ok(!!G.app && !!G.app.world, "G.app доступен");
 ok(Array.isArray(G.app.world.nodes), "узлы мира доступны");
-// Полный browser boot оставляет игру на титуле до первого жеста. Для
-// интеграционного прогона поднимаем первый берег тем же публичным методом,
-// которым пользуется UI, а не мутируем внутренние массивы мира.
 if (G.app.world.nodes.length === 0 && G.app.state === "title" && typeof G.app.startBirth === "function") G.app.startBirth();
 ok(G.app.world.nodes.length > 0, "в мире есть живые узлы");
 ok(G.Voice && typeof G.Voice.say === "function", "Voice Game доступен");
@@ -45,6 +42,6 @@ const before = G.app.world.nodes.length;
 for (let i = 0; i < 1800; i++) G.app.world.update(1 / 60, G.app.player, G.app.dna, G.app.fx, G.app);
 ok(G.app.world.nodes.length === before, "1800 кадров проходят без разрушения мира");
 const node = G.app.world.nodes[0];
-const result = G.app.world.crystallize(node, 0.8);
+const result = G.app.world.crystallize(node, 0.8, G.app.dna);
 ok(!!result, "кристаллизация возвращает результат");
 console.log("BOOT PROBE PASS");
