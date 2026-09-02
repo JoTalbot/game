@@ -7,7 +7,7 @@ var IGRA = IGRA || {};
   var COOLDOWN = 75;
 
   function load() {
-    var s = { version: 1, fired: [], last: -999, total: 0 };
+    var s = { version: 2, fired: [], last: -999, total: 0, thread: null };
     try {
       var raw = G.Save && G.Save.get ? G.Save.get(KEY) : null;
       if (raw) {
@@ -16,6 +16,14 @@ var IGRA = IGRA || {};
           if (Array.isArray(p.fired)) s.fired = p.fired.slice(-MAX);
           s.last = Number(p.last);
           s.total = Math.max(0, Math.floor(Number(p.total) || 0));
+          if (p.thread && typeof p.thread === "object") {
+            s.thread = {
+              nodeId: p.thread.nodeId,
+              createdSession: Math.max(0, Math.floor(Number(p.thread.createdSession) || 0)),
+              createdDay: Math.max(0, Math.floor(Number(p.thread.createdDay) || 0)),
+              life: Math.max(0, Math.floor(Number(p.thread.life) || 0))
+            };
+          }
         }
       }
     } catch (e) {}
@@ -53,7 +61,7 @@ var IGRA = IGRA || {};
     state: function () { if (!this._state) this._state = load(); return this._state; },
     profile: function () {
       var s = this.state();
-      return { version: 1, fired: s.fired.slice(), last: s.last, total: s.total };
+      return { version: 2, fired: s.fired.slice(), last: s.last, total: s.total, thread: s.thread ? Object.assign({}, s.thread) : null };
     },
 
     // Событие здесь не «квест». Это короткая перемена состояния мира,
@@ -64,12 +72,49 @@ var IGRA = IGRA || {};
       if (!game || game.state !== "play" || game.sky || !game.world || !game.dna) return;
       var s = this.state();
       var t = Number(game.time) || 0;
+      var p = game.player;
+      var mem = G.Memory || null;
+      var sessions = mem ? Math.max(0, Math.floor(Number(mem.sessions) || 0)) : 0;
+      var days = mem ? Math.max(0, Math.floor(Number(mem.days) || 0)) : 0;
+
+      // V3-020: незавершённая нить должна пережить закрытие приложения.
+      // Вечером она появляется из уже прожитого места; после следующего
+      // возвращения (новый день или заметная ночь) это же место меняется.
+      // Никаких ежедневных наград и дублей: в сейве существует ровно одна
+      // активная нить.
+      if (s.thread) {
+        var ready = sessions > s.thread.createdSession &&
+          (days > s.thread.createdDay || (mem && Number(mem.sleptHours) >= 6));
+        if (ready) {
+          var nodes0 = game.world.nodes || [];
+          var continued = null;
+          for (var ti = 0; ti < nodes0.length; ti++) {
+            if (!nodes0[ti].dead && String(nodes0[ti].id) === String(s.thread.nodeId)) {
+              continued = nodes0[ti];
+              break;
+            }
+          }
+          if (!continued) continued = near(p, nodes0, 280, function (n) { return n.memory || n.memoryAnchor; });
+          if (continued) {
+            continued.care = Math.max(Number(continued.care) || 0, 0.94);
+            continued.roots = Math.max(Number(continued.roots) || 0, 0.76);
+            continued.memory = true;
+            continued.actTrace = true;
+            continued.returnEcho = true;
+            game.world.scatter(continued.x, continued.y, 1, 140);
+            G.Voice.say("rememberYou", true);
+            s.thread = null;
+            save(s);
+            return;
+          }
+        }
+      }
+
       if (t - s.last < COOLDOWN) return;
 
-      var p = game.player;
       var life = G.Life && G.Life.profile ? G.Life.profile() : null;
       var rel = G.Relationships && G.Relationships.profile ? G.Relationships.profile() : null;
-      var mem = G.WorldMemory && G.WorldMemory.profile ? G.WorldMemory.profile() : null;
+      var worldMem = G.WorldMemory && G.WorldMemory.profile ? G.WorldMemory.profile() : null;
       var act = G.Act && G.Act.profile ? G.Act.profile() : null;
       var beings = game.world.beings || [];
       var nodes = game.world.nodes || [];
@@ -77,9 +122,31 @@ var IGRA = IGRA || {};
       var deep = 0, still = Number(p.stillT) || 0;
       for (var i = 0; i < G.TRAITS.length; i++) deep = Math.max(deep, Number(game.dna.get(G.TRAITS[i])) || 0);
 
+      // Открываем V3-020 только после того, как у игрока уже есть история.
+      // Нить привязана к существующему месту и не создаёт отдельного UI.
+      if (!s.thread && life && life.skins >= 1 && sessions >= 1 && worldMem &&
+          worldMem.memories && worldMem.memories.length >= 1) {
+        var anchor = near(p, nodes, 260, function (n) {
+          return !n.dead && (n.memory || n.memoryAnchor || n.actTrace);
+        });
+        if (anchor) {
+          s.thread = {
+            nodeId: anchor.id,
+            createdSession: sessions,
+            createdDay: days,
+            life: life.life || 0
+          };
+          anchor.memory = true;
+          anchor.actTrace = true;
+          save(s);
+          G.Voice.say("rememberYou", true);
+          return;
+        }
+      }
+
       // Возвращение к собственной памяти. Не награда, а физический ответ
       // старого места: память становится чуть живее рядом с человеком.
-      if (life && life.behavior && life.behavior.returns >= 4 && mem && mem.memories && mem.memories.length >= 2) {
+      if (life && life.behavior && life.behavior.returns >= 4 && worldMem && worldMem.memories && worldMem.memories.length >= 2) {
         var remembered = near(p, nodes, 260, function (n) { return n.memory || n.memoryAnchor; });
         if (remembered && fire(s, "return-echo", game)) {
           remembered.care = Math.max(Number(remembered.care) || 0, 0.92);
@@ -90,8 +157,6 @@ var IGRA = IGRA || {};
         }
       }
 
-      // Долгое внимание без движения делает не «награду», а тихую точку
-      // мира. Это отличает созерцание от простоя.
       if (still > 70 && deep > 0.45 && !has(s, "quiet-bloom")) {
         var quietNode = near(p, nodes, 180, function (n) { return n.state === "alive" && !n.dead; });
         if (quietNode && fire(s, "quiet-bloom", game)) {
@@ -103,8 +168,6 @@ var IGRA = IGRA || {};
         }
       }
 
-      // Если связь стала значимой, существо может первым изменить дистанцию.
-      // Никаких новых меню отношений: действие живёт в самом существе.
       if (rel && rel.trust > 0.58 && beings.length) {
         for (var b = 0; b < beings.length; b++) {
           var being = beings[b];
@@ -117,8 +180,6 @@ var IGRA = IGRA || {};
         }
       }
 
-      // Рана, пережитая и не повторённая, оставляет шрам в земле. Это
-      // связывает поведение, отношения и мир без отдельного «ивента» UI.
       if (wounds.length === 0 && rel && rel.debt > 0.35 && act && act.phase >= 2 && fire(s, "scar-memory", game)) {
         game.world.scatter(p.x, p.y, 1, 210);
         var scar = near(p, nodes, 240, function (n) { return n.state === "unformed"; });
@@ -127,9 +188,6 @@ var IGRA = IGRA || {};
         return;
       }
 
-      // Высокая гармония иногда меняет ближайший тон. Не спавним гору
-      // контента: одно событие за жизнь, затем музыка снова становится
-      // частью тишины.
       if (game.dna.get("harmony") > 0.62 && !has(s, "harmony-weather")) {
         var tone = near(p, nodes, 260, function (n) { return n.kind === "tone" && n.state === "alive"; });
         if (tone && fire(s, "harmony-weather", game)) {
@@ -140,9 +198,6 @@ var IGRA = IGRA || {};
         }
       }
 
-      // Далёкий фронтир появляется только после того, как человек уже
-      // прожил несколько переломов. Он не зовёт «иди к маркеру», а оставляет
-      // физический след дальше от текущего места.
       if (act && act.phase >= 3 && (life && life.skins >= 1) && !has(s, "far-shore")) {
         if (fire(s, "far-shore", game)) {
           game.world.scatter(p.x + G.rand(-360, 360), p.y + G.rand(-360, 360), 2, 180);
