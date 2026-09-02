@@ -6,8 +6,8 @@
 // localStorage и так живут на устройстве.
 var CACHE = "igra-shell-v3";
 // Список должен покрывать все <script src="js/..."> из index.html.
-// check-sync.sh стережёт engine.js как индикатор: если список протух,
-// сборка покраснеет до того, как оффлайн-берег перестанет подниматься.
+// check-sync.sh стережёт этот список, чтобы оффлайн-берег не перестал
+// подниматься после добавления нового модуля.
 var ASSETS = [
   "./",
   "./index.html",
@@ -37,6 +37,7 @@ var ASSETS = [
   "./js/fate.js",
   "./js/world.js",
   "./js/director.js",
+  "./js/life.js",
   "./js/renderer.js",
   "./js/webgl-renderer.js",
   "./js/engine.js",
