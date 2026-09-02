@@ -42,7 +42,7 @@ var IGRA = IGRA || {};
     var limit = Math.min(4, a.memories.length), made = 0, b = Math.max(1, Number(w.bounds) || 2200);
     for (var i = 0; i < limit; i++) {
       var m = a.memories[a.memories.length - 1 - i], x = G.clamp((m.x || 0) * b, -b * 0.92, b * 0.92), y = G.clamp((m.y || 0) * b, -b * 0.92, b * 0.92), duplicate = false;
-      for (var j = 0; j < w.nodes.length; j++) { var n0 = w.nodes[j]; if (n0 && G.dist2(n0.x, n0.y, x, y) < 80 * 80 && n0.kind === m.kind) { duplicate = true; break; } }
+      for (var j = 0; j < w.nodes.length; j++) { var n0 = w.nodes[j]; if (n0 && G.dist2(n0.x, n0.y, x, y) < 80 * 80 && (n0.kind === "memory" ? n0.memoryOf : n0.kind) === m.kind) { duplicate = true; break; } }
       if (duplicate) continue;
       var n = new G.Node(x, y, "memory"); n.memoryOf = m.kind; n.memoryLife = m.life || 1; n.memoryReason = m.reason || "seen"; n.state = "alive"; n.growth = 1; n.care = Math.max(0.55, m.care || 0); n.roots = Math.max(0.45, m.roots || 0); n.verse = m.verse || "я помню это место"; n.memoryAnchor = true; w.nodes.push(n); made++;
     }
