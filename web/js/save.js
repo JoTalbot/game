@@ -21,19 +21,29 @@ var IGRA = IGRA || {};
     return null;
   }
 
+  function parse(raw) {
+    if (!raw) return null;
+    try {
+      var data = JSON.parse(raw);
+      return data && typeof data === "object" ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   G.Save = {
     load: function () {
-      var raw = null;
       var n = native();
       if (n) {
-        try { raw = n.read(KEY); } catch (e) { raw = null; }
+        try {
+          var data = parse(n.read(KEY));
+          // Если нативное значение повреждено, не блокируем запасной
+          // localStorage: старый браузерный сейв всё ещё может быть цел.
+          if (data) return data;
+        } catch (e) {}
       }
-      if (raw == null) {
-        try { raw = localStorage.getItem(KEY); } catch (e) { raw = null; }
-      }
-      if (!raw) return null;
       try {
-        return JSON.parse(raw);
+        return parse(localStorage.getItem(KEY));
       } catch (e) {
         return null;
       }
@@ -63,10 +73,10 @@ var IGRA = IGRA || {};
     exists: function () {
       var n = native();
       if (n) {
-        try { if (n.read(KEY)) return true; } catch (e) {}
+        try { if (parse(n.read(KEY))) return true; } catch (e) {}
       }
       try {
-        return !!localStorage.getItem(KEY);
+        return !!parse(localStorage.getItem(KEY));
       } catch (e) {
         return false;
       }
@@ -86,13 +96,19 @@ var IGRA = IGRA || {};
       try {
         if (n) {
           n.write(key, "1");
-          return n.read(key) === "1";
+          var nativeOk = n.read(key) === "1";
+          try { n.remove(key); } catch (e) {}
+          return nativeOk;
         }
         localStorage.setItem(key, "1");
         var ok = localStorage.getItem(key) === "1";
         localStorage.removeItem(key);
         return ok;
       } catch (e) {
+        try {
+          if (n) n.remove(key);
+          else localStorage.removeItem(key);
+        } catch (ignore) {}
         return false;
       }
     },
