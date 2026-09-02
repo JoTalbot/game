@@ -8,7 +8,7 @@ var G = H.boot();
 var pass = 0, fail = 0;
 function ok(c, s) { if (c) { pass++; console.log("  ✓ " + s); } else { fail++; console.log("  ✗ " + s); } }
 function clean() {
-  G.Save.set("igra.director-events.v1", JSON.stringify({ version: 1, fired: [], last: -999, total: 0 }));
+  G.Save.set("igra.director-events.v1", JSON.stringify({ version: 2, fired: [], last: -999, total: 0, thread: null }));
   G.DirectorEvents.resetCache();
 }
 function step(game, t) { game.time = t; G.DirectorEvents.observe(1, game); }
@@ -47,6 +47,31 @@ var tone = game.world.nodes[0]; tone.x = game.player.x + 40; tone.y = game.playe
 tone.kind = "tone"; tone.state = "alive"; tone.dead = false; tone.care = 0.2;
 step(game, 10); step(game, 90);
 ok(tone.weather === true && tone.care > 0.2, "гармония меняет существующий мир, а не создаёт меню события");
+
+console.log("\n— V3-020: Persistent return thread");
+clean();
+G.Save.set("igra.world-memory.v1", JSON.stringify({ version: 1, visits: 1, memories: [{ id: "place-1", x: 0.1, y: 0.1, kind: "root" }] }));
+G.WorldMemory.resetCache();
+G.Memory.sessions = 1; G.Memory.days = 1; G.Memory.sleptHours = 0;
+G.Life.resetCache(); G.Life.arc().initialized = true; G.Life.arc().skins = 1; G.Life.arc().life = 1;
+game = H.makeWorld(G, 7713);
+var threadNode = game.world.nodes[0];
+threadNode.x = game.player.x + 40; threadNode.y = game.player.y + 40;
+threadNode.state = "alive"; threadNode.dead = false; threadNode.memory = true; threadNode.care = 0.4; threadNode.roots = 0.2;
+step(game, 100);
+var pending = G.DirectorEvents.profile();
+ok(!!pending.thread && pending.thread.nodeId === threadNode.id, "незавершённая нить привязана к существующему месту");
+G.DirectorEvents.resetCache();
+ok(!!G.DirectorEvents.profile().thread, "нить переживает перезагрузку");
+step(game, 180);
+ok(!!G.DirectorEvents.profile().thread, "в той же сессии нить не дублируется и не закрывается");
+G.Memory.sessions = 2; G.Memory.days = 2; G.Memory.sleptHours = 8;
+G.DirectorEvents.resetCache();
+step(game, 10);
+var resolved = G.DirectorEvents.profile();
+ok(!resolved.thread && threadNode.returnEcho === true && threadNode.care >= 0.94 && threadNode.roots >= 0.76, "после следующего дня нить продолжает то же место физически");
+G.DirectorEvents.resetCache();
+ok(!G.DirectorEvents.profile().thread, "закрытая нить не воскресает после перезагрузки");
 
 console.log("\nИтого: " + pass + " passed, " + fail + " failed");
 if (fail) process.exit(1);
