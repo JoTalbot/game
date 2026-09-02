@@ -1,0 +1,28 @@
+"use strict";
+var fs = require("fs"), vm = require("vm"), path = require("path"), H = require("./harness");
+var ROOT = path.resolve(__dirname, "..", "..");
+var G = H.boot();
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "life.js"), "utf8"), { filename: "life.js" });
+vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "world-memory.js"), "utf8"), { filename: "world-memory.js" });
+var pass = 0, fail = 0;
+function ok(c, s) { if (c) { pass++; console.log("  ✓ " + s); } else { fail++; console.log("  ✗ " + s); } }
+console.log("\n— V3-004: постоянная память мира");
+G.Save.set("igra.world-memory.v1", JSON.stringify({ visits: 2, memories: [{ id: "old", x: 0.12, y: -0.08, kind: "garden", verse: "ты был здесь", roots: 0.8, care: 0.9, reason: "chosen", life: 2 }] }));
+G.WorldMemory.resetCache();
+var game = H.makeWorld(G, 5517);
+var p = G.WorldMemory.profile();
+ok(p.memories.length === 1 && p.memories[0].verse === "ты был здесь", "память мира загружается из постоянного хранилища");
+var made = G.WorldMemory.restore(game);
+ok(made === 1, "узнаваемое место возвращается на новый берег");
+var n = game.world.nodes[game.world.nodes.length - 1];
+ok(n.memoryAnchor && n.memoryLife === 2 && n.roots >= 0.8, "след несёт жизнь, корни и статус якоря");
+var before = game.world.nodes.length;
+G.WorldMemory.restore(game);
+ok(game.world.nodes.length === before, "повторная загрузка не плодит дубликаты");
+var chosen = new G.Node(game.player.x + 20, game.player.y, "garden");
+chosen.state = "alive"; chosen.care = 0.95; chosen.roots = 0.75; chosen.verse = "здесь было тепло"; game.world.nodes.push(chosen);
+G.WorldMemory.remember(game, chosen, "chosen");
+G.WorldMemory.resetCache(); p = G.WorldMemory.profile();
+ok(p.memories.length === 2, "новый пережитый след добавляется к памяти мира");
+console.log("\nИтого: " + pass + " passed, " + fail + " failed");
+if (fail) process.exit(1);
