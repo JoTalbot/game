@@ -51,9 +51,8 @@ var IGRA = IGRA || {};
       var mem = G.WorldMemory && G.WorldMemory.profile ? G.WorldMemory.profile() : null;
       var tr = G.Trajectory && G.Trajectory.profile ? G.Trajectory.profile() : null;
       var beings = game.world.beings || [], anchors = game.world.anchors || [], nodes = game.world.nodes || [];
-      var bonded = false, living = 0, memories = 0, dead = 0;
+      var bonded = false, memories = 0, dead = 0;
       for (var i = 0; i < beings.length; i++) {
-        if (!beings[i].dead) living++;
         if (!beings[i].dead && (beings[i].bond || 0) >= 0.55) bonded = true;
       }
       for (var n = 0; n < nodes.length; n++) {
@@ -65,15 +64,16 @@ var IGRA = IGRA || {};
       var pulse = Number(game.dna.pulses) || 0;
       var behavior = life && life.behavior ? life.behavior : {};
       var returns = Number(behavior.returns) || 0;
-      var born = Number(behavior.born) || 0;
       var skins = life ? Number(life.skins) || 0 : 0;
       var trust = rel ? Number(rel.trust) || 0 : 0;
-      var trajectory = tr && tr.path ? tr.path : "";
       var next = a.phase;
       if (next < 1 && (game.dna.age || 0) >= 55) next = 1;
       if (next < 2 && (bonded || trust >= 0.35 || anchors.length >= 2)) next = 2;
       if (next < 3 && (returns >= 3 || memories >= 2 || pulse >= 4)) next = 3;
-      if (next < 4 && (skins >= 2 || trajectory)) next = 4;
+      // Траектория уже влияет на жизнь через Trajectory, но сама по себе
+      // не должна перепрыгивать жизненный перелом. Иначе один ранний профиль
+      // превращал бы весь первый акт в четыре шага подряд.
+      if (next < 4 && skins >= 2) next = 4;
       if (next < 5 && (skins >= 3 && (returns >= 7 || memories >= 4 || dead >= 2))) next = 5;
       if (next === a.phase) return;
 
