@@ -43,7 +43,10 @@ var IGRA = IGRA || {};
       var mem = G.WorldMemory && G.WorldMemory.profile ? G.WorldMemory.profile() : { memories: [] };
       var b = life && life.behavior ? life.behavior : {};
       var scores = {};
-      AXES.forEach(function (k, i) { scores[k] = r.reduce(function (s, x, n) { return s + x.v * (n === i ? 1.0 : 0.08); }, 0); });
+      AXES.forEach(function (k) {
+        var base = value(dna, k);
+        scores[k] = base;
+      });
       scores.empathy += clamp(rel.trust, 0, 1) * 0.22 + clamp(rel.rescues, 0, 8) * 0.025;
       scores.aggression += clamp(rel.fear, 0, 1) * 0.16;
       scores.empathy += clamp(rel.bond, 0, 1) * 0.18;
