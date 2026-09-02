@@ -43,3 +43,5 @@ jobs:
         run: node tools/probe/boss-shadow.js
       - name: Проверка пространственной памяти
         run: node tools/probe/spatial-memory.js
+      - name: Проверка Release Candidate
+        run: node tools/probe/release-candidate.js
