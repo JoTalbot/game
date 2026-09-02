@@ -36,6 +36,16 @@ var IGRA = IGRA || {};
     return Math.hypot((a.x || 0) - (b.x || 0), (a.y || 0) - (b.y || 0));
   }
   function near(a, b) { return dist(a, b) <= RADIUS; }
+  function rememberBeing(b, entry) {
+    b.memory = b.memory || [];
+    var key = entry.kind + ":" + (entry.id || entry.with || "unknown");
+    for (var i = 0; i < b.memory.length; i++) {
+      var old = b.memory[i];
+      if (old && (old.kind + ":" + (old.id || old.with || "unknown")) === key) return;
+    }
+    b.memory.push(entry);
+    if (b.memory.length > 8) b.memory.shift();
+  }
 
   var Conflicts = {
     resetCache: function () { this._state = null; },
@@ -54,9 +64,6 @@ var IGRA = IGRA || {};
       var blooms = w.blooms || [], cracks = w.cracks || [], beings = w.beings || [];
       var i, j, b, c, id;
 
-      // Сад против трещины: живое растение рядом с законом теряет часть
-      // заботы, но получает память о шве. Это не «наказание», а новый
-      // характер места, который потом может быть замечен памятью мира.
       for (i = 0; i < blooms.length; i++) {
         b = blooms[i];
         if (!b || b.dead) continue;
@@ -75,9 +82,7 @@ var IGRA = IGRA || {};
         }
       }
 
-      // Спутник против трещины: близость к живому закону меняет не только
-      // страх существа, но и его долг. После этого отношение может стать
-      // частью следующего поведения, а не просто числом доверия.
+      // Закон оставляет спутнику не только страх, но и конкретную память.
       for (i = 0; i < beings.length; i++) {
         b = beings[i];
         if (!b || b.dead || Number(b.bond) <= 0.45) continue;
@@ -89,18 +94,14 @@ var IGRA = IGRA || {};
             b.conflict = "law";
             b.fear = Math.min(1, (Number(b.fear) || 0) + 0.18);
             b.debt = (Number(b.debt) || 0) + 0.15;
-            b.memory = b.memory || [];
-            b.memory.push({ kind: "law", id: c.law && c.law.id ? c.law.id : "unknown", time: Number(game.time) || 0 });
-            if (b.memory.length > 8) b.memory.shift();
+            rememberBeing(b, { kind: "law", id: c.law && c.law.id ? c.law.id : "unknown", time: Number(game.time) || 0 });
             if (G.Voice) G.Voice.say("kind", true);
           }
         }
       }
 
-      // Два существа рядом могут спорить за один сад. У каждого остаётся
-      // свой темперамент, но место становится общим следом. Это создаёт
-      // различие между «два существа встретились» и «два существа живут
-      // рядом» без отдельной системы квестов.
+      // Разные темпераменты оставляют взаимные воспоминания, но только один
+      // раз на пару. Так встреча становится частью характера существа.
       for (i = 0; i < beings.length; i++) {
         var a = beings[i];
         if (!a || a.dead) continue;
@@ -112,12 +113,8 @@ var IGRA = IGRA || {};
           if (mark(s, id)) {
             a.conflict = "other-temper";
             d.conflict = "other-temper";
-            a.memory = a.memory || [];
-            d.memory = d.memory || [];
-            a.memory.push({ kind: "encounter", with: d.temper || "unknown", time: Number(game.time) || 0 });
-            d.memory.push({ kind: "encounter", with: a.temper || "unknown", time: Number(game.time) || 0 });
-            if (a.memory.length > 8) a.memory.shift();
-            if (d.memory.length > 8) d.memory.shift();
+            rememberBeing(a, { kind: "encounter", with: d.temper || "unknown", time: Number(game.time) || 0 });
+            rememberBeing(d, { kind: "encounter", with: a.temper || "unknown", time: Number(game.time) || 0 });
           }
         }
       }
