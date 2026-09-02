@@ -10,7 +10,7 @@ const required = [
   "js/math.js", "js/lang.js", "js/dna.js", "js/save.js", "js/audio.js", "js/fx.js", "js/igra.js", "js/report.js",
   "js/organs.js", "js/memory.js", "js/fate.js", "js/world.js", "js/director.js", "js/director-events.js",
   "js/life.js", "js/relationships.js", "js/world-memory.js", "js/trajectory.js", "js/act.js", "js/organ-conflicts.js",
-  "js/metamorphosis.js", "js/renderer.js", "js/webgl-renderer.js", "js/engine.js", "js/ui.js", "js/main.js"
+  "js/metamorphosis.js", "js/boss-shadow.js", "js/renderer.js", "js/webgl-renderer.js", "js/engine.js", "js/ui.js", "js/main.js"
 ];
 const ok = (condition, label, detail = "") => {
   if (!condition) throw new Error(`${label}${detail ? `: ${detail}` : ""}`);
@@ -95,6 +95,7 @@ ok(Array.isArray(sandbox.G.app.world.nodes), "узлы мира доступны
 ok(sandbox.G.app.world.nodes.length > 0, "в мире есть живые узлы");
 ok(sandbox.G.Voice && typeof sandbox.G.Voice.say === "function", "Voice Game доступен");
 ok(sandbox.G.World && typeof sandbox.G.World.prototype.crystallize === "function", "кристаллизация доступна");
+ok(sandbox.G.BossShadow && typeof sandbox.G.BossShadow.profile === "function", "долгая тень босса доступна");
 
 const worldMethods = ["crystallize", "forget", "anchor", "resonate", "metamorphose", "update", "toJSON"];
 for (const method of worldMethods) ok(typeof sandbox.G.World.prototype[method] === "function", `World.${method} доступен`);
