@@ -22,6 +22,7 @@ G.Save.set("igra.life.v1", JSON.stringify({version:1,born:true,skins:3,behavior:
 if (G.Life && G.Life.resetCache) G.Life.resetCache();
 G.ReleaseSystems.reset();
 const s=G.ReleaseSystems.state();
+s.trajectories={bonding:1,steward:1,severing:1};
 ok(s.places.length===8,"8 historical places seeded");
 ok(s.beings.length===6,"6 recurring identities seeded");
 ok(s.laws.length===0,"laws start emergent, not hard-coded UI");
@@ -50,4 +51,5 @@ ok(p.body.habits.length>0,"legacy save migration envelope works");
 const valid=G.ReleaseSystems.validate();
 ok(valid.bounded && valid.serializable && valid.causal,"state validates and serializes");
 ok(valid.places && valid.beings && valid.acts && valid.rare,"RC quantitative content gate is satisfied");
-console.log(`RELEASE CANDIDATE GATE ${valid.ready ? "READY" : "INTEGRATION READY"}`);
+ok(valid.ready,"release systems reach the quantitative RC-ready state");
+console.log("RELEASE CANDIDATE GATE READY");
