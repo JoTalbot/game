@@ -50,11 +50,6 @@ public class MainActivity extends Activity {
             }
             hideSystemUi();
 
-            // Oukitel G1 (Android 15): WebView, рождённый до измерения окна,
-            // получает поверхность в CSS-пикселях (384×853) и потом вечно
-            // рисует её призрак поверх здорового кадра. Поэтому оболочка
-            // рождается поздно: сначала пустой корень, WebView — только когда
-            // decorView измерен. Никаких перепинов размеров после рождения.
             root = new android.widget.FrameLayout(this);
             root.setBackgroundColor(0xFF05060A);
             setContentView(root);
@@ -80,34 +75,16 @@ public class MainActivity extends Activity {
                 return;
             }
 
-            // Жест принадлежит игре, а не прокрутке.
-            //
-            // Человек три релиза подряд: «новые точки не обводятся
-            // удержанием пальца». В JS всё было починено (touch-action,
-            // preventDefault, честный touchcancel), а на телефоне жест
-            // по-прежнему умирал на полпути к рождению (1.35 с). Потому
-            // что рвал его не JavaScript: WebView — прокручиваемый View,
-            // и её собственный распознаватель через ~300 мс решает, что
-            // затянувшееся касание есть скролл. Он забирает жест у
-            // страницы ДО того, как та успеет сказать preventDefault, и
-            // шлёт вниз системную отмену.
-            //
-            // Лечится только здесь: сама вьюха запрещает родителям и
-            // своему распознавателю трогать жест, пока палец на стекле.
-            // В игре нечего прокручивать — берег двигает камера.
             webView = new WebView(this) {
                 @Override
                 public boolean onTouchEvent(MotionEvent ev) {
                     int a = ev.getActionMasked();
                     if (a == MotionEvent.ACTION_DOWN || a == MotionEvent.ACTION_MOVE) {
-                        // «Не перехватывать» — просьба ко всей цепочке
-                        // родителей: пока палец лежит, жест наш.
-                        // MOVE тоже: иначе родитель передумывает на ходу.
                         requestDisallowInterceptTouchEvent(true);
                         if (getParent() != null) {
                             getParent().requestDisallowInterceptTouchEvent(true);
                         }
-                    } else if (a == MotionEvent.ACTION_UP) {
+                    } else if (a == MotionEvent.ACTION_UP || a == MotionEvent.ACTION_CANCEL) {
                         if (getParent() != null) {
                             getParent().requestDisallowInterceptTouchEvent(false);
                         }
@@ -115,10 +92,6 @@ public class MainActivity extends Activity {
                     return super.onTouchEvent(ev);
                 }
 
-                // WebView прокручивает себя сама, если решит, что жест —
-                // скролл. Прокручивать нечего: страница ровно в размер
-                // окна. Глушим — иначе она уводит содержимое и рвёт
-                // касание.
                 @Override
                 public void scrollTo(int x, int y) { super.scrollTo(0, 0); }
 
@@ -136,17 +109,11 @@ public class MainActivity extends Activity {
             webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
             webView.setVerticalScrollBarEnabled(false);
             webView.setHorizontalScrollBarEnabled(false);
-            // Долгое удержание — жест игры, а не системное «выделить
-            // текст»: длинный тап поднимал бы контекстное меню и убивал
-            // касание ровно на той секунде, когда рождается узел.
             webView.setLongClickable(false);
             webView.setHapticFeedbackEnabled(false);
             webView.setOnLongClickListener(new View.OnLongClickListener() {
                 public boolean onLongClick(View v) { return true; }
             });
-            // Отчёт 2.31 №2: система забрала жест ×6, медиана 0.71 с.
-            // Android 15 (Oukitel) на long-press включает рукописный ввод
-            // и Chromium-выделение — оба шлют touchcancel до рождения (1.35 с).
             if (Build.VERSION.SDK_INT >= 33) {
                 webView.setAutoHandwritingEnabled(false);
             }
@@ -154,13 +121,6 @@ public class MainActivity extends Activity {
             webView.setWebViewClient(new AssetClient(getAssets()));
             webView.setWebChromeClient(new WebChromeClient());
 
-            // Сейв должен переживать перезапуск, а localStorage в WebView
-            // на Android может не жить (кастомный origin https://igra.local,
-            // отдаваемый через shouldInterceptRequest, — на некоторых ядрах
-            // и Android 15 хранилище привязано к сессии и стирается).
-            // Нативный мост в SharedPreferences переживает всё, кроме удаления
-            // игры. Игра предпочитает его localStorage; тот остаётся запасным
-            // для браузера. Ключ тот же: igra.save.v1.
             webView.addJavascriptInterface(new Object() {
                 @android.webkit.JavascriptInterface
                 public String read(String key) {
@@ -194,10 +154,14 @@ public class MainActivity extends Activity {
             s.setDomStorageEnabled(true);
             s.setDatabaseEnabled(true);
             s.setMediaPlaybackRequiresUserGesture(false);
-            s.setAllowFileAccess(true);
-            s.setAllowContentAccess(true);
-            s.setAllowFileAccessFromFileURLs(true);
-            s.setAllowUniversalAccessFromFileURLs(true);
+            // The game is served from https://igra.local by AssetClient.
+            // File-origin access is neither needed nor desirable here.
+            s.setAllowFileAccess(false);
+            s.setAllowContentAccess(false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                s.setAllowFileAccessFromFileURLs(false);
+                s.setAllowUniversalAccessFromFileURLs(false);
+            }
             s.setUseWideViewPort(true);
             s.setLoadWithOverviewMode(false);
             s.setSupportZoom(false);
@@ -206,7 +170,7 @@ public class MainActivity extends Activity {
             s.setTextZoom(100);
             s.setCacheMode(WebSettings.LOAD_NO_CACHE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                s.setSafeBrowsingEnabled(false);
+                s.setSafeBrowsingEnabled(true);
             }
 
             root.addView(webView, new android.widget.FrameLayout.LayoutParams(
@@ -219,7 +183,6 @@ public class MainActivity extends Activity {
             webView.postDelayed(new Runnable() {
                 public void run() { resizeGame(); }
             }, 900);
-            // Щуп остаётся охранником: если слой всё же врёт — матрица.
             webView.postDelayed(new Runnable() {
                 public void run() { probeFitIntegrity(); }
             }, 1400);
@@ -236,6 +199,16 @@ public class MainActivity extends Activity {
         }
 
         @Override
+        public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            return request != null && !isGameUri(request.getUrl());
+        }
+
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            return url != null && !isGameUri(Uri.parse(url));
+        }
+
+        @Override
         public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
             if (request == null) return null;
             Uri uri = request.getUrl();
@@ -249,9 +222,16 @@ public class MainActivity extends Activity {
             return handleUri(Uri.parse(url));
         }
 
+        private static boolean isGameUri(Uri uri) {
+            return uri != null
+                    && "https".equalsIgnoreCase(uri.getScheme())
+                    && "igra.local".equalsIgnoreCase(uri.getHost());
+        }
+
         private WebResourceResponse handleUri(Uri uri) {
             String hostName = uri.getHost();
-            if (hostName == null || !hostName.equals("igra.local")) return null;
+            if (hostName == null || !hostName.equals("igra.local")
+                    || !"https".equalsIgnoreCase(uri.getScheme())) return null;
             String path = uri.getPath();
             if (path == null || path.length() < 2) path = "/www/index.html";
             path = path.substring(1);
@@ -285,9 +265,6 @@ public class MainActivity extends Activity {
         return guess != null ? guess : "application/octet-stream";
     }
 
-    // One honest call: ask the game to re-measure the viewport. Before that,
-    // leave native metrics on the window object — the fit-debug line shows
-    // them, so a screenshot from the phone carries the whole picture.
     private void resizeGame() {
         if (webView == null) return;
         try {
@@ -300,7 +277,6 @@ public class MainActivity extends Activity {
             int dh = decor != null ? decor.getHeight() : 0;
             int appDpi = getResources().getDisplayMetrics().densityDpi;
             int realDpi = real.densityDpi;
-            // Перепись нутра: кто живёт внутри WebView и какой у неё паспорт.
             StringBuilder kids = new StringBuilder();
             int nk = webView.getChildCount();
             for (int i = 0; i < nk && i < 4; i++) {
@@ -385,9 +361,6 @@ public class MainActivity extends Activity {
                                 float ih = Float.parseFloat(wh[1]);
                                 if (iw < 8 || ih < 8) return;
                                 if (x > iw + 1.5f || y > ih + 1.5f) {
-                                    // Краска 1:1: касание угла окна приземлилось
-                                    // за пределами CSS-вьюпорта. Растягиваем View
-                                    // матрицей — пиксели и касания остаются согласны.
                                     float sx = vw / iw;
                                     float sy = vh / ih;
                                     webView.setPivotX(0);
@@ -432,9 +405,6 @@ public class MainActivity extends Activity {
 
     @Override
     public void onActionModeStarted(ActionMode mode) {
-        // Chromium на long-press (~0.5 с) поднимает выделение и рвёт
-        // жест touchcancel. Отчёт 2.31 №2: система ×6, медиана 0.71 с.
-        // Гасим режим на активности — методы WebView CI не видит в android.jar.
         if (mode != null) mode.finish();
     }
 
@@ -500,4 +470,3 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 }
-
