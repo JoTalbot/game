@@ -8,7 +8,7 @@ vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "world-memory.j
 vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", "trajectory.js"), "utf8"), { filename: "trajectory.js" });
 var pass = 0, fail = 0;
 function ok(c, s) { if (c) { pass++; console.log("  ✓ " + s); } else { fail++; console.log("  ✗ " + s); } }
-function setDNA(game, vals) { for (var i = 0; i < Object.keys(vals).length; i++) { var k = Object.keys(vals)[i]; game.dna.feed(k, vals[k], 0); game.dna.v[k] = vals[k]; } }
+function setDNA(game, vals) { Object.keys(vals).forEach(function (k) { game.dna.values[k] = vals[k]; }); }
 console.log("\n— V3-005: уникальные траектории жизни");
 G.Save.set("igra.trajectory.v1", JSON.stringify({ version: 1, life: 1, seed: 0, path: "", dominant: "", secondary: "", turns: [], imprint: {} }));
 G.Life.resetCache(); G.Relationships.resetCache(); G.WorldMemory.resetCache(); G.Trajectory.resetCache();
