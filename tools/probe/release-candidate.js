@@ -49,4 +49,5 @@ p=G.ReleaseSystems.profile();
 ok(p.body.habits.length>0,"legacy save migration envelope works");
 const valid=G.ReleaseSystems.validate();
 ok(valid.bounded && valid.serializable && valid.causal,"state validates and serializes");
+ok(valid.places && valid.beings && valid.acts && valid.rare,"RC quantitative content gate is satisfied");
 console.log(`RELEASE CANDIDATE GATE ${valid.ready ? "READY" : "INTEGRATION READY"}`);
