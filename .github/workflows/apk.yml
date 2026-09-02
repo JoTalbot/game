@@ -46,6 +46,16 @@ jobs:
       - name: Сторож Android WebView
         run: bash tools/check-android-security.sh
 
+      # web/ — единственный источник правды. docs/play — опубликованное
+      # зеркало. Перед guard синхронизируем рабочее дерево; отдельный
+      # workflow коммитит эту же синхронизацию в main.
+      - name: Синхронизировать зеркало
+        run: |
+          set -euo pipefail
+          rm -rf docs/play
+          mkdir -p docs/play
+          cp -a web/. docs/play/
+
       - name: Сторож расхождений
         run: bash tools/check-sync.sh
 
