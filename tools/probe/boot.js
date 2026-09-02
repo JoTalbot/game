@@ -42,7 +42,7 @@ for (const method of voiceMethods) ok(typeof G.Voice[method] === "function", `Vo
 const voiceKeys = typeof G.Voice.keys === "function" ? G.Voice.keys() : [];
 ok(voiceKeys.length > 40, "словарь Voice содержит живой набор фраз", `${voiceKeys.length} ключей`);
 const before = G.app.world.nodes.length;
-for (let i = 0; i < 1800; i++) G.app.world.update(1 / 60);
+for (let i = 0; i < 1800; i++) G.app.world.update(1 / 60, G.app.player, G.app.dna, G.app.fx, G.app);
 ok(G.app.world.nodes.length === before, "1800 кадров проходят без разрушения мира");
 const node = G.app.world.nodes[0];
 const result = G.app.world.crystallize(node, 0.8);
