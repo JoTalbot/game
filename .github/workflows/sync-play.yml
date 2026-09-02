@@ -1,0 +1,36 @@
+# Зеркало docs/play всегда получает ту же душу, что и web/.
+name: Sync play mirror
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Синхронизация web → docs/play
+        run: |
+          set -euo pipefail
+          rm -rf docs/play
+          mkdir -p docs/play
+          cp -a web/. docs/play/
+      - name: Commit mirror
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- docs/play; then
+            echo "docs/play уже совпадает с web"
+            exit 0
+          fi
+          git add docs/play
+          git commit -m "ci: sync docs play mirror"
+          git push
