@@ -2,7 +2,7 @@
 var fs = require("fs"), vm = require("vm"), path = require("path"), H = require("./harness");
 var ROOT = path.resolve(__dirname, "..", "..");
 var G = H.boot();
-["life.js", "relationships.js", "world-memory.js", "trajectory.js", "act.js", "director-events.js"].forEach(function (f) {
+["memory.js", "life.js", "relationships.js", "world-memory.js", "trajectory.js", "act.js", "director-events.js"].forEach(function (f) {
   vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", "js", f), "utf8"), { filename: f });
 });
 var pass = 0, fail = 0;
