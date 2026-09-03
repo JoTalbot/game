@@ -11,7 +11,7 @@ const fake={
   window:{matchMedia(){return {matches:false,addEventListener(){},addListener(){}}}}
 };
 vm.runInNewContext(source,Object.assign({IGRA:G,console},fake));
-const A=fake.IGRA.Accessibility;
+const A=G.Accessibility;
 ok(!!A&&A.version===1,"accessibility layer exposes stable version");
 ok(A.reducedMotion()===false,"normal motion is not forced off");
 const calls=[];fake.window.matchMedia=()=>({matches:true,addEventListener(){},addListener(){}});fake.document.documentElement.setAttribute=(k,v)=>calls.push([k,v]);fake.document.getElementById=()=>null;fake.document.createElement=()=>({id:"",textContent:""});fake.document.head.appendChild=()=>{};A.applyMotion();
