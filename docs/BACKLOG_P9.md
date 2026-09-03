@@ -6,13 +6,20 @@
 
 ## IMP-P9-001. Reduced-motion + semantic UI signals
 **Приоритет:** P1 — accessibility / release quality
-**Статус:** принято и реализуется
+**Статус:** реализовано / ожидает CI
 
 - уважать системную настройку `prefers-reduced-motion`;
 - отключать декоративные бесконечные анимации и длинные transition-эффекты при reduced motion;
 - дать ключевым динамическим областям semantic `aria-live`;
 - назначить интерактивным кнопкам устойчивые доступные имена независимо от визуального текста;
 - не менять игровой цикл, механику touch или визуальный язык для пользователей без reduced-motion.
+
+### Реализация
+- `web/js/accessibility.js` — единый accessibility layer;
+- `web/index.html` — модуль загружается в browser shell;
+- `web/sw.js` — модуль включён в offline cache, cache version `v17`;
+- `tools/probe/accessibility.js` — deterministic acceptance probe;
+- `.github/workflows/apk.yml` — probe является обязательным gate до APK build.
 
 ### Acceptance
 - deterministic probe подтверждает наличие accessibility layer в browser shell;
