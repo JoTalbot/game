@@ -10,9 +10,9 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-3.0.0"
-VCODE=601
-VNAME="3.0.0"
+NAME="igra-3.0.0-rc1"
+VCODE=600
+VNAME="3.0.0-rc1"
 
 # Signing contract:
 # - Release builds MUST provide IGRA_KEYSTORE and IGRA_KEYSTORE_PASSWORD.
@@ -46,7 +46,6 @@ cp -a "$ROOT/web" "$APP/assets/www"
 echo "==> work dir"
 rm -rf "$WORK"
 mkdir -p "$WORK/compiled" "$WORK/gen" "$WORK/classes" "$OUT"
-
 echo "==> aapt2 compile/link"
 find "$APP/res" -type f | while read -r f; do
   "$BT/aapt2" compile -o "$WORK/compiled" "$f"
