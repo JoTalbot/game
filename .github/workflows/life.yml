@@ -63,3 +63,5 @@ jobs:
         run: node tools/probe/v4-depth.js
       - name: Проверка Release Candidate
         run: node tools/probe/release-candidate.js
+      - name: Проверка RC hardening, localization, lifecycle и soak
+        run: node --expose-gc tools/probe/rc-hardening.js
