@@ -80,7 +80,9 @@ var IGRA = IGRA || {};
     var life = G.Life && G.Life.profile ? G.Life.profile() : null;
     var rel = G.Relationships && G.Relationships.profile ? G.Relationships.profile() : null;
     var tr = G.Trajectory && G.Trajectory.build ? G.Trajectory.build(game) : (G.Trajectory && G.Trajectory.profile ? G.Trajectory.profile() : null);
-    var key = tr && tr.path ? String(tr.path) : "balanced";
+    // ReleaseSystems stores the stable canonical route. Trajectory may add
+    // :echo to describe remembered lives, but that decoration is not a new route.
+    var key = tr && tr.dominant && tr.secondary ? String(tr.dominant) + ":" + String(tr.secondary) : (tr && tr.path ? String(tr.path) : "balanced");
     if (key === "balanced" && rel && (rel.trust || 0) >= 0.55) key = "bonding";
     var b = life && life.behavior ? life.behavior : {};
     var care = Number(b.still || 0) + Number(b.pulses || 0);
