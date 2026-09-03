@@ -4,13 +4,31 @@ var IGRA = IGRA || {};
   var KEY = "igra.v6-body.v1", MAX = 9;
   var FORM = { harmony:"tender", empathy:"echo", contemplation:"still", curiosity:"seeking", aggression:"scar", chaos:"shard" };
   function fresh(){return {version:1, depth:0, form:"shoreborn", scars:0, habits:[], signatures:[], last:""};}
-  function load(){var s=fresh();try{var r=G.Save&&G.Save.get?G.Save.get(KEY):null,p=r?JSON.parse(r):null;if(p&&typeof p==="object"){Object.keys(s).forEach(function(k){if(p[k]!=null)s[k]=p[k];});}}catch(e){}if(!Array.isArray(s.habits))s.habits=[];if(!Array.isArray(s.signatures))s.signatures=[];return s;}
+  function load(){
+    var s=fresh();
+    try{
+      var r=G.Save&&G.Save.get?G.Save.get(KEY):null,p=r?JSON.parse(r):null;
+      if(p&&typeof p==="object"){
+        Object.keys(s).forEach(function(k){if(p[k]!=null)s[k]=p[k];});
+      }
+    }catch(e){}
+    if(!Array.isArray(s.habits))s.habits=[];
+    if(!Array.isArray(s.signatures))s.signatures=[];
+    s.version=1;
+    s.depth=clamp(Number(s.depth)||0,0,3);
+    s.scars=clamp(Number(s.scars)||0,0,100);
+    s.form=typeof s.form==="string"&&s.form.length<48?s.form:"shoreborn";
+    s.last=typeof s.last==="string"&&s.last.length<32?s.last:"";
+    s.habits=s.habits.filter(function(v){return typeof v==="string";}).slice(-MAX);
+    s.signatures=s.signatures.filter(function(v){return typeof v==="string";}).slice(-MAX);
+    return s;
+  }
   function save(s){try{if(G.Save&&G.Save.set)G.Save.set(KEY,JSON.stringify(s));}catch(e){}}
   function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
   function state(){if(!G.V6Body._s)G.V6Body._s=load();return G.V6Body._s;}
   function dominant(game){var tr=G.Trajectory&&G.Trajectory.build?G.Trajectory.build(game):null;return tr&&tr.dominant?String(tr.dominant):"harmony";}
   function observe(game){if(!game||game.state!=="play"||!game.dna||!game.world)return;var s=state(),trait=dominant(game),form=FORM[trait]||"shoreborn", wounds=game.world.wounds?game.world.wounds.length:0, rs=G.ReleaseSystems&&G.ReleaseSystems.state?G.ReleaseSystems.state():null, act=rs?Number(rs.act||1):1;
-    s.scars=Math.max(Number(s.scars)||0,wounds);s.depth=Math.max(s.depth,Math.min(3,Math.floor((act-1)+s.scars/2)));
+    s.scars=clamp(Math.max(Number(s.scars)||0,wounds),0,100);s.depth=clamp(Math.max(Number(s.depth)||0,Math.min(3,Math.floor((act-1)+s.scars/2))),0,3);
     if(s.habits.indexOf(trait)<0)s.habits.push(trait);while(s.habits.length>MAX)s.habits.shift();
     if(form!==s.form||trait!==s.last){s.form=form;s.last=trait;var sig=trait+":"+form+":"+s.depth;if(s.signatures.indexOf(sig)<0)s.signatures.push(sig);while(s.signatures.length>MAX)s.signatures.shift();}
     if(s.scars>=2&&s.depth>=2)s.form=form+"-scarred";save(s); game.bodyIdentity={form:s.form,depth:s.depth,scars:s.scars,signature:s.signatures[s.signatures.length-1]||s.form};
