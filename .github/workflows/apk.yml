@@ -43,6 +43,7 @@ jobs:
           node tools/probe/touch-policy.js
           node tools/probe/touch-hysteresis.js
           node tools/probe/start-density.js
+          node tools/probe/spawn-budget.js
           node --expose-gc tools/probe/rc-hardening.js
 
       - name: Живой запуск
