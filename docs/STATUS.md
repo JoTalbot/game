@@ -2,7 +2,7 @@
 
 ## Текущий инженерный статус
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility слой и expanded RC hardening gate подключены к автоматическому pipeline. Последний подтверждённый APK build до этого документа — `3.0.0-rc1`, versionCode `600`, artifact с SHA-256.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. Последний подтверждённый APK build: `3.0.0-rc1`, versionCode `600`.
 
 ### Реализовано
 
@@ -27,9 +27,12 @@
 
 - Версия: `3.0.0-rc1`
 - versionCode: `600`
-- commit: `cf11685dd393dedc94b762a40d3fd283f9d0540a`
+- commit: `df6b8224b54a3f90954f3ed6d2251a3016cf8238`
 - APK artifact: `igra-3.0.0-rc1`
-- SHA-256: `0d10cda223ecf04393b5e15d05f375bd88847455c9227e55302f5f334d1096ce`
+- artifact ID: `9895393085`
+- SHA-256: `5a0d48960ee2e2419fd130c0196925614c39137b996de67802f0d24bbd5b1072`
+- APK workflow: SUCCESS
+- mirror sync: SUCCESS
 
 ### Автоматические gate
 
@@ -37,7 +40,7 @@ APK workflow выполняет probes, boot, Android security, sync, expanded R
 
 ### Что ещё нельзя считать закрытым
 
-1. Финальный физический acceptance именно актуального APK.
+1. Финальный физический acceptance именно artifact `9895393085`.
 2. Upgrade со всех поддерживаемых старых save на текущем устройстве.
 3. Force-stop/process death → recovery на текущей сборке.
 4. Полный offline smoke на физическом Android.
@@ -46,4 +49,8 @@ APK workflow выполняет probes, boot, Android security, sync, expanded R
 
 ### Следующий milestone
 
-Закрыть физический RC gate. Если физический прогон выявляет дефект, сначала фиксируем его в RC/P9 backlog, реализуем минимальное исправление, повторяем полный CI и повторяем физический smoke. Если blocker отсутствует, можно переходить к signed production tag и Play release preparation.
+Закрыть физический RC gate. Если физический прогон выявляет дефект, сначала фиксируем его в RC/P9 backlog, реализуем минимальное исправление, повторяем полный CI и физический smoke. Если blocker отсутствует, можно переходить к signed production tag и Play release preparation.
+
+### После RC
+
+Создан `docs/BACKLOG_POST_RC.md` с единым планом: физический RC gate → release preparation → V9 World Depth → V10 Personal Myth/Replay → V11 Final Polish. Новые продуктовые улучшения проходят через `IMP-*`, bounded persistence и автоматические probes.
