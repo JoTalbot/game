@@ -9,6 +9,7 @@ var IGRA = IGRA || {};
     still: { arc: 0.50, pulse: 0.88 },
     seeking: { arc: 0.72, pulse: 1.16 },
     scar: { arc: 0.88, pulse: 0.92 },
+    scarred: { arc: 0.88, pulse: 0.92 },
     shard: { arc: 1.06, pulse: 1.24 },
     shoreborn: { arc: 0.00, pulse: 1.00 }
   };
@@ -17,6 +18,7 @@ var IGRA = IGRA || {};
     var b = game && game.bodyIdentity ? game.bodyIdentity : null;
     var form = b && b.form ? String(b.form) : "shoreborn";
     var base = form.replace(/-scarred$/, "");
+    if (base === "scarred") base = "scar";
     var f = FORM[base] || FORM.shoreborn;
     var depth = Math.max(0, Math.min(3, Number(b && b.depth) || 0));
     var scars = Math.max(0, Math.min(100, Number(b && b.scars) || 0));
