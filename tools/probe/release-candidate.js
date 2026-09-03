@@ -11,9 +11,11 @@ const ok = (v, label) => { if (!v) throw new Error(label); console.log(`✓ ${la
 for (const src of files) vm.runInThisContext(fs.readFileSync(path.join(ROOT, "web", src), "utf8"), { filename: src });
 ok(!!G.ReleaseSystems, "ReleaseSystems loaded");
 ok(files.includes("js/release-systems.js"), "release module is in browser shell");
+ok(!!G.V4History, "V4 history/routes layer is in browser shell");
 
 G.Save.clear();
 G.ReleaseSystems.reset();
+if (G.V4History && G.V4History.resetCache) G.V4History.resetCache();
 const s = G.ReleaseSystems.state();
 ok(s.places.length === 8, "8 historical places seeded");
 ok(s.beings.length === 6, "6 recurring identities seeded");
@@ -57,13 +59,19 @@ if (G.Life && G.Life.resetCache) G.Life.resetCache();
 game.dna.age = Math.max(Number(game.dna.age) || 0, 240);
 game.state = "play"; game.time = 2400; game.player = { x: 0, y: 0 };
 game.world.meta = 3; game.world.discovered = 100; game.world.lost = 0; game.world.bounds = 2200;
-for (let i = 0; i < 1000; i++) G.ReleaseSystems.observe(1, game);
+for (let i = 0; i < 1000; i++) { game.time = 2400 + i; G.ReleaseSystems.observe(1, game); }
 p = G.ReleaseSystems.profile();
 ok(p.act >= 3, "third act reached");
 ok(p.places.length === 8, "place history remains bounded");
 ok(p.beings.length === 6, "being history remains bounded");
 ok(p.events.length <= 32 && p.causes.length <= 96, "causal/event history is bounded");
 ok(p.rare.length >= 3, "rare personal events emerge from life signals");
+const h = G.V4History.profile();
+const historicalPlaces = Object.keys(h.visits).filter(k => h.visits[k] > 0);
+ok(historicalPlaces.length >= 3, "at least three places accumulate return history");
+ok(h.returnCount >= 3, "place returns accumulate across observations");
+ok(h.consequences.length >= 2, "second-act consequences are recorded");
+ok(Object.keys(h.routeCounts).length >= 2, "contrasting route traces remain distinguishable");
 G.ReleaseSystems.recordAction("harm", "player", "scar", { severity: 2 }, game);
 G.ReleaseSystems.recordAction("care", "player", "root", { severity: 2 }, game);
 p = G.ReleaseSystems.profile();
