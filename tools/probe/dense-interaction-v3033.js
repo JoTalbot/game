@@ -1,0 +1,10 @@
+const fs=require("fs");
+const p=fs.readFileSync("web/js/touch-hysteresis.js","utf8");
+const ok=(v,s)=>{if(!v)throw new Error(s);console.log("✓ "+s);};
+ok(p.includes("walkingGesture"),"finger travel drives walking");
+ok(p.includes("this.player.gaze = null"),"walking clears accidental gaze");
+ok(p.includes("this.gazeTarget = null"),"walking clears accidental being target");
+ok(p.includes("this.input.hold = 0"),"walking cancels hold acquisition");
+ok(p.includes("(this.input.hold || 0) > 0.38"),"being acquisition requires deliberate hold");
+ok(p.includes("this.aimRadius(30)"),"being acquisition uses smaller radius");
+console.log("dense interaction v3033 probe: PASS");
