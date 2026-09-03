@@ -34,6 +34,7 @@ jobs:
           node tools/probe/v6-body.js
           node tools/probe/v6-body-visual.js
           node tools/probe/v6-signals.js
+          node tools/probe/accessibility.js
           node tools/probe/v7-climax.js
           node tools/probe/v8-lineage.js
           node tools/probe/v4-second-act.js
