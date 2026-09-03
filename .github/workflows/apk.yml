@@ -1,9 +1,3 @@
-# Сборка APK без Gradle — тем же путём, что и руками.
-#
-# Здесь нарочно НЕТ actions/setup-android и Gradle: у машины, где я работаю,
-# мало памяти, и сборка идёт голыми aapt2/javac/d8/apksigner через
-# tools/build-apk.sh. Если CI будет собирать иначе, чем человек, он начнёт
-# проверять не ту игру. Один путь, один скрипт.
 name: APK
 
 on:
@@ -33,22 +27,15 @@ jobs:
         with:
           node-version: "20"
 
-      # Проверки души идут ДО сборки: собирать сломанное незачем.
       - name: Проверки души
         run: node tools/probe/run.js
 
-      # Живой стенд поднимает все скрипты ровно в порядке index.html,
-      # включая ui.js/lang.js/main.js и boot(). Одних модульных проверок
-      # недостаточно: интерфейс может ломаться только при настоящем старте.
       - name: Живой запуск
         run: node tools/probe/boot.js
 
       - name: Сторож Android WebView
         run: bash tools/check-android-security.sh
 
-      # web/ — единственный источник правды. docs/play — опубликованное
-      # зеркало. Перед guard синхронизируем рабочее дерево; отдельный
-      # workflow коммитит эту же синхронизацию в main.
       - name: Синхронизировать зеркало
         run: |
           set -euo pipefail
@@ -78,14 +65,22 @@ jobs:
       - name: Ключ подписи
         env:
           KEYSTORE_B64: ${{ secrets.IGRA_KEYSTORE_B64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.IGRA_KEYSTORE_PASSWORD }}
         run: |
           set -euo pipefail
           mkdir -p dist
-          if [ -n "${KEYSTORE_B64:-}" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > dist/debug.keystore
-            echo "ключ из секретов"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            if [[ -z "${KEYSTORE_B64:-}" || -z "${KEYSTORE_PASSWORD:-}" ]]; then
+              echo "ERROR: release tag requires IGRA_KEYSTORE_B64 and IGRA_KEYSTORE_PASSWORD" >&2
+              exit 1
+            fi
+            echo "$KEYSTORE_B64" | base64 -d > dist/release.keystore
+            echo "release signing key loaded"
+            echo "IGRA_SIGNING_MODE=release" >> "$GITHUB_ENV"
+            echo "IGRA_KEYSTORE=$GITHUB_WORKSPACE/dist/release.keystore" >> "$GITHUB_ENV"
+            echo "IGRA_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
           else
-            echo "ключа в секретах нет — будет свежий отладочный"
+            echo "non-tag build: debug signing allowed"
           fi
 
       - name: Сборка APK
@@ -97,11 +92,20 @@ jobs:
           V=$(sed -n 's/^VNAME="\(.*\)"$/\1/p' tools/build-apk.sh | head -1)
           echo "v=$V" >> "$GITHUB_OUTPUT"
 
+      - name: Проверить checksum artifact
+        run: |
+          set -euo pipefail
+          test -s "dist/igra-${{ steps.ver.outputs.v }}.apk"
+          test -s "dist/igra-${{ steps.ver.outputs.v }}.apk.sha256"
+          sha256sum -c "dist/igra-${{ steps.ver.outputs.v }}.apk.sha256"
+
       - name: Забрать APK
         uses: actions/upload-artifact@v4
         with:
           name: igra-${{ steps.ver.outputs.v }}
-          path: dist/igra-${{ steps.ver.outputs.v }}.apk
+          path: |
+            dist/igra-${{ steps.ver.outputs.v }}.apk
+            dist/igra-${{ steps.ver.outputs.v }}.apk.sha256
           if-no-files-found: error
 
       - name: Копия под постоянным именем
@@ -114,4 +118,5 @@ jobs:
         with:
           files: |
             dist/igra-${{ steps.ver.outputs.v }}.apk
+            dist/igra-${{ steps.ver.outputs.v }}.apk.sha256
             dist/igra.apk
