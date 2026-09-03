@@ -52,6 +52,9 @@ ok(p.trajectories.length >= 3, "ReleaseSystems records three trajectories withou
 ok(paths.every(pathName => p.trajectories.includes(pathName)), "recorded trajectory keys match canonical Trajectory.profile paths");
 
 const game = scenarios[1].game;
+G.Save.set("igra.life.v1", JSON.stringify({ version: 1, born: true, skins: 3, behavior: { born: 1, returns: 10, pulses: 2, still: 1, motion: 18 } }));
+if (G.Life && G.Life.resetCache) G.Life.resetCache();
+game.dna.age = Math.max(Number(game.dna.age) || 0, 240);
 game.state = "play"; game.time = 2400; game.player = { x: 0, y: 0 };
 game.world.meta = 3; game.world.discovered = 100; game.world.lost = 0; game.world.bounds = 2200;
 for (let i = 0; i < 1000; i++) G.ReleaseSystems.observe(1, game);
