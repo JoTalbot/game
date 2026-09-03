@@ -8,7 +8,23 @@ var IGRA = IGRA || {};
   var KEY="igra.v8-lineage.v1", MAX=6, TRAITS=["curiosity","aggression","contemplation","empathy","chaos","harmony"];
   var ROUTE_TRAIT={steward:"harmony",bonding:"empathy",seeking:"curiosity",severing:"aggression",watching:"contemplation",enduring:"chaos"};
   function fresh(){return {version:1,generation:0,lives:0,finale:"",origin:"shore",history:[],inherited:{route:"",trait:"",worldState:"balanced",body:"shoreborn",scar:0,place:"",being:"",fingerprint:""}};}
-  function read(){var s=fresh();try{var raw=G.Save&&G.Save.get?G.Save.get(KEY):null,p=raw?JSON.parse(raw):null;if(p&&typeof p==="object")Object.keys(s).forEach(function(k){if(p[k]!=null)s[k]=p[k];});}catch(e){}if(!Array.isArray(s.history))s.history=[];s.history=s.history.filter(function(v){return v&&typeof v==="object";}).slice(-MAX);if(!s.inherited||typeof s.inherited!=="object")s.inherited=fresh().inherited;s.generation=Math.max(0,Number(s.generation)||0);s.lives=Math.max(0,Number(s.lives)||0);return s;}
+  function read(){
+    var s=fresh();
+    try{
+      var raw=G.Save&&G.Save.get?G.Save.get(KEY):null,p=raw?JSON.parse(raw):null;
+      if(p&&typeof p==="object")Object.keys(s).forEach(function(k){if(p[k]!=null)s[k]=p[k];});
+    }catch(e){}
+    // Migration is deliberately conservative: the lineage envelope has one
+    // supported schema, malformed collections are discarded, and unknown
+    // version numbers are normalized instead of becoming a new schema by accident.
+    s.version=1;
+    if(!Array.isArray(s.history))s.history=[];
+    s.history=s.history.filter(function(v){return v&&typeof v==="object";}).slice(-MAX);
+    if(!s.inherited||typeof s.inherited!=="object")s.inherited=fresh().inherited;
+    s.generation=Math.max(0,Number(s.generation)||0);
+    s.lives=Math.max(0,Number(s.lives)||0);
+    return s;
+  }
   function save(s){try{if(G.Save&&G.Save.set)G.Save.set(KEY,JSON.stringify(s));}catch(e){}}
   function state(){if(!G.V8Lineage._s)G.V8Lineage._s=read();return G.V8Lineage._s;}
   function hash(text){var h=2166136261;text=String(text);for(var i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(36);}
