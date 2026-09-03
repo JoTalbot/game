@@ -13,8 +13,9 @@ function scenario(behavior, seed, ending) {
   var game = H.makeWorld(G, seed);
   G.Life.arc().initialized = true;
   G.Life.arc().behavior = behavior;
-  if (game.world.beings[0]) { game.world.beings[0].bond = behavior.motion < 5 ? 0.9 : 0.05; game.world.beings[0].v4Id = "witness-0"; }
-  for (var i = 0; i < game.world.nodes.length; i++) game.world.nodes[i].care = behavior.motion < 5 ? 0.9 : 0.1;
+  var being = game.world.beings[0];
+  if (being) { being.bond = behavior.motion < 5 ? 0.9 : 0.05; being.v4Id = "witness-0"; being.x = game.player.x; being.y = game.player.y; }
+  for (var i = 0; i < game.world.nodes.length; i++) { game.world.nodes[i].care = behavior.motion < 5 ? 0.9 : 0.1; game.world.nodes[i].x = game.player.x; game.world.nodes[i].y = game.player.y; }
   G.V4SecondAct.reset();
   step(game, 180);
   var p = G.V4SecondAct.profile();
@@ -62,10 +63,10 @@ ok(next.world.v4LineageCause === lineage.inherited.v4Cause && next.player.v4Line
 var steward = scenario({born:4,returns:5,pulses:4,still:6,motion:3}, 7719, "keep");
 var sever = scenario({born:4,returns:0,pulses:0,still:0,motion:9}, 7720, "let-go");
 var sk = steward.profile.places[steward.profile.handoff.place], ss = sever.profile.places[sever.profile.handoff.place];
-ok(steward.profile.endings.indexOf("keep") >= 0 && sever.profile.endings.indexOf("let-go") >= 0, "три контрастных replay-сценария проходят через bonding/steward и severing");
+ok(steward.profile.endings.indexOf("keep") >= 0 && sever.profile.endings.indexOf("let-go") >= 0, "контрастные replay-сценарии проходят через bonding/steward и severing");
 ok(sk && ss && (sk.state !== ss.state || sk.drift !== ss.drift || sk.lastRoute !== ss.lastRoute), "одинаковый тип места получает различимое состояние от разных маршрутов");
-var bkeys = Object.keys(steward.profile.beings).concat(Object.keys(sever.profile.beings));
-ok(bkeys.some(function(k){return steward.profile.beings[k] && sever.profile.beings[k] && steward.profile.beings[k].affinity !== sever.profile.beings[k].affinity;}), "одно и то же существо получает различную память от разных маршрутов");
+var sb = steward.game.world.beings[0], xb = sever.game.world.beings[0];
+ok(sb && xb && sb.v4Id === "witness-0" && xb.v4Id === "witness-0" && steward.profile.beings["witness-0"] && sever.profile.beings["witness-0"] && steward.profile.beings["witness-0"].affinity !== sever.profile.beings["witness-0"].affinity, "одно и то же существо получает различную память от разных маршрутов");
 ok(steward.profile.events.length <= 24 && steward.profile.causes.length <= 48 && Object.keys(steward.profile.places).length <= 12 && Object.keys(steward.profile.beings).length <= 12, "multi-life state остаётся bounded");
 var finalSave = G.Save.get("igra.v4-second-act.v1");
 ok(finalSave.length < 20000, "V4 save остаётся компактным после replay");
