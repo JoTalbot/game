@@ -14,6 +14,30 @@ NAME="igra-3.0.0-rc1"
 VCODE=600
 VNAME="3.0.0-rc1"
 
+# Signing contract:
+# - Release builds MUST provide IGRA_KEYSTORE and IGRA_KEYSTORE_PASSWORD.
+# - Local/non-release checks may fall back to the generated debug key.
+# The CI workflow enforces the release contract for tags.
+SIGNING_MODE="${IGRA_SIGNING_MODE:-debug}"
+KEYSTORE="${IGRA_KEYSTORE:-$OUT/debug.keystore}"
+KEYSTORE_PASSWORD="${IGRA_KEYSTORE_PASSWORD:-android}"
+KEY_ALIAS="${IGRA_KEY_ALIAS:-igra}"
+
+if [ "$SIGNING_MODE" = "release" ]; then
+  if [ ! -f "$KEYSTORE" ]; then
+    echo "ERROR: release signing requested but keystore is missing: $KEYSTORE" >&2
+    exit 1
+  fi
+  if [ -z "${IGRA_KEYSTORE_PASSWORD:-}" ]; then
+    echo "ERROR: release signing requested but IGRA_KEYSTORE_PASSWORD is empty" >&2
+    exit 1
+  fi
+else
+  KEYSTORE="$OUT/debug.keystore"
+  KEYSTORE_PASSWORD="android"
+  KEY_ALIAS="igra"
+fi
+
 echo "==> sync web → assets"
 rm -rf "$APP/assets/www"
 mkdir -p "$APP/assets"
@@ -60,20 +84,25 @@ cp "$WORK/res.apk" "$WORK/merged.apk"
   zip -q -u merged.apk classes.dex
 )
 
-echo "==> zipalign + sign"
-if [ ! -f "$OUT/debug.keystore" ]; then
-  keytool -genkeypair -v \
-    -keystore "$OUT/debug.keystore" \
-    -storepass android -keypass android \
-    -alias igra -keyalg RSA -keysize 2048 -validity 10000 \
-    -dname "CN=IGRA, O=JoTalbot, C=UA"
+echo "==> zipalign + sign ($SIGNING_MODE)"
+if [ "$SIGNING_MODE" != "release" ]; then
+  if [ ! -f "$OUT/debug.keystore" ]; then
+    keytool -genkeypair -v \
+      -keystore "$OUT/debug.keystore" \
+      -storepass android -keypass android \
+      -alias igra -keyalg RSA -keysize 2048 -validity 10000 \
+      -dname "CN=IGRA, O=JoTalbot, C=UA"
+  fi
 fi
 "$BT/zipalign" -p -f 4 "$WORK/merged.apk" "$WORK/aligned.apk"
 "$BT/apksigner" sign \
-  --ks "$OUT/debug.keystore" \
-  --ks-pass pass:android \
-  --key-pass pass:android \
-  --ks-key-alias igra \
+  --ks "$KEYSTORE" \
+  --ks-pass "pass:$KEYSTORE_PASSWORD" \
+  --key-pass "pass:$KEYSTORE_PASSWORD" \
+  --ks-key-alias "$KEY_ALIAS" \
   --out "$OUT/$NAME.apk" \
   "$WORK/aligned.apk"
 "$BT/apksigner" verify --verbose "$OUT/$NAME.apk" | head -20
+
+echo "==> checksum"
+sha256sum "$OUT/$NAME.apk" | tee "$OUT/$NAME.apk.sha256"
