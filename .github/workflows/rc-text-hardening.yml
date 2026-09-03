@@ -87,3 +87,5 @@ jobs:
           git rm .github/workflows/rc-text-hardening.yml
           git commit -m 'fix: prevent world verse text stacking on mobile'
           git push
+
+      # one-shot RC migration: self-removes after applying the patch
