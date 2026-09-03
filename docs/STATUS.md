@@ -2,46 +2,48 @@
 
 ## Текущий инженерный статус
 
-Репозиторий прошёл реализацию V3-001 → V3-029, V5/V6 living-world/body-identity и V7/V8 lineage/climax. Поверх RC1-контракта реализован V4 второй акт с причинной памятью, повторяющимися существами и устойчивыми следами мест. Текущий `main` содержит production-safe Android pipeline.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility слой и expanded RC hardening gate подключены к автоматическому pipeline. Последний подтверждённый APK build до этого документа — `3.0.0-rc1`, versionCode `600`, artifact с SHA-256.
 
 ### Реализовано
 
 - V3-001 → V3-029 — реализовано.
-- V4 второй акт — реализован как отдельный persistent слой с собственным конфликтом, маршрутами, событиями и двумя контрастными исходами.
-- V4 causal chain — каждое событие получает provenance: `parent → chain → event → physical trace`; история ограничена по размеру.
-- V4 persistent places — второй акт накапливает следы мест и связывает их с причинной цепочкой.
-- V4 recurring beings — повторяющиеся существа получают устойчивые encounter/memory/affinity-сигналы и могут быть связаны со следом второго акта.
-- V4 migration — schema нормализуется до поддерживаемой версии, повреждённые коллекции фильтруются, история ограничена.
-- V4 deterministic replay probe — сценарии фиксируют геометрию тестового мира, поэтому проверяют именно память/маршрут, а не случайность позиции существа.
+- V4 второй акт — persistent конфликт, маршруты, события и контрастные исходы.
+- V4 causal chain — provenance `parent → chain → event → physical trace`, bounded history.
+- V4 persistent places — накопленная история мест.
+- V4 recurring beings — encounter/memory/affinity и route-dependent state.
+- V4 migration + deterministic replay — schema normalization, bounded collections и фиксированная тестовая геометрия.
+- V4.3 adaptive depth — causal world beats, physical traces, player/world application, persistence и no-duplicate cadence.
 - V5 living world feedback loop — реализовано и покрыто probe/CI.
-- V6 body identity layer — реализовано, загружается, кэшируется и покрыто тестом.
-- V7 climax/finale layer — реализовано и покрыто probe/CI.
-- V8 lineage layer — реализовано: release/become, наследование состояния и deterministic fingerprint.
-- V8 lineage migration — нормализует schema version, повреждённую history и отсутствующий inherited envelope.
+- V6 body identity + visual presentation — реализовано и покрыто probe/CI.
+- V7 climax/finale — реализовано и покрыто probe/CI.
+- V8 lineage — release/become, наследование, deterministic fingerprint и migration.
+- RC1 accessibility — reduced-motion, semantic UI signals, stable accessible names и offline cache.
+- RC hardening — RU/EN parity, offline asset completeness, Android lifecycle/save/security checks, bounded persistence и real-engine long-session soak.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
-- APK получает SHA-256 рядом с artifact.
-- `apk.yml` выполняет probe, boot, Android security check, sync check и APK build.
+- APK получает SHA-256 и публикует его рядом с artifact.
 
-### V4 automated gate
+### Последний подтверждённый RC build
 
-Предыдущий V4 gate был GREEN на Life Arc `#296` и APK `#705`. Последующий replay-batch выявил недетерминированность probe, после чего она исправлена commit `01167927cc6f7bec68aa15f4929180e3ba8c7dab`; улучшение зафиксировано в backlog commit `2fcafbc293188434f542a52274cdccaab47e73ba`. Новый commit должен пройти полный CI перед следующим milestone.
+- Версия: `3.0.0-rc1`
+- versionCode: `600`
+- commit: `cf11685dd393dedc94b762a40d3fd283f9d0540a`
+- APK artifact: `igra-3.0.0-rc1`
+- SHA-256: `0d10cda223ecf04393b5e15d05f375bd88847455c9227e55302f5f334d1096ce`
 
-### RC1 physical evidence
+### Автоматические gate
 
-Получены две физические сессии baseline на слабом Android для анализа touch. Вторая сессия подтвердила, что большинство срывов являются намеренным отпусканием, поэтому глобальный порог не повышается вслепую. Для ухода пальца используется небольшая grace/hysteresis зона, а системный `touchcancel` остаётся отдельным исходом.
+APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Life Arc workflow повторяет ключевые продуктовые probes. CI подтверждает автоматические инварианты, но не заменяет физический Android smoke.
 
-### Что ещё нельзя считать автоматически закрытым
+### Что ещё нельзя считать закрытым
 
-1. Финальный физический acceptance текущего APK после последнего V4 батча.
-2. Upgrade со всех поддерживаемых старых save.
-3. Process death → сохранение и восстановление на текущей сборке.
-4. Полный offline smoke на текущем APK.
-5. Отсутствие critical/blocker по финальному ручному прогону.
-6. Финальная сверка Play listing/privacy материалов с фактической игрой.
+1. Финальный физический acceptance именно актуального APK.
+2. Upgrade со всех поддерживаемых старых save на текущем устройстве.
+3. Force-stop/process death → recovery на текущей сборке.
+4. Полный offline smoke на физическом Android.
+5. Audio/haptic/fullscreen и отсутствие critical visual/touch blocker на физическом устройстве.
+6. Финальная сверка Play listing/privacy материалов с фактическим APK.
 
-CI green подтверждает автоматические инварианты, но не заменяет физический Android smoke test. Даже в 2026 году телефон всё ещё способен быть отдельной формой жизни.
+### Следующий milestone
 
-## Следующий шаг
-
-Закрыть deterministic V4 replay gate, затем расширять продуктовый второй акт: длинные причинные цепочки, вариативность мира, повторные отношения и межжизненные последствия. После стабилизации V4 перейти к следующему крупному слою реиграбельности и затем к production polish.
+Закрыть физический RC gate. Если физический прогон выявляет дефект, сначала фиксируем его в RC/P9 backlog, реализуем минимальное исправление, повторяем полный CI и повторяем физический smoke. Если blocker отсутствует, можно переходить к signed production tag и Play release preparation.
