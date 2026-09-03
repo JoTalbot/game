@@ -1,5 +1,5 @@
 // Малый offline shell для браузерного берега.
-var CACHE = "igra-shell-v20";
+var CACHE = "igra-shell-v21";
 var ASSETS = [
   "./", "./index.html", "./manifest.json", "./assets/img/icon.png",
   "./assets/fonts/f0.ttf", "./assets/fonts/f1.ttf", "./assets/fonts/f2.ttf", "./assets/fonts/f3.ttf", "./assets/fonts/f4.ttf", "./assets/fonts/f5.ttf", "./assets/fonts/f6.ttf", "./assets/fonts/f7.ttf", "./assets/fonts/f8.ttf",
