@@ -14,8 +14,12 @@ ok(files.includes("js/v5-world.js"), "V5 world module is in browser shell");
 G.Save.clear();
 if (G.ReleaseSystems && G.ReleaseSystems.reset) G.ReleaseSystems.reset();
 G.V5World.reset();
-const game = { state: "play", time: 2400, player: { x: 120, y: -80 }, dna: {}, world: { meta: 3, discovered: 10, nodes: [], beings: [] } };
-for (let i = 0; i < 12; i++) game.world.nodes.push({ care: i % 2 ? 0.9 : 0.2, dead: i === 11 });
+const game = H.makeWorld(G, 5501);
+game.state = "play";
+game.time = 2400;
+game.world.meta = 3;
+game.world.discovered = 10;
+for (let i = 0; i < game.world.nodes.length; i++) { game.world.nodes[i].care = i % 2 ? 0.9 : 0.2; game.world.nodes[i].dead = i === game.world.nodes.length - 1; }
 for (let i = 0; i < 240; i++) { game.time = 2400 + i; G.V5World.observe(1, game); }
 const s = G.V5World.profile();
 ok(s.tick === 240, "V5 observer advances deterministically");
