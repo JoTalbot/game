@@ -55,5 +55,7 @@ jobs:
         run: node tools/probe/v7-climax.js
       - name: Проверка межжизненной линии V8
         run: node tools/probe/v8-lineage.js
+      - name: Проверка второго акта V4: persistence + replay
+        run: node tools/probe/v4-second-act.js
       - name: Проверка Release Candidate
         run: node tools/probe/release-candidate.js
