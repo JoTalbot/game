@@ -26,4 +26,66 @@ var IGRA = IGRA || {};
       return G.TouchHysteresis.run(this, originalGaze.bind(this, dt));
     };
   }
+
+  // V3-032: a crowded shore must stay walkable. The old interaction layer
+  // acquired a node/being on touch-down and could also auto-acquire while the
+  // player was travelling. With many live entities this turned navigation into
+  // accidental gaze selection. Defer target acquisition until the finger is
+  // intentionally still, and never run the node auto-capture while moving.
+  if (G.Game && G.Game.prototype && !G.Game.prototype.__v3032Patched &&
+      G.Game.prototype.onDown && G.Game.prototype._gaze &&
+      G.Organs && G.Organs.nearestBeing && G.World && G.World.prototype.nearestNode) {
+    var proto = G.Game.prototype;
+    var denseDown = proto.onDown;
+    var denseGaze = proto._gaze;
+    var denseBeing = G.Organs.nearestBeing;
+
+    proto.onDown = function () {
+      var oldBeing = G.Organs.nearestBeing;
+      var oldNode = G.World.prototype.nearestNode;
+      G.Organs.nearestBeing = function () { return null; };
+      G.World.prototype.nearestNode = function () { return null; };
+      try {
+        return denseDown.apply(this, arguments);
+      } finally {
+        G.Organs.nearestBeing = oldBeing;
+        G.World.prototype.nearestNode = oldNode;
+      }
+    };
+
+    proto._gaze = function (dt) {
+      var p = this.player;
+      var speed = p ? Math.sqrt((p.vx || 0) * (p.vx || 0) + (p.vy || 0) * (p.vy || 0)) : 0;
+      var moving = speed > 10;
+      var oldNode = G.World.prototype.nearestNode;
+      if (moving) G.World.prototype.nearestNode = function () { return null; };
+      try {
+        denseGaze.call(this, dt);
+      } finally {
+        G.World.prototype.nearestNode = oldNode;
+      }
+
+      // Beings are deliberate interactions: hold still for 0.38 s, use a
+      // smaller finger radius, and only interact with one close to the player.
+      if (!this.player.gaze && !this.gazeTarget && !this.sky && !moving &&
+          (this.state === "play" || this.state === "birth") &&
+          (this.input.hold || 0) > 0.38) {
+        var max = this.aimRadius ? this.aimRadius(30) : 30;
+        var b = denseBeing.call(G.Organs, this.world, this.input.wx, this.input.wy, max);
+        if (b && !b.dead && G.dist(this.player.x, this.player.y, b.x, b.y) < 170) {
+          this.gazeTarget = b;
+          this.player.gaze = null;
+          this.player.gazeT = 0;
+          this.input.hold = 0;
+          this.input.gsx = this.input.x;
+          this.input.gsy = this.input.y;
+          if (this.dna) this.dna.feed("empathy", 0.012);
+        }
+      }
+    };
+
+    proto.__v3032Patched = true;
+    proto.__v3032OriginalDown = denseDown;
+    proto.__v3032OriginalGaze = denseGaze;
+  }
 })(IGRA);
