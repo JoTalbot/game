@@ -95,61 +95,17 @@ var IGRA = IGRA || {};
 
   G.Floaters = function () {
     this.list = [];
-    this.cap = 3;
-    this.suppressed = 0;
   };
 
-  // Визуальные строки имеют общий бюджет. Одновременно максимум три,
-  // а при заполнении пространства новое важное сообщение вытесняет
-  // только менее важное. Приоритет: 3 = событие, 2 = обычное, 1 = фон.
-  G.Floaters.prototype.add = function (x, y, text, color, priority) {
-    if (!text) return false;
-    var now = G.now ? G.now() : Date.now() / 1000;
-    var p = priority == null ? 1 : priority;
-    var radius = p >= 3 ? 70 : 46;
-
-    for (var i = 0; i < this.list.length; i++) {
-      var old = this.list[i];
-      if (old.text === text && Math.abs(old.x - x) < radius && Math.abs(old.y - y) < radius && now - old.at < (p >= 3 ? 4 : 3)) {
-        this.suppressed++;
-        return false;
-      }
-    }
-
-    var life = p >= 3 ? 2.6 : (p === 2 ? 2.3 : 1.8);
-    var f = {
+  G.Floaters.prototype.add = function (x, y, text, color) {
+    this.list.push({
       x: x,
       y: y,
       text: text,
       c: color || [230, 230, 240],
-      life: life,
-      max: life,
-      at: now,
-      p: p
-    };
-
-    if (this.list.length < this.cap) {
-      this.list.push(f);
-      return true;
-    }
-
-    var weakest = 0;
-    for (var j = 1; j < this.list.length; j++) {
-      if (this.list[j].p < this.list[weakest].p ||
-          (this.list[j].p === this.list[weakest].p && this.list[j].at < this.list[weakest].at)) {
-        weakest = j;
-      }
-    }
-    if (p > this.list[weakest].p) {
-      this.list[weakest] = f;
-      return true;
-    }
-    this.suppressed++;
-    return false;
-  };
-
-  G.Floaters.prototype.clear = function () {
-    this.list.length = 0;
+      life: 2.2,
+      max: 2.2
+    });
   };
 
   G.Floaters.prototype.update = function (dt) {
@@ -173,10 +129,8 @@ var IGRA = IGRA || {};
       var x = (f.x - cam.x) * cam.z + cam.w / 2;
       var y = (f.y - cam.y) * cam.z + cam.h / 2;
       ctx.fillStyle = G.rgb(f.c[0], f.c[1], f.c[2], G.smooth(k));
-      ctx.globalAlpha = f.p >= 3 ? 1 : (f.p === 2 ? 0.88 : 0.66);
       ctx.fillText(f.text, x, y);
     }
-    ctx.globalAlpha = 1;
     ctx.restore();
   };
 

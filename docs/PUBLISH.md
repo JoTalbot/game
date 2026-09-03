@@ -44,7 +44,8 @@ CI декодирует keystore во временный `dist/release.keystore`
 5. В Play Console включи Play App Signing и используй этот ключ как upload key.
 
 Перед первой боевой публикацией обязательно проверь, что ключ и пароль
-восстанавливаются из безопасной копии.
+восстанавливаются из безопасной копии. Потеря upload key может превратить
+обновление приложения в очень дорогой способ познакомиться с поддержкой Google.
 
 ## 2. Порядок в Play Console
 
@@ -63,10 +64,9 @@ CI декодирует keystore во временный `dist/release.keystore`
 
 Последний подтверждённый CI artifact:
 - artifact: `igra-3.0.0-rc1`
-- artifact ID: `9896617808`
-- commit: `138622758b6d52ef8419f4dabe8024d047bd5aef`
-- APK SHA-256: `1a28660cd7e4a153b8f84303c13474729fa90feea18ed9318fd78db3ffd29d9b`
-- artifact ZIP SHA-256: `3fcece6d6f01332208d1d9e93c18523b640239ec19dddb4c7452e21b7ddf3003`
+- artifact ID: `9895393085`
+- commit: `df6b8224b54a3f90954f3ed6d2251a3016cf8238`
+- SHA-256: `5a0d48960ee2e2419fd130c0196925614c39137b996de67802f0d24bbd5b1072`
 - APK workflow: SUCCESS
 - mirror sync: SUCCESS
 
@@ -79,16 +79,16 @@ CI декодирует keystore во временный `dist/release.keystore`
 
 ## 4. Проверки перед release tag
 
-До создания production tag должны быть подтверждены:
+До создания `v3.0.0-rc1` должны быть подтверждены:
 
 1. `life.yml` — green.
 2. `apk.yml` — green.
-3. RC probes — green.
+3. RC probe — green.
 4. Clean install → boot → birth → play → save → restart.
 5. Upgrade со старого сейва → новая версия → продолжение.
 6. Process death → сейв не теряется.
 7. Offline → shell и core loop запускаются без сети.
-8. Текущий APK artifact существует и имеет SHA-256.
+8. APK artifact существует и имеет SHA-256.
 9. Нет critical/blocker.
 10. APK на release tag подписан release/upload key, а не debug key.
 
