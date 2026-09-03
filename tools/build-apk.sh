@@ -10,9 +10,9 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-3.0.0-rc1"
-VCODE=600
-VNAME="3.0.0-rc1"
+NAME="igra-3.0.0"
+VCODE=601
+VNAME="3.0.0"
 
 # Signing contract:
 # - Release builds MUST provide IGRA_KEYSTORE and IGRA_KEYSTORE_PASSWORD.

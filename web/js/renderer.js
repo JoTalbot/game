@@ -246,9 +246,24 @@ var IGRA = IGRA || {};
       // зов: свет вдали и компас на краю — путь виден всегда
       if (game.world.call && !sky) this.drawCall(ctx, cam, game, t);
 
+      // RC text focus: at most one bloom verse is visible at a time.
+      // Memory remains in the world model; the canvas does not become a wall of subtitles.
+      var verseBloom = null;
+      var verseDist = Infinity;
+      var blooms = game.world.blooms;
+      for (var vi = 0; vi < blooms.length; vi++) {
+        var vb = blooms[vi];
+        if (!vb.verse) continue;
+        var vd = G.dist(game.player.x, game.player.y, vb.x, vb.y);
+        if (vd < 150 && vd < verseDist) {
+          verseBloom = vb;
+          verseDist = vd;
+        }
+      }
+
       // garden
       for (var gi = 0; gi < game.world.blooms.length; gi++) {
-        this.drawBloom(ctx, cam, game.world.blooms[gi], t);
+        this.drawBloom(ctx, cam, game.world.blooms[gi], t, game);
       }
 
       // nodes
@@ -435,7 +450,7 @@ var IGRA = IGRA || {};
       ctx.restore();
     },
 
-    drawBloom: function (ctx, cam, b, t) {
+    drawBloom: function (ctx, cam, b, t, game) {
       var p = this.worldToScreen(cam, b.x, b.y);
       var r = (b.r || 8) * cam.z * (0.85 + Math.sin(t * 1.8 + b.phase) * 0.15);
       var c = b.c || G.TRAIT_COLOR.contemplation;
@@ -453,13 +468,17 @@ var IGRA = IGRA || {};
         ctx.stroke();
       }
       ctx.restore();
-      if (b.verse && G.verseText(b.verse)) {
+      // RC readability: verse is memory, not a permanent label on every bloom.
+      // It is surfaced once by the nearest eligible bloom below.
+      if (game && verseBloom === b && G.verseText(b.verse)) {
+        var verseAlpha = G.clamp(1 - verseDist / 150, 0, 1);
         ctx.save();
-        ctx.fillStyle = G.rgb(c[0], c[1], c[2], 0.92);
+        ctx.globalAlpha = verseAlpha;
+        ctx.fillStyle = G.rgb(238, 234, 250, 0.94);
         ctx.font = "italic 19px 'Cormorant Garamond', serif";
         ctx.textAlign = "center";
-        ctx.shadowColor = "rgba(0,0,0,0.9)";
-        ctx.shadowBlur = 5;
+        ctx.shadowColor = "rgba(0,0,0,0.92)";
+        ctx.shadowBlur = 7;
         ctx.fillText(G.verseText(b.verse), p.x, p.y + r + 22);
         ctx.restore();
       }
