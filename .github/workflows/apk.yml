@@ -36,6 +36,7 @@ jobs:
           node tools/probe/v7-climax.js
           node tools/probe/v8-lineage.js
           node tools/probe/v4-second-act.js
+          node tools/probe/v4-depth.js
           node tools/probe/release-candidate.js
           node tools/probe/touch-policy.js
           node tools/probe/touch-hysteresis.js
