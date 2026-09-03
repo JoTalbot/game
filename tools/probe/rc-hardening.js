@@ -12,7 +12,11 @@ ok(html.includes('lang="ru"'),"browser shell declares Russian base locale");
 ok(scripts.includes("js/lang.js")&&scripts.includes("js/accessibility.js"),"localization and accessibility are in browser shell");
 const uncached=scripts.filter(s=>s.startsWith("js/")&&!cacheSet.has(s));
 ok(uncached.length===0,"every browser script is present in offline cache",uncached.join(", "));
-ok(sw.includes("igra-shell-v17"),"offline cache has an explicit version");
+// Keep this assertion coupled to the actual shell version. Humans change the cache,
+// then forget to update the probe, because apparently software enjoys archaeology.
+const cacheVersion=(sw.match(/var CACHE = "igra-shell-v(\d+)"/)||[])[1];
+ok(!!cacheVersion,"offline cache has an explicit version");
+ok(Number(cacheVersion)>=18,"offline cache version is current",cacheVersion);
 
 const sandbox={IGRA:{},console,window:{matchMedia(){return {matches:false};}},document:{readyState:"loading",addEventListener(){},documentElement:{setAttribute(){}},getElementById(){return null},createElement(){return {}}},localStorage:{getItem(){return null},setItem(){},removeItem(){}}};
 vm.createContext(sandbox);
