@@ -51,5 +51,7 @@ jobs:
         run: node tools/probe/v6-body.js
       - name: Проверка V6 презентации и migration
         run: node tools/probe/v6-signals.js
+      - name: Проверка третьего акта
+        run: node tools/probe/v7-climax.js
       - name: Проверка Release Candidate
         run: node tools/probe/release-candidate.js
