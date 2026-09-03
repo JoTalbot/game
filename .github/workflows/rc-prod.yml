@@ -1,0 +1,88 @@
+name: RC production hardening
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  harden:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fix bloom verse stacking and promote APK version
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('web/js/renderer.js')
+          s = p.read_text(encoding='utf-8')
+
+          # Remove the per-bloom persistent verse label.
+          block = re.compile(r'''\n      if \(b\.verse && G\.verseText\(b\.verse\)\) \{.*?\n      \}\n(?=    \},\n\n    drawCrack:)''', re.S)
+          s2, n = block.subn('''\n      // RC readability: verse is memory, not a permanent label on every bloom.\n      // It is surfaced once by the nearest eligible bloom below.\n''', s, count=1)
+          if n != 1:
+              raise SystemExit(f'bloom verse block replacement count={n}')
+          s = s2
+
+          # Compute one active verse target per frame, once, before drawing blooms.
+          marker = '''      // garden\n'''
+          target = '''      // RC text focus: at most one bloom verse is visible at a time.\n      // Memory remains in the world model; the canvas does not become a wall of subtitles.\n      var verseBloom = null;\n      var verseDist = Infinity;\n      var blooms = game.world.blooms;\n      for (var vi = 0; vi < blooms.length; vi++) {\n        var vb = blooms[vi];\n        if (!vb.verse) continue;\n        var vd = G.dist(game.player.x, game.player.y, vb.x, vb.y);\n        if (vd < 150 && vd < verseDist) {\n          verseBloom = vb;\n          verseDist = vd;\n        }\n      }\n\n'''
+          if 'var verseBloom = null;' not in s:
+              if marker not in s:
+                  raise SystemExit('garden marker not found')
+              s = s.replace(marker, target + marker, 1)
+
+          old_loop = 'this.drawBloom(ctx, cam, game.world.blooms[gi], t);'
+          new_loop = 'this.drawBloom(ctx, cam, game.world.blooms[gi], t, game);'
+          if old_loop in s:
+              s = s.replace(old_loop, new_loop)
+
+          old_sig = 'drawBloom: function (ctx, cam, b, t) {'
+          new_sig = 'drawBloom: function (ctx, cam, b, t, game) {'
+          if old_sig in s:
+              s = s.replace(old_sig, new_sig, 1)
+
+          verse_draw = '''      if (game && verseBloom === b && G.verseText(b.verse)) {\n        var verseAlpha = G.clamp(1 - verseDist / 150, 0, 1);\n        ctx.save();\n        ctx.globalAlpha = verseAlpha;\n        ctx.fillStyle = G.rgb(238, 234, 250, 0.94);\n        ctx.font = "italic 19px 'Cormorant Garamond', serif";\n        ctx.textAlign = "center";\n        ctx.shadowColor = "rgba(0,0,0,0.92)";\n        ctx.shadowBlur = 7;\n        ctx.fillText(G.verseText(b.verse), p.x, p.y + r + 22);\n        ctx.restore();\n      }\n'''
+          if 'game && verseBloom === b' not in s:
+              anchor = '      // RC readability: verse is memory, not a permanent label on every bloom.\n      // It is surfaced once by the nearest eligible bloom below.\n'
+              if anchor not in s:
+                  raise SystemExit('verse anchor not found')
+              s = s.replace(anchor, anchor + verse_draw, 1)
+
+          p.write_text(s, encoding='utf-8')
+
+          bp = Path('tools/build-apk.sh')
+          b = bp.read_text(encoding='utf-8')
+          b = b.replace('NAME="igra-3.0.0-rc1"', 'NAME="igra-3.0.0"')
+          b = b.replace('VCODE=600', 'VCODE=601')
+          b = b.replace('VNAME="3.0.0-rc1"', 'VNAME="3.0.0"')
+          bp.write_text(b, encoding='utf-8')
+          PY
+
+      - name: Static regression gate
+        run: |
+          set -euo pipefail
+          node --check web/js/renderer.js
+          test "$(grep -o 'fillText(G\.verseText(b\.verse)' web/js/renderer.js | wc -l)" -le 1
+          grep -q 'var verseBloom = null;' web/js/renderer.js
+          grep -q 'game && verseBloom === b' web/js/renderer.js
+          grep -q 'VNAME="3.0.0"' tools/build-apk.sh
+          grep -q 'VCODE=601' tools/build-apk.sh
+
+      - name: Commit hardening
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add web/js/renderer.js tools/build-apk.sh
+          git commit -m 'fix: harden production readability and promote 3.0.0' || exit 0
+          git push
