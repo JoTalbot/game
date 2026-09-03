@@ -25,7 +25,7 @@
 
 Финальный Play artifact **не может быть debug-подписанным**.
 
-CI теперь использует два режима:
+CI использует два режима:
 
 - обычные push/PR: debug signing разрешён для быстрых проверок;
 - `v*` release tag: debug signing запрещён, обязательны два GitHub Secrets:
@@ -50,7 +50,7 @@ CI декодирует keystore во временный `dist/release.keystore`
 ## 2. Порядок в Play Console
 
 1. **Создать приложение** → название ИГРА / IGRA, язык по умолчанию ru.
-2. **Загрузить APK** из артефакта CI.
+2. **Загрузить release artifact** только после физического RC acceptance.
 3. Основные сведения → взять из `docs/STORE.md`.
 4. Загрузить иконку, feature graphic и скриншоты.
 5. Заполнить IARC по фактическому содержимому.
@@ -58,9 +58,17 @@ CI декодирует keystore во временный `dist/release.keystore`
 7. Игра бесплатна, без рекламы и встроенных покупок, если текущая модель продукта сохраняется.
 8. Выбрать страны распространения с учётом актуальных требований Google Play и законодательства.
 
-## 3. Версия и сборка
+## 3. Версия и актуальный RC artifact
 
 Текущая Release Candidate: **3.0.0-rc1**, versionCode **600**.
+
+Последний подтверждённый CI artifact:
+- artifact: `igra-3.0.0-rc1`
+- artifact ID: `9895393085`
+- commit: `df6b8224b54a3f90954f3ed6d2251a3016cf8238`
+- SHA-256: `5a0d48960ee2e2419fd130c0196925614c39137b996de67802f0d24bbd5b1072`
+- APK workflow: SUCCESS
+- mirror sync: SUCCESS
 
 Единая версия проверяется в:
 
@@ -68,16 +76,6 @@ CI декодирует keystore во временный `dist/release.keystore`
 - `android/app/build.gradle.kts`
 - `web/js/math.js`
 - `docs/PUBLISH.md`
-
-Перед RC:
-
-```bash
-node tools/probe/run.js
-bash tools/check-sync.sh
-bash tools/build-apk.sh
-```
-
-CI повторяет те же проверки перед сборкой APK.
 
 ## 4. Проверки перед release tag
 
@@ -97,10 +95,16 @@ CI повторяет те же проверки перед сборкой APK.
 Пункты 4–7 требуют **реального Android-устройства** и не считаются выполненными
 только потому, что Node/CI probes зелёные.
 
-## 5. После gate
+## 5. После физического gate
 
-Только после подтверждения пунктов 1–10 создаётся release tag и начинается
-Play submission.
+Только после подтверждения пунктов 1–10:
+
+1. создаётся signed production tag;
+2. CI собирает release artifact;
+3. SHA-256 сверяется с artifact;
+4. release загружается в Play Console;
+5. сначала Internal testing;
+6. затем controlled rollout.
 
 Пакет приложения **не менять**: `world.igra.app`.
 
