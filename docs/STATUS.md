@@ -19,6 +19,8 @@
 - V8 lineage — release/become, наследование, deterministic fingerprint и migration.
 - RC1 accessibility — reduced-motion, semantic UI signals, stable accessible names и offline cache.
 - RC hardening — RU/EN parity, offline asset completeness, Android lifecycle/save/security checks, bounded persistence и real-engine long-session soak.
+- V3-031 visual text silence — стихи больше не рисуются под каждым цветком: renderer выбирает только ближайший допустимый bloom, сохраняя текст в модели памяти.
+- Service Worker cache — V18 содержит `v3_text_silence.js`, чтобы offline shell соответствовал `index.html`.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 и публикует его рядом с artifact.
@@ -40,7 +42,7 @@ APK workflow выполняет probes, boot, Android security, sync, expanded R
 
 ### Что ещё нельзя считать закрытым
 
-1. Финальный физический acceptance именно artifact `9895393085`.
+1. Финальный физический acceptance именно нового RC artifact после V3-031.
 2. Upgrade со всех поддерживаемых старых save на текущем устройстве.
 3. Force-stop/process death → recovery на текущей сборке.
 4. Полный offline smoke на физическом Android.
