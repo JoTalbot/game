@@ -14,7 +14,7 @@ var IGRA = IGRA || {};
   ];
 
   function fresh() {
-    return { version: 1, visits: {}, returnCount: 0, consequences: [], route: "", routeCounts: {}, lastCause: "" };
+    return { version: 1, tick: 0, visits: {}, returnCount: 0, consequences: [], route: "", routeCounts: {}, lastCause: "" };
   }
   function load() {
     var s = fresh();
@@ -22,6 +22,7 @@ var IGRA = IGRA || {};
       var raw = G.Save && G.Save.get ? G.Save.get(KEY) : null;
       var p = raw ? JSON.parse(raw) : null;
       if (p && typeof p === "object") {
+        s.tick = Math.max(0, Number(p.tick) || 0);
         s.visits = p.visits && typeof p.visits === "object" ? p.visits : {};
         s.returnCount = Math.max(0, Number(p.returnCount) || 0);
         s.consequences = Array.isArray(p.consequences) ? p.consequences.slice(-12) : [];
@@ -33,16 +34,9 @@ var IGRA = IGRA || {};
     return s;
   }
   function save(s) { try { if (G.Save && G.Save.set) G.Save.set(KEY, JSON.stringify(s)); } catch (e) {} }
-  var State = { _state: null, state: function () { if (!this._state) this._state = load(); return this._state; }, resetCache: function () { this._state = null; }, profile: function () { return JSON.parse(JSON.stringify(this.state())); } };
+  var State = { _state: null, state: function () { if (!this._state) this._state = load(); return this._state; }, resetCache: function () { this._state = null; }, reset: function () { this._state = fresh(); save(this._state); }, profile: function () { return JSON.parse(JSON.stringify(this.state())); } };
   G.V4History = State;
 
-  function distance(a, b) { return G.dist ? G.dist(a.x, a.y, b.x, b.y) : Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)); }
-  function placeFor(game, i) {
-    var p = game.player, nodes = game.world.nodes || [];
-    if (!nodes.length) return PLACES[i % PLACES.length];
-    var n = nodes[Math.floor((Math.abs(p.x) + Math.abs(p.y)) / 520) % nodes.length];
-    return PLACES[(Math.abs(Math.floor(n.x / 380)) + Math.abs(Math.floor(n.y / 380)) + i) % PLACES.length];
-  }
   function cause(type, place, route) {
     var rs = G.ReleaseSystems;
     if (!rs || !rs.state) return "";
@@ -70,8 +64,7 @@ var IGRA = IGRA || {};
     var cid = cause(count > 1 ? "place-return" : "place-first", place, route);
     s.lastCause = cid;
 
-    // Physical historical trace.
-    var nodes = game.world.nodes || [], node = nodes.length ? nodes[(Math.abs(Math.floor(game.player.x / 260)) + Math.abs(Math.floor(game.player.y / 260))) % nodes.length] : null;
+    var nodes = game.world.nodes || [], node = nodes.length ? nodes[s.tick % nodes.length] : null;
     if (node) {
       node.memory = true;
       node.historyV4 = Math.min(1, (Number(node.historyV4) || 0) + (count > 1 ? 0.08 : 0.04));
@@ -81,7 +74,8 @@ var IGRA = IGRA || {};
     }
 
     // V4-007: second-act consequences touch two independent layers.
-    if ((r && r.act >= 2) || game.time > 0) {
+    if (r && r.act >= 2) {
+      var layer = place.kind === "bond" ? "relationship" : place.kind === "body" ? "body" : "ecology";
       if (place.kind === "ecology") {
         game.world.ecology = Math.max(0, Math.min(1, (Number(game.world.ecology) || 0.5) + (route === "steward" ? 0.018 : -0.004)));
       } else if (place.kind === "bond") {
@@ -92,9 +86,9 @@ var IGRA = IGRA || {};
       }
       var law = route === "steward" ? "return-follows-care" : route === "bonding" ? "memory-follows-bond" : route === "severing" ? "distance-leaves-scars" : "paths-keep-traces";
       game.world.lawTrace = law;
-      if (r && r.laws && r.laws.indexOf(law) < 0) r.laws.push(law);
-      if (r && r.laws && r.laws.length > 6) r.laws.shift();
-      s.consequences.push({ act: r ? r.act : 2, place: place.id, route: route, causeId: cid, layers: ["place", place.kind === "bond" ? "relationship" : "ecology"] });
+      if (r.laws && r.laws.indexOf(law) < 0) r.laws.push(law);
+      if (r.laws && r.laws.length > 6) r.laws.shift();
+      s.consequences.push({ act: r.act, place: place.id, route: route, causeId: cid, layers: ["place", layer] });
       if (s.consequences.length > 12) s.consequences.shift();
     }
   }
@@ -102,9 +96,12 @@ var IGRA = IGRA || {};
     if (!game || game.state !== "play" || !game.world || !game.player) return;
     var s = State.state(), route = canonicalRoute(game), r = G.ReleaseSystems && G.ReleaseSystems.state ? G.ReleaseSystems.state() : null;
     if (r && r.act < 2 && (game.time || 0) < 900) return;
-    var slot = Math.floor((Number(game.time) || 0) / 45);
-    var place = placeFor(game, slot);
-    if (s.visits[place.id] !== slot + 1 && (slot % 2 === 0 || s.returnCount < 3)) applyPlace(game, s, place, route);
+    s.tick++;
+    // A new historical contact is sampled at a coarse cadence, not every frame.
+    if (s.tick === 1 || s.tick % 45 === 0) {
+      var place = PLACES[(s.tick - 1) % PLACES.length];
+      applyPlace(game, s, place, route);
+    }
     s.route = route;
     s.routeCounts[route] = Number(s.routeCounts[route] || 0) + 1;
     save(s);
