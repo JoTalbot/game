@@ -48,6 +48,20 @@ var IGRA = IGRA || {};
   function canonicalRoute(game) {
     var tr = G.Trajectory && G.Trajectory.build ? G.Trajectory.build(game) : null;
     var path = tr && tr.dominant && tr.secondary ? String(tr.dominant) + ":" + String(tr.secondary) : (tr && tr.path ? String(tr.path) : "balanced");
+    // A strong live DNA profile is the primary route signal. Historical
+    // behavior and relationship state remain useful as fallback context, but
+    // must not mask a deliberate change in the active game's trajectory.
+    var dominant = tr && tr.dominant ? String(tr.dominant).toLowerCase() : "";
+    var ROUTES = {
+      harmony: "steward",
+      empathy: "bonding",
+      curiosity: "seeking",
+      aggression: "severing",
+      contemplation: "watching",
+      solitude: "severing",
+      resilience: "enduring"
+    };
+    if (ROUTES[dominant]) return ROUTES[dominant];
     var rel = G.Relationships && G.Relationships.profile ? G.Relationships.profile() : null;
     var life = G.Life && G.Life.profile ? G.Life.profile() : null;
     var b = life && life.behavior ? life.behavior : {};
