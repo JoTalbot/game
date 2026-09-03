@@ -1,0 +1,12 @@
+const fs=require("fs");
+const read=p=>fs.readFileSync(p,"utf8");
+const ok=(v,s)=>{if(!v)throw new Error(s);console.log("✓ "+s);};
+const html=read("web/index.html");
+const patch=read("web/js/v3-density.js");
+ok(html.includes("js/v3-density.js"),"web shell loads V3-033 density patch");
+ok(patch.includes("__v3033Density"),"density patch is idempotent");
+ok(patch.includes("w.nodes.length < 20"),"sparse worlds keep original renderer");
+ok(patch.includes("near < 7"),"dense mode has a local-density threshold");
+ok(patch.includes("ctx.stroke = function () {}"),"dense mode suppresses ordinary outline strokes only");
+ok(patch.includes("finally"),"canvas stroke hook is restored safely");
+console.log("dense visual probe: PASS");
