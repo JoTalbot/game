@@ -57,8 +57,27 @@ var IGRA = IGRA || {};
       var p = this.player;
       var speed = p ? Math.sqrt((p.vx || 0) * (p.vx || 0) + (p.vy || 0) * (p.vy || 0)) : 0;
       var moving = speed > 10;
+      var fingerDx = this.input && this.input.gsx != null ? this.input.x - this.input.gsx : 0;
+      var fingerDy = this.input && this.input.gsy != null ? this.input.y - this.input.gsy : 0;
+      var fingerSlip = Math.sqrt(fingerDx * fingerDx + fingerDy * fingerDy);
+      var walkingGesture = !!(this.input && this.input.down && fingerSlip > 18);
+
+      // Critical deadlock fix: a node could be acquired before velocity rose
+      // above the old speed threshold. Once that happened movement was gated by
+      // player.gaze, velocity stayed near zero, and the speed check never woke
+      // up. Finger travel is the authoritative signal: moving the finger means
+      // walk, so immediately release any accidental gaze/target and suppress
+      // node acquisition for this frame.
       var oldNode = G.World.prototype.nearestNode;
-      if (moving) G.World.prototype.nearestNode = function () { return null; };
+      if (walkingGesture) {
+        this.player.gaze = null;
+        this.gazeTarget = null;
+        this.player.gazeT = 0;
+        this.input.hold = 0;
+        G.World.prototype.nearestNode = function () { return null; };
+      } else if (moving) {
+        G.World.prototype.nearestNode = function () { return null; };
+      }
       try {
         denseGaze.call(this, dt);
       } finally {
@@ -67,7 +86,7 @@ var IGRA = IGRA || {};
 
       // Beings are deliberate interactions: hold still for 0.38 s, use a
       // smaller finger radius, and only interact with one close to the player.
-      if (!this.player.gaze && !this.gazeTarget && !this.sky && !moving &&
+      if (!this.player.gaze && !this.gazeTarget && !this.sky && !walkingGesture && !moving &&
           (this.state === "play" || this.state === "birth") &&
           (this.input.hold || 0) > 0.38) {
         var max = this.aimRadius ? this.aimRadius(30) : 30;
