@@ -2,21 +2,26 @@
 
 ## Текущий инженерный статус
 
-Репозиторий находится после реализации V3-001 → V3-029 и после V5/V6 living-world/body-identity работ. Последние изменения также закрывают production-safe release signing, checksum artifact и контракт публикации.
+Репозиторий прошёл реализацию V3-001 → V3-029, V5/V6 living-world/body-identity и V7/V8 lineage/climax. Текущий `main` содержит RC1-контракт и production-safe Android pipeline.
 
 ### Реализовано
 
 - V3-001 → V3-029 — реализовано.
 - V5 living world feedback loop — реализовано и покрыто probe/CI.
 - V6 body identity layer — реализовано, загружается, кэшируется и покрыто тестом.
+- V7 climax/finale layer — реализовано и покрыто probe/CI.
+- V8 lineage layer — реализовано: release/become, наследование состояния и deterministic fingerprint.
+- V8 lineage migration — нормализует schema version, повреждённую history и отсутствующий inherited envelope.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 рядом с artifact.
 - `apk.yml` выполняет probe, boot, Android security check, sync check и APK build.
 
-### Текущий релизный рубеж
+### RC1 automated gate
 
-Документация использует `v3.0.0-rc1`, versionCode 600 как RC-контракт. Это не означает, что production release уже разрешён: сначала нужен RC gate.
+**GREEN.** Commit `5d64e3366e2a81db60bac98f5ed5563af717d94e` прошёл APK pipeline. Artifact `igra-3.0.0-rc1` создан; checksum verification успешна. В pipeline также успешно прошли V8 lineage probe и `release-candidate.js`, включая количественный RC-ready gate.
+
+Это означает, что автоматический инженерный RC gate готов. Production release ещё не разрешён.
 
 ### Что ещё нельзя считать автоматически закрытым
 
@@ -31,6 +36,6 @@ CI green подтверждает автоматические инвариан�
 
 ## Следующий шаг
 
-После выполнения RC gate создать `v3.0.0-rc1`, провести ограниченное RC-тестирование и только затем принимать решение о production Play release.
+Провести физический RC smoke на Android, затем создать immutable `v3.0.0-rc1` release с release-signing APK и checksum. После ограниченного RC-тестирования принимать отдельное решение о production Play release.
 
 После RC развитие продолжается вторым актом, повторными жизнями, вариативностью living world, performance/accessibility и production polish.
