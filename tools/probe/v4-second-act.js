@@ -9,13 +9,22 @@ var G = H.boot();
 var pass = 0, fail = 0;
 function ok(c, s) { if (c) { pass++; console.log("  ✓ " + s); } else { fail++; console.log("  ✗ " + s); } }
 function step(game, n) { for (var i = 0; i < n; i++) G.V4SecondAct.observe(1, game); }
+function anchorTestEntities(game, behavior) {
+  game.world.beings = Array.isArray(game.world.beings) ? game.world.beings : [];
+  var being = game.world.beings[0];
+  if (!being || being.dead) { being = { x: game.player.x, y: game.player.y, dead: false }; game.world.beings.unshift(being); }
+  being.bond = behavior.motion < 5 ? 0.9 : 0.05;
+  being.v4Id = "witness-0";
+  being.x = game.player.x; being.y = game.player.y; being.dead = false;
+  game.world.nodes = Array.isArray(game.world.nodes) ? game.world.nodes : [];
+  for (var i = 0; i < game.world.nodes.length; i++) { game.world.nodes[i].care = behavior.motion < 5 ? 0.9 : 0.1; game.world.nodes[i].x = game.player.x; game.world.nodes[i].y = game.player.y; }
+  return being;
+}
 function scenario(behavior, seed, ending) {
   var game = H.makeWorld(G, seed);
   G.Life.arc().initialized = true;
   G.Life.arc().behavior = behavior;
-  var being = game.world.beings[0];
-  if (being) { being.bond = behavior.motion < 5 ? 0.9 : 0.05; being.v4Id = "witness-0"; being.x = game.player.x; being.y = game.player.y; }
-  for (var i = 0; i < game.world.nodes.length; i++) { game.world.nodes[i].care = behavior.motion < 5 ? 0.9 : 0.1; game.world.nodes[i].x = game.player.x; game.world.nodes[i].y = game.player.y; }
+  var being = anchorTestEntities(game, behavior);
   G.V4SecondAct.reset();
   step(game, 180);
   var p = G.V4SecondAct.profile();
@@ -23,10 +32,11 @@ function scenario(behavior, seed, ending) {
     p.turns = 0; p.events = p.events.slice(0, 5); p.endings = [ending];
     G.V4SecondAct._state = p;
     G.Life.arc().behavior = ending === "keep" ? {born:4,returns:5,pulses:4,still:6,motion:3} : {born:4,returns:0,pulses:0,still:0,motion:9};
+    anchorTestEntities(game, G.Life.arc().behavior);
     step(game, 120);
     p = G.V4SecondAct.profile();
   }
-  return {game:game, profile:p};
+  return {game:game, profile:p, being:being};
 }
 console.log("\n— V4: второй акт, причинная дуга, повторяющийся мир, migration и multi-life replay");
 G.Save.set("igra.release.v1", JSON.stringify({version:1,act:2,events:[],causes:[],laws:[],places:[],beings:[],trajectories:{}}));
@@ -65,8 +75,7 @@ var sever = scenario({born:4,returns:0,pulses:0,still:0,motion:9}, 7720, "let-go
 var sk = steward.profile.places[steward.profile.handoff.place], ss = sever.profile.places[sever.profile.handoff.place];
 ok(steward.profile.endings.indexOf("keep") >= 0 && sever.profile.endings.indexOf("let-go") >= 0, "контрастные replay-сценарии проходят через bonding/steward и severing");
 ok(sk && ss && (sk.state !== ss.state || sk.drift !== ss.drift || sk.lastRoute !== ss.lastRoute), "одинаковый тип места получает различимое состояние от разных маршрутов");
-var sb = steward.game.world.beings[0], xb = sever.game.world.beings[0];
-ok(sb && xb && sb.v4Id === "witness-0" && xb.v4Id === "witness-0" && steward.profile.beings["witness-0"] && sever.profile.beings["witness-0"] && steward.profile.beings["witness-0"].affinity !== sever.profile.beings["witness-0"].affinity, "одно и то же существо получает различную память от разных маршрутов");
+ok(steward.being && sever.being && steward.being.v4Id === "witness-0" && sever.being.v4Id === "witness-0" && steward.profile.beings["witness-0"] && sever.profile.beings["witness-0"] && steward.profile.beings["witness-0"].affinity !== sever.profile.beings["witness-0"].affinity, "одно и то же существо получает различную память от разных маршрутов");
 ok(steward.profile.events.length <= 24 && steward.profile.causes.length <= 48 && Object.keys(steward.profile.places).length <= 12 && Object.keys(steward.profile.beings).length <= 12, "multi-life state остаётся bounded");
 var finalSave = G.Save.get("igra.v4-second-act.v1");
 ok(finalSave.length < 20000, "V4 save остаётся компактным после replay");
