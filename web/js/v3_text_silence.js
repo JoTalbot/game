@@ -2,11 +2,11 @@ var IGRA = IGRA || {};
 (function (G) {
   "use strict";
 
-  // V3-030: poems stay in memory, not as a permanent label under every bloom.
-  // Keep bloom interaction intact: the original object still carries `verse`,
-  // but the renderer receives a temporary text-less copy.
+  // V3-031: keep poems as memory/interaction content, not as labels on
+  // every bloom. The bloom object keeps its verse, so tapping it can still
+  // reveal/speak the poem elsewhere in the game.
   function patch() {
-    if (!G.Renderer || !G.Renderer.drawBloom || G.Renderer.__v3030TextSilenced) return;
+    if (!G.Renderer || !G.Renderer.drawBloom || G.Renderer.__v3031Patched) return;
     var original = G.Renderer.drawBloom;
     G.Renderer.drawBloom = function (ctx, cam, bloom, t) {
       if (bloom && bloom.verse) {
@@ -20,11 +20,8 @@ var IGRA = IGRA || {};
       }
       return original.call(this, ctx, cam, bloom, t);
     };
-    G.Renderer.__v3030TextSilenced = true;
+    G.Renderer.__v3031Patched = true;
   }
 
   patch();
-  if (!G.Renderer || !G.Renderer.drawBloom) {
-    setTimeout(patch, 0);
-  }
 })(IGRA);
