@@ -263,7 +263,7 @@ var IGRA = IGRA || {};
 
       // garden
       for (var gi = 0; gi < game.world.blooms.length; gi++) {
-        this.drawBloom(ctx, cam, game.world.blooms[gi], t, game);
+        this.drawBloom(ctx, cam, game.world.blooms[gi], t, game, verseBloom, verseDist);
       }
 
       // nodes
@@ -450,7 +450,7 @@ var IGRA = IGRA || {};
       ctx.restore();
     },
 
-    drawBloom: function (ctx, cam, b, t, game) {
+    drawBloom: function (ctx, cam, b, t, game, verseBloom, verseDist) {
       var p = this.worldToScreen(cam, b.x, b.y);
       var r = (b.r || 8) * cam.z * (0.85 + Math.sin(t * 1.8 + b.phase) * 0.15);
       var c = b.c || G.TRAIT_COLOR.contemplation;
