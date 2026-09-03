@@ -77,11 +77,6 @@ var IGRA = IGRA || {};
       var sessions = mem ? Math.max(0, Math.floor(Number(mem.sessions) || 0)) : 0;
       var days = mem ? Math.max(0, Math.floor(Number(mem.days) || 0)) : 0;
 
-      // V3-020: незавершённая нить должна пережить закрытие приложения.
-      // Вечером она появляется из уже прожитого места; после следующего
-      // возвращения (новый день или заметная ночь) это же место меняется.
-      // Никаких ежедневных наград и дублей: в сейве существует ровно одна
-      // активная нить.
       if (s.thread) {
         var ready = sessions > s.thread.createdSession &&
           (days > s.thread.createdDay || (mem && Number(mem.sleptHours) >= 6));
@@ -122,8 +117,30 @@ var IGRA = IGRA || {};
       var deep = 0, still = Number(p.stillT) || 0;
       for (var i = 0; i < G.TRAITS.length; i++) deep = Math.max(deep, Number(game.dna.get(G.TRAITS[i])) || 0);
 
-      // Открываем V3-020 только после того, как у игрока уже есть история.
-      // Нить привязана к существующему месту и не создаёт отдельного UI.
+      /* V5 feedback: a branch that already formed in the world is allowed to
+         steer the next Director event. This is deliberately a tiny context,
+         so the world cannot create unbounded content or UI state. */
+      var v5 = G.V5World && G.V5World.futureContext ? G.V5World.futureContext() : null;
+      if (v5 && v5.branches && v5.branches.length) {
+        var branchKey = String(v5.branches[v5.branches.length - 1]);
+        var worldEvent = "v5-world:" + branchKey;
+        if (!has(s, worldEvent) && fire(s, worldEvent, game)) {
+          game.world.directorFuture = {
+            route: v5.route,
+            season: v5.season,
+            ecologyBand: v5.ecologyBand,
+            law: v5.law,
+            branch: branchKey
+          };
+          var voice = v5.ecologyBand === "low" ? "scar" :
+            v5.ecologyBand === "high" ? "garden" :
+            v5.route === "bond" ? "kind" :
+            v5.route === "memory" ? "rememberYou" : "frontier";
+          G.Voice.say(voice, true);
+          return;
+        }
+      }
+
       if (!s.thread && life && life.skins >= 1 && sessions >= 1 && worldMem &&
           worldMem.memories && worldMem.memories.length >= 1) {
         var anchor = near(p, nodes, 260, function (n) {
@@ -144,8 +161,6 @@ var IGRA = IGRA || {};
         }
       }
 
-      // Возвращение к собственной памяти. Не награда, а физический ответ
-      // старого места: память становится чуть живее рядом с человеком.
       if (life && life.behavior && life.behavior.returns >= 4 && worldMem && worldMem.memories && worldMem.memories.length >= 2) {
         var remembered = near(p, nodes, 260, function (n) { return n.memory || n.memoryAnchor; });
         if (remembered && fire(s, "return-echo", game)) {
