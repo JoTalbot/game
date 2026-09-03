@@ -103,6 +103,30 @@ var IGRA = IGRA || {};
       }
     };
 
+    // V3-037: movement has priority over gaze even before velocity exists.
+    // _move runs before _gaze in the engine, so the gesture must be interpreted
+    // here as well. This closes the one-frame deadlock where a target is acquired
+    // while the player is still at zero velocity and movement is then gated.
+    if (proto._move && !proto.__v3037MovePriority) {
+      var originalMove = proto._move;
+      proto._move = function (dt) {
+        var inp = this.input;
+        if (inp && inp.down && inp.gsx != null && inp.gsy != null) {
+          var mdx = inp.x - inp.gsx;
+          var mdy = inp.y - inp.gsy;
+          if (Math.sqrt(mdx * mdx + mdy * mdy) > 18) {
+            this.player.gaze = null;
+            this.gazeTarget = null;
+            this.player.gazeT = 0;
+            inp.hold = 0;
+          }
+        }
+        return originalMove.apply(this, arguments);
+      };
+      proto.__v3037MovePriority = true;
+      proto.__v3037OriginalMove = originalMove;
+    }
+
     proto.__v3032Patched = true;
     proto.__v3032OriginalDown = denseDown;
     proto.__v3032OriginalGaze = denseGaze;
