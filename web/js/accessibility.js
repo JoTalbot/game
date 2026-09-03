@@ -19,20 +19,25 @@ var IGRA = IGRA || {};
     "report-close": "close report"
   };
 
+  function canSet(el) {
+    return !!(el && typeof el.setAttribute === "function");
+  }
+
   function reduced() {
     return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }
 
   function applyMotion() {
     var on = reduced();
-    document.documentElement.setAttribute("data-reduced-motion", on ? "true" : "false");
+    var root = document.documentElement;
+    if (canSet(root)) root.setAttribute("data-reduced-motion", on ? "true" : "false");
     var style = document.getElementById("igra-a11y-motion");
-    if (!style) {
+    if (!style && document.createElement) {
       style = document.createElement("style");
       style.id = "igra-a11y-motion";
-      document.head.appendChild(style);
+      if (document.head && document.head.appendChild) document.head.appendChild(style);
     }
-    style.textContent = on
+    if (style) style.textContent = on
       ? "*,:before,:after{scroll-behavior:auto!important;animation-duration:0.001ms!important;animation-iteration-count:1!important;transition-duration:0.001ms!important;}"
       : "";
   }
@@ -40,15 +45,14 @@ var IGRA = IGRA || {};
   function labelButtons() {
     Object.keys(IDS).forEach(function (id) {
       var el = document.getElementById(id);
-      if (!el) return;
-      el.setAttribute("aria-label", IDS[id]);
+      if (canSet(el)) el.setAttribute("aria-label", IDS[id]);
     });
   }
 
   function liveRegions() {
     ["veil", "hint", "law", "fate-line", "report-text", "sigil-sub", "sigil-verses", "sigil-season"].forEach(function (id) {
       var el = document.getElementById(id);
-      if (el) el.setAttribute("aria-live", "polite");
+      if (canSet(el)) el.setAttribute("aria-live", "polite");
     });
   }
 
