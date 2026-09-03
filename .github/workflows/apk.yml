@@ -28,7 +28,13 @@ jobs:
           node-version: "20"
 
       - name: Проверки души
-        run: node tools/probe/run.js
+        run: |
+          set -euo pipefail
+          node tools/probe/run.js
+          node tools/probe/v6-body.js
+          node tools/probe/v6-signals.js
+          node tools/probe/v7-climax.js
+          node tools/probe/release-candidate.js
 
       - name: Живой запуск
         run: node tools/probe/boot.js
