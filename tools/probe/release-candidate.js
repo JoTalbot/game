@@ -59,7 +59,14 @@ if (G.Life && G.Life.resetCache) G.Life.resetCache();
 game.dna.age = Math.max(Number(game.dna.age) || 0, 240);
 game.state = "play"; game.time = 2400; game.player = { x: 0, y: 0 };
 game.world.meta = 3; game.world.discovered = 100; game.world.lost = 0; game.world.bounds = 2200;
-for (let i = 0; i < 1000; i++) { game.time = 2400 + i; G.ReleaseSystems.observe(1, game); }
+for (let i = 0; i < 1000; i++) {
+  game.time = 2400 + i;
+  G.ReleaseSystems.observe(1, game);
+  // The RC probe exercises ReleaseSystems directly rather than the full
+  // Director/engine loop, so invoke the companion V4 history observer too.
+  // This mirrors the browser path without changing product behavior.
+  if (G.V4History && G.V4History.observe) G.V4History.observe(game);
+}
 p = G.ReleaseSystems.profile();
 ok(p.act >= 3, "third act reached");
 ok(p.places.length === 8, "place history remains bounded");
