@@ -13,5 +13,5 @@ ok(src.indexOf("__v3037SpawnBudget") >= 0, "патч защищён от дво�
 ok(src.indexOf("live >= 18") >= 0 && src.indexOf("allowed = 0") >= 0, "при высокой плотности burst полностью останавливается");
 ok(src.indexOf("live >= 14") >= 0 && src.indexOf("Math.min(allowed, 1)") >= 0, "на высокой плотности остаётся максимум одно рождение за burst");
 ok(src.indexOf("live >= 10") >= 0 && src.indexOf("Math.min(allowed, 2)") >= 0, "на средней плотности остаётся максимум два рождения за burst");
-ok(src.indexOf("spawnNode") >= 0 && src.indexOf("spawnNode()") < 0, "прямые сюжетные spawnNode не перехватываются");
+ok(src.indexOf("World.prototype.spawnNode") < 0, "прямые сюжетные spawnNode не перехватываются");
 console.log("spawn-budget probe: PASS");
