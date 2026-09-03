@@ -32,6 +32,7 @@ jobs:
           set -euo pipefail
           node tools/probe/run.js
           node tools/probe/v6-body.js
+          node tools/probe/v6-body-visual.js
           node tools/probe/v6-signals.js
           node tools/probe/v7-climax.js
           node tools/probe/v8-lineage.js
