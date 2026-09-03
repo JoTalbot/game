@@ -61,6 +61,27 @@ game.state = "play"; game.time = 2400; game.player = { x: 0, y: 0 };
 game.world.meta = 3; game.world.discovered = 100; game.world.lost = 0; game.world.bounds = 2200;
 for (let i = 0; i < 1000; i++) {
   game.time = 2400 + i;
+  // Exercise contrasting route traces from changing gameplay signals, not
+  // from pre-seeded route counters. This keeps the RC probe aligned with the
+  // product contract: routes are derived from the active game state.
+  if (i % 180 === 60) {
+    game.dna.values.harmony = 0.92;
+    game.dna.values.contemplation = 0.25;
+    game.dna.values.curiosity = 0.10;
+    game.dna.values.aggression = 0.05;
+  } else if (i % 180 === 120) {
+    game.dna.values.harmony = 0.05;
+    game.dna.values.contemplation = 0.10;
+    game.dna.values.curiosity = 0.92;
+    game.dna.values.chaos = 0.20;
+    game.dna.values.aggression = 0.05;
+  } else if (i % 180 === 0) {
+    game.dna.values.harmony = 0.05;
+    game.dna.values.contemplation = 0.10;
+    game.dna.values.curiosity = 0.10;
+    game.dna.values.aggression = 0.92;
+    game.dna.values.chaos = 0.20;
+  }
   G.ReleaseSystems.observe(1, game);
   // The RC probe exercises ReleaseSystems directly rather than the full
   // Director/engine loop, so invoke the companion V4 history observer too.
