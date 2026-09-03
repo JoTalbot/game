@@ -16,12 +16,20 @@ game.world.beings = [{x:game.player.x,y:game.player.y,dead:false,bond:0.9,v4Id:"
 game.world.nodes.forEach(function (n) { n.x=game.player.x; n.y=game.player.y; n.care=0.9; });
 G.V4SecondAct.reset();
 G.V4Depth.reset();
-step(game, 180);
+// Anchor the upstream V4 state at a real cadence boundary. The depth probe
+// must test the V4.3 contract itself, not depend on how many events a future
+// Director tuning pass happens to emit before turn 90.
+var v4 = G.V4SecondAct.profile();
+v4.active = true; v4.act = 2; v4.route = "bonding"; v4.turns = 89; v4.chain = 9; v4.lastCause = "v4c-event-witness";
+v4.events = [{id:"echo-answer",place:"echo",route:"bonding",causeId:v4.lastCause,generation:0},{id:"witness-turns",place:"echo",route:"bonding",causeId:v4.lastCause,generation:0},{id:"shore-recognizes",place:"threshold",route:"bonding",causeId:v4.lastCause,generation:0}];
+v4.handoff = {generation:0,route:"bonding",place:"echo",being:"depth-witness",cause:v4.lastCause,fingerprint:"probe"};
+G.V4SecondAct._state = v4;
+step(game, 1);
 var p = G.V4Depth.profile();
 ok(p.version === 1, "V4.3 depth layer имеет собственную версию схемы");
 ok(p.beats.length >= 1, "накопленная память порождает world-beat");
 ok(p.beats.every(function (b) { return b.id && b.route && b.place && b.generation >= 0; }), "каждый beat содержит маршрут, место и поколение");
-ok(p.beats[0].cause || p.beats[0].place, "beat сохраняет причинный след V4");
+ok(p.beats.length > 0 && (p.beats[0].cause || p.beats[0].place), "beat сохраняет причинный след V4");
 ok(game.player.v4DepthBeat === p.lastBeat && game.player.v4DepthRoute === p.lastRoute, "beat доходит до живого тела игрока");
 ok(game.world.nodes.some(function (n) { return n.v4DepthBeat === p.lastBeat && n.v4DepthRoute === p.lastRoute; }), "beat оставляет физический след в ближайшем мире");
 var saved = JSON.parse(G.Save.get("igra.v4-depth.v1"));
