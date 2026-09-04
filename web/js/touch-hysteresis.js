@@ -3,6 +3,8 @@ var IGRA = IGRA || {};
   "use strict";
   var HOLD_LIMIT = 126;
   var GRACE_LIMIT = 140;
+  var NODE_TAP_MULTIPLIER = 1.35;
+  var NODE_TAP_MIN = 76;
   G.TouchHysteresis = {
     HOLD_LIMIT: HOLD_LIMIT,
     GRACE_LIMIT: GRACE_LIMIT,
@@ -32,6 +34,12 @@ var IGRA = IGRA || {};
   // different: a visible node is a primary tap target and must still be
   // selectable on touch-down. Movement priority below cancels that selection
   // as soon as the finger actually starts travelling.
+  //
+  // V3-041: the original node hit radius was still too strict in practice.
+  // The renderer paints a node with a visible body, while the touch target was
+  // only a thin mathematical edge around it. Give the initial tap 35% more
+  // world-space forgiveness, with a minimum of 76 world units. This is still
+  // local to touch-down, so it does not broaden being interaction or movement.
   if (G.Game && G.Game.prototype && !G.Game.prototype.__v3032Patched &&
       G.Game.prototype.onDown && G.Game.prototype._gaze &&
       G.Organs && G.Organs.nearestBeing && G.World && G.World.prototype.nearestNode) {
@@ -42,13 +50,19 @@ var IGRA = IGRA || {};
 
     proto.onDown = function () {
       var oldBeing = G.Organs.nearestBeing;
+      var oldNode = G.World.prototype.nearestNode;
       G.Organs.nearestBeing = function () { return null; };
+      G.World.prototype.nearestNode = function (x, y, max) {
+        var widened = Math.max(NODE_TAP_MIN, (max || 0) * NODE_TAP_MULTIPLIER);
+        return oldNode.call(this, x, y, widened);
+      };
       try {
         // Keep node selection on the initial tap. A later movement gesture is
         // cancelled by __v3037MovePriority, so this cannot lock navigation.
         return denseDown.apply(this, arguments);
       } finally {
         G.Organs.nearestBeing = oldBeing;
+        G.World.prototype.nearestNode = oldNode;
       }
     };
 
