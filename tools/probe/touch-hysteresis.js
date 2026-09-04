@@ -18,8 +18,6 @@ function outcome(sequence) {
 
     var slip = event.slip;
     if (slip > GRACE_LIMIT) return "slip";
-    // 126..140 is grace: only sustained outward movement beyond 140
-    // tears the gesture. Returning inward keeps the hold alive.
     if (slip < 0) throw new Error("negative slip");
     if (slip <= GRACE_LIMIT) state = "holding";
   }
@@ -30,32 +28,33 @@ function ok(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-// Normal region remains a hold.
 ok(outcome([{ type: "move", slip: 80 }]) === "holding", "normal hold failed");
-
-// Grace-zone excursion followed by recovery must survive.
 ok(outcome([
   { type: "move", slip: HOLD_LIMIT + 1 },
   { type: "move", slip: 139 },
   { type: "move", slip: 121 }
 ]) === "holding", "grace recovery tears hold");
-
-// Exact upper boundary is still grace, not cancellation.
 ok(outcome([{ type: "move", slip: GRACE_LIMIT }]) === "holding", "140px must remain grace");
-
-// Beyond the grace zone cancels as slip.
 ok(outcome([{ type: "move", slip: GRACE_LIMIT + 1 }]) === "slip", ">140px must cancel as slip");
-
-// Explicit release remains a distinct outcome even after grace movement.
 ok(outcome([
   { type: "move", slip: 134 },
   { type: "release" }
 ]) === "release", "explicit release changed");
-
-// System cancellation remains distinct from slip.
 ok(outcome([
   { type: "move", slip: 130 },
   { type: "system-cancel" }
 ]) === "system", "touchcancel became slip");
+
+// V3-039 regression contract: deliberate stationary interaction must restore
+// node gaze after V3-032 removed instant node capture. Walking must remain gated.
+var fs = require("fs");
+var src = fs.readFileSync("web/js/touch-hysteresis.js", "utf8");
+ok(src.indexOf("var node = this.world.nearestNode") >= 0, "node lookup missing");
+ok(src.indexOf("this.player.gaze = node") >= 0, "node gaze assignment missing");
+ok(src.indexOf("node.state === \"alive\"") >= 0, "dead-node guard missing");
+ok(src.indexOf("G.Report.act(\"gazes\")") >= 0, "gaze report missing");
+ok(src.indexOf("this.dna.feed(\"contemplation\", 0.01)") >= 0, "contemplation feed missing");
+ok(src.indexOf("fingerSlip > 18") >= 0, "walking gesture guard missing");
+ok(src.indexOf("G.World.prototype.nearestNode = function () { return null; }") >= 0, "movement node suppression missing");
 
 console.log("touch-hysteresis probe: PASS");
