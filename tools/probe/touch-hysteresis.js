@@ -46,15 +46,15 @@ ok(outcome([
   { type: "system-cancel" }
 ]) === "system", "touchcancel became slip");
 
-// V3-039/V3-040 regression contract: deliberate stationary interaction must
-// restore node gaze after V3-032 removed instant node capture. Walking must
-// remain gated. V3-041 widens only the initial node touch target.
-// V3-042 raises the flight threshold to ignore small finger tremors.
+// V3-043 regression contract: a node under the initial finger wins before
+// movement or quick-tap pulse logic can consume the same touch. Walking is
+// still allowed once the finger deliberately travels beyond MOVE_START.
 var fs = require("fs");
 var src = fs.readFileSync("web/js/touch-hysteresis.js", "utf8");
-ok(src.indexOf("var node = this.world.nearestNode") >= 0, "node lookup missing");
-ok(src.indexOf("this.player.gaze = node") >= 0, "node gaze assignment missing");
-ok(src.indexOf("node.state === \"alive\"") >= 0, "dead-node guard missing");
+ok(src.indexOf("var tapNode = this.world.nearestNode") >= 0, "initial node lookup missing");
+ok(src.indexOf("this.player.gaze = tapNode") >= 0, "synchronous node gaze assignment missing");
+ok(src.indexOf("return denseDown.apply(this, arguments)") >= 0, "stock onDown fallback missing");
+ok(src.indexOf("this.input.gsx = this.input.x") >= 0, "gesture origin not locked to tap");
 ok(src.indexOf("G.Report.act(\"gazes\")") >= 0, "gaze report missing");
 ok(src.indexOf("this.dna.feed(\"contemplation\", 0.01)") >= 0, "contemplation feed missing");
 ok(src.indexOf("fingerSlip > MOVE_START") >= 0, "movement threshold missing");
