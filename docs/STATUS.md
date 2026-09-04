@@ -1,8 +1,8 @@
-# Статус — 3 сентября 2026
+# Статус — 4 сентября 2026
 
 ## Текущий инженерный статус
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. Последний подтверждённый APK build: `3.0.0-rc1`, versionCode `600`.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. После визуального hardening V3-032 → V3-038 новый RC artifact собран и полностью прошёл автоматический gate.
 
 ### Реализовано
 
@@ -20,7 +20,13 @@
 - RC1 accessibility — reduced-motion, semantic UI signals, stable accessible names и offline cache.
 - RC hardening — RU/EN parity, offline asset completeness, Android lifecycle/save/security checks, bounded persistence и real-engine long-session soak.
 - V3-031 visual text silence — стихи больше не рисуются под каждым цветком: renderer выбирает только ближайший допустимый bloom, сохраняя текст в модели памяти.
-- Service Worker cache — V18 содержит `v3_text_silence.js`, чтобы offline shell соответствовал `index.html`.
+- V3-032 touch hysteresis — движение получает приоритет над случайным gaze; захват требует осознанного удержания.
+- V3-033 density visual cleanup — в плотных областях подавляются второстепенные обводки.
+- V3-034 being cap — bounded pruning для избытка существ.
+- V3-036 start density — начальная плотность снижена до трёх значимых узлов; первые 25 секунд автоматический scatter Director подавлен.
+- V3-037 spawn budget — автоматический scatter ограничивается при росте живых узлов, без interception `spawnNode`.
+- V3-038 render budget — при высокой плотности подавляются только слабые тонкие второстепенные связи; узлы, существа, gaze и интерактивные линии сохраняются.
+- Service Worker cache — offline shell содержит все новые V3-03x assets.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 и публикует его рядом с artifact.
@@ -29,20 +35,20 @@
 
 - Версия: `3.0.0-rc1`
 - versionCode: `600`
-- commit: `df6b8224b54a3f90954f3ed6d2251a3016cf8238`
+- commit: `35dc7c45f2807a9188acd4ed17539cf73c72a8d1`
 - APK artifact: `igra-3.0.0-rc1`
-- artifact ID: `9895393085`
-- SHA-256: `5a0d48960ee2e2419fd130c0196925614c39137b996de67802f0d24bbd5b1072`
+- artifact ID: `9913792214`
+- GitHub artifact SHA-256: `4daa72e79fb888fccfc18151587492369773db3c4dad3acd8725b94e8523fb7e`
 - APK workflow: SUCCESS
 - mirror sync: SUCCESS
 
 ### Автоматические gate
 
-APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Life Arc workflow повторяет ключевые продуктовые probes. CI подтверждает автоматические инварианты, но не заменяет физический Android smoke.
+APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Последний workflow #811 завершён SUCCESS. Render-budget probe отдельно подтверждает подключение V3-038 в `index.html` и Service Worker, защиту от двойной установки, порог в 14 живых узлов и ограничение фильтра тонкими слабо-прозрачными линиями. CI подтверждает автоматические инварианты, но не заменяет физический Android smoke.
 
 ### Что ещё нельзя считать закрытым
 
-1. Финальный физический acceptance именно нового RC artifact после V3-031.
+1. Финальный физический acceptance именно нового RC artifact.
 2. Upgrade со всех поддерживаемых старых save на текущем устройстве.
 3. Force-stop/process death → recovery на текущей сборке.
 4. Полный offline smoke на физическом Android.
