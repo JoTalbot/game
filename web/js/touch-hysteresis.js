@@ -27,11 +27,11 @@ var IGRA = IGRA || {};
     };
   }
 
-  // V3-032: a crowded shore must stay walkable. The old interaction layer
-  // acquired a node/being on touch-down and could also auto-acquire while the
-  // player was travelling. With many live entities this turned navigation into
-  // accidental gaze selection. Defer target acquisition until the finger is
-  // intentionally still, and never run the node auto-capture while moving.
+  // V3-032: a crowded shore must stay walkable. The interaction layer must
+  // never capture a being merely because the finger landed near it. Nodes are
+  // different: a visible node is a primary tap target and must still be
+  // selectable on touch-down. Movement priority below cancels that selection
+  // as soon as the finger actually starts travelling.
   if (G.Game && G.Game.prototype && !G.Game.prototype.__v3032Patched &&
       G.Game.prototype.onDown && G.Game.prototype._gaze &&
       G.Organs && G.Organs.nearestBeing && G.World && G.World.prototype.nearestNode) {
@@ -42,14 +42,13 @@ var IGRA = IGRA || {};
 
     proto.onDown = function () {
       var oldBeing = G.Organs.nearestBeing;
-      var oldNode = G.World.prototype.nearestNode;
       G.Organs.nearestBeing = function () { return null; };
-      G.World.prototype.nearestNode = function () { return null; };
       try {
+        // Keep node selection on the initial tap. A later movement gesture is
+        // cancelled by __v3037MovePriority, so this cannot lock navigation.
         return denseDown.apply(this, arguments);
       } finally {
         G.Organs.nearestBeing = oldBeing;
-        G.World.prototype.nearestNode = oldNode;
       }
     };
 
@@ -84,7 +83,7 @@ var IGRA = IGRA || {};
         G.World.prototype.nearestNode = oldNode;
       }
 
-      // Beings are deliberate interactions: hold still for 0.38 s, use a
+      // Beings remain deliberate interactions: hold still for 0.38 s, use a
       // smaller finger radius, and only interact with one close to the player.
       if (!this.player.gaze && !this.gazeTarget && !this.sky && !walkingGesture && !moving &&
           (this.state === "play" || this.state === "birth") &&
@@ -102,11 +101,9 @@ var IGRA = IGRA || {};
           return;
         }
 
-        // V3-039: restore deliberate node gaze. V3-032 correctly stopped the
-        // old instant capture, but accidentally removed the only later path
-        // that could select a node on touch. A stationary tap/hold on a circle
-        // must still create player.gaze and the visible gaze thread. Walking
-        // remains immune because walkingGesture/moving is checked above.
+        // V3-039 fallback: if a node was not selected on touch-down, restore
+        // deliberate node gaze after a stationary hold. This preserves the
+        // visible gaze thread and protects against input-order edge cases.
         var nodeRadius = this.aimRadius ? this.aimRadius(58) : 58;
         var node = this.world.nearestNode(this.input.wx, this.input.wy, nodeRadius);
         if (node && node.state === "alive" &&
