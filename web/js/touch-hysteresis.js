@@ -99,6 +99,27 @@ var IGRA = IGRA || {};
           this.input.gsx = this.input.x;
           this.input.gsy = this.input.y;
           if (this.dna) this.dna.feed("empathy", 0.012);
+          return;
+        }
+
+        // V3-039: restore deliberate node gaze. V3-032 correctly stopped the
+        // old instant capture, but accidentally removed the only later path
+        // that could select a node on touch. A stationary tap/hold on a circle
+        // must still create player.gaze and the visible gaze thread. Walking
+        // remains immune because walkingGesture/moving is checked above.
+        var nodeRadius = this.aimRadius ? this.aimRadius(58) : 58;
+        var node = this.world.nearestNode(this.input.wx, this.input.wy, nodeRadius);
+        if (node && node.state === "alive" &&
+            G.dist(this.player.x, this.player.y, node.x, node.y) < 220) {
+          this.gazeTarget = null;
+          if (G.Report) G.Report.act("gazes");
+          this.player.gaze = node;
+          this.player.gazeT = 0;
+          this.input.hold = 0;
+          this.input.gsx = this.input.x;
+          this.input.gsy = this.input.y;
+          if (this.dna) this.dna.feed("contemplation", 0.01);
+          if (this.dna && this.dna.gazes === 0 && G.Voice) G.Voice.say("firstGaze");
         }
       }
     };
