@@ -5,9 +5,11 @@ var IGRA = IGRA || {};
   var GRACE_LIMIT = 140;
   var NODE_TAP_MULTIPLIER = 1.35;
   var NODE_TAP_MIN = 76;
+  var MOVE_START = 32;
   G.TouchHysteresis = {
     HOLD_LIMIT: HOLD_LIMIT,
     GRACE_LIMIT: GRACE_LIMIT,
+    MOVE_START: MOVE_START,
     run: function (game, fn) {
       if (!game || !game.input || game.input.gsx == null || game.input.gsy == null) return fn();
       var dx = game.input.x - game.input.gsx;
@@ -32,14 +34,8 @@ var IGRA = IGRA || {};
   // V3-032: a crowded shore must stay walkable. The interaction layer must
   // never capture a being merely because the finger landed near it. Nodes are
   // different: a visible node is a primary tap target and must still be
-  // selectable on touch-down. Movement priority below cancels that selection
-  // as soon as the finger actually starts travelling.
-  //
-  // V3-041: the original node hit radius was still too strict in practice.
-  // The renderer paints a node with a visible body, while the touch target was
-  // only a thin mathematical edge around it. Give the initial tap 35% more
-  // world-space forgiveness, with a minimum of 76 world units. This is still
-  // local to touch-down, so it does not broaden being interaction or movement.
+  // selectable on touch-down.
+  // V3-041: widen the node target without changing the visual node itself.
   if (G.Game && G.Game.prototype && !G.Game.prototype.__v3032Patched &&
       G.Game.prototype.onDown && G.Game.prototype._gaze &&
       G.Organs && G.Organs.nearestBeing && G.World && G.World.prototype.nearestNode) {
@@ -57,8 +53,6 @@ var IGRA = IGRA || {};
         return oldNode.call(this, x, y, widened);
       };
       try {
-        // Keep node selection on the initial tap. A later movement gesture is
-        // cancelled by __v3037MovePriority, so this cannot lock navigation.
         return denseDown.apply(this, arguments);
       } finally {
         G.Organs.nearestBeing = oldBeing;
@@ -73,14 +67,11 @@ var IGRA = IGRA || {};
       var fingerDx = this.input && this.input.gsx != null ? this.input.x - this.input.gsx : 0;
       var fingerDy = this.input && this.input.gsy != null ? this.input.y - this.input.gsy : 0;
       var fingerSlip = Math.sqrt(fingerDx * fingerDx + fingerDy * fingerDy);
-      var walkingGesture = !!(this.input && this.input.down && fingerSlip > 18);
+      // V3-042: ignore small finger tremors. Flight starts only after 32px
+      // deliberate travel, reducing accidental drift without making the
+      // gesture feel sticky.
+      var walkingGesture = !!(this.input && this.input.down && fingerSlip > MOVE_START);
 
-      // Critical deadlock fix: a node could be acquired before velocity rose
-      // above the old speed threshold. Once that happened movement was gated by
-      // player.gaze, velocity stayed near zero, and the speed check never woke
-      // up. Finger travel is the authoritative signal: moving the finger means
-      // walk, so immediately release any accidental gaze/target and suppress
-      // node acquisition for this frame.
       var oldNode = G.World.prototype.nearestNode;
       if (walkingGesture) {
         this.player.gaze = null;
@@ -116,8 +107,7 @@ var IGRA = IGRA || {};
         }
 
         // V3-039 fallback: if a node was not selected on touch-down, restore
-        // deliberate node gaze after a stationary hold. This preserves the
-        // visible gaze thread and protects against input-order edge cases.
+        // deliberate node gaze after a stationary hold.
         var nodeRadius = this.aimRadius ? this.aimRadius(58) : 58;
         var node = this.world.nearestNode(this.input.wx, this.input.wy, nodeRadius);
         if (node && node.state === "alive" &&
@@ -135,10 +125,7 @@ var IGRA = IGRA || {};
       }
     };
 
-    // V3-037: movement has priority over gaze even before velocity exists.
-    // _move runs before _gaze in the engine, so the gesture must be interpreted
-    // here as well. This closes the one-frame deadlock where a target is acquired
-    // while the player is still at zero velocity and movement is then gated.
+    // Movement has priority over gaze, but only after deliberate finger travel.
     if (proto._move && !proto.__v3037MovePriority) {
       var originalMove = proto._move;
       proto._move = function (dt) {
@@ -146,7 +133,7 @@ var IGRA = IGRA || {};
         if (inp && inp.down && inp.gsx != null && inp.gsy != null) {
           var mdx = inp.x - inp.gsx;
           var mdy = inp.y - inp.gsy;
-          if (Math.sqrt(mdx * mdx + mdy * mdy) > 18) {
+          if (Math.sqrt(mdx * mdx + mdy * mdy) > MOVE_START) {
             this.player.gaze = null;
             this.gazeTarget = null;
             this.player.gazeT = 0;
