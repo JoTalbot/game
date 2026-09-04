@@ -1,5 +1,5 @@
 // Малый offline shell для браузерного берега.
-var CACHE = "igra-shell-v23";
+var CACHE = "igra-shell-v24";
 var ASSETS = [
   "./", "./index.html", "./manifest.json", "./assets/img/icon.png",
   "./assets/fonts/f0.ttf", "./assets/fonts/f1.ttf", "./assets/fonts/f2.ttf", "./assets/fonts/f3.ttf", "./assets/fonts/f4.ttf", "./assets/fonts/f5.ttf", "./assets/fonts/f6.ttf", "./assets/fonts/f7.ttf", "./assets/fonts/f8.ttf",
@@ -7,4 +7,4 @@ var ASSETS = [
 ];
 self.addEventListener("install", function (event) { event.waitUntil(caches.open(CACHE).then(function (cache) { return cache.addAll(ASSETS); })); });
 self.addEventListener("activate", function (event) { event.waitUntil(caches.keys().then(function (keys) { return Promise.all(keys.filter(function (key) { return key !== CACHE; }).map(function (key) { return caches.delete(key); })); })); });
-self.addEventListener("fetch", function (event) { if (event.request.method !== "GET") return; event.respondWith(caches.match(event.request).then(function (hit) { return hit || fetch(event.request).catch(function () { return caches.match("./index.html"); }); })); });
+self.addEventListener("fetch", function (event) { if (event.request.method !== "GET") return; event.respondWith(caches.match(event.request).then(function (hit) { return hit || fetch(event.request).catch(function () { return caches.match("./index.html"); })); }));
