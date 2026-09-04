@@ -31,11 +31,11 @@ var IGRA = IGRA || {};
     };
   }
 
-  // V3-032: a crowded shore must stay walkable. The interaction layer must
-  // never capture a being merely because the finger landed near it. Nodes are
-  // different: a visible node is a primary tap target and must still be
-  // selectable on touch-down.
+  // V3-032: crowded shores must stay walkable. Beings are deliberate holds;
+  // visible nodes are primary tap targets and must win before movement logic.
   // V3-041: widen the node target without changing the visual node itself.
+  // V3-043: resolve node gaze synchronously in onDown, before _move can turn
+  // the same touch into travel. This is the critical tap-vs-flight boundary.
   if (G.Game && G.Game.prototype && !G.Game.prototype.__v3032Patched &&
       G.Game.prototype.onDown && G.Game.prototype._gaze &&
       G.Organs && G.Organs.nearestBeing && G.World && G.World.prototype.nearestNode) {
@@ -53,6 +53,24 @@ var IGRA = IGRA || {};
         return oldNode.call(this, x, y, widened);
       };
       try {
+        if ((this.state === "play" || this.state === "birth") &&
+            this.input && this.input.wx != null && this.input.wy != null) {
+          var tapNode = this.world.nearestNode(this.input.wx, this.input.wy,
+            this.aimRadius ? this.aimRadius(58) : 58);
+          if (tapNode && tapNode.state === "alive" &&
+              G.dist(this.player.x, this.player.y, tapNode.x, tapNode.y) < 220) {
+            this.player.gaze = tapNode;
+            this.gazeTarget = null;
+            this.player.gazeT = 0;
+            this.input.gsx = this.input.x;
+            this.input.gsy = this.input.y;
+            this.input.hold = 0;
+            if (G.Report) G.Report.act("gazes");
+            if (this.dna) this.dna.feed("contemplation", 0.01);
+            if (this.dna && this.dna.gazes === 0 && G.Voice) G.Voice.say("firstGaze");
+            return;
+          }
+        }
         return denseDown.apply(this, arguments);
       } finally {
         G.Organs.nearestBeing = oldBeing;
@@ -67,9 +85,6 @@ var IGRA = IGRA || {};
       var fingerDx = this.input && this.input.gsx != null ? this.input.x - this.input.gsx : 0;
       var fingerDy = this.input && this.input.gsy != null ? this.input.y - this.input.gsy : 0;
       var fingerSlip = Math.sqrt(fingerDx * fingerDx + fingerDy * fingerDy);
-      // V3-042: ignore small finger tremors. Flight starts only after 32px
-      // deliberate travel, reducing accidental drift without making the
-      // gesture feel sticky.
       var walkingGesture = !!(this.input && this.input.down && fingerSlip > MOVE_START);
 
       var oldNode = G.World.prototype.nearestNode;
@@ -106,8 +121,6 @@ var IGRA = IGRA || {};
           return;
         }
 
-        // V3-039 fallback: if a node was not selected on touch-down, restore
-        // deliberate node gaze after a stationary hold.
         var nodeRadius = this.aimRadius ? this.aimRadius(58) : 58;
         var node = this.world.nearestNode(this.input.wx, this.input.wy, nodeRadius);
         if (node && node.state === "alive" &&
@@ -125,7 +138,6 @@ var IGRA = IGRA || {};
       }
     };
 
-    // Movement has priority over gaze, but only after deliberate finger travel.
     if (proto._move && !proto.__v3037MovePriority) {
       var originalMove = proto._move;
       proto._move = function (dt) {
