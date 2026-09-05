@@ -14,6 +14,8 @@ function ok(cond, msg) {
 }
 
 // V3-048 extends the real V3-046 guard in the same browser module.
+// V3-047 has its own acceptance probe, so this probe does not duplicate
+// renderer-wrapper internals. It checks the public quality/touch contract.
 load("v3-performance-guard.js");
 load("spatial-memory.js");
 load("v3-047-touch-meaning.js");
@@ -23,7 +25,6 @@ load("v3-render-budget.js");
 ok(G.Quality && G.Quality.__v3046 === true, "V3-046 guard активен");
 ok(G.Quality && G.Quality.__v3048 === true, "V3-048 low-device guard активен");
 ok(G.TouchMeaning && G.TouchMeaning.target >= 104, "расширенный touch-target сохранён");
-ok(G.Renderer && G.Renderer.__v3047MeaningPatch === true, "return feedback сохранён");
 ok(G.Renderer && G.Renderer.__v3049RenderBudget === true, "V3-049 render budget активен");
 
 // Проверяем не только флаги, а фактическое применение профиля на размере
