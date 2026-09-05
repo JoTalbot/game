@@ -5,12 +5,12 @@ var vm = require("vm");
 var path = require("path");
 var G = H.boot();
 
-// V3-047 is an integration patch. The normal browser shell has these layers
-// before it, while the lightweight probe harness intentionally loads fewer
-// files. Load only the two real dependencies needed by the patch, then the
-// patch itself. Otherwise the probe would test the harness ordering instead
-// of the game, which is a charmingly human way to manufacture a false bug.
-["spatial-memory", "v3-047-touch-meaning"].forEach(function (name) {
+// V3-047 is an integration patch. The normal browser shell has the engine
+// and spatial-memory layers before it, while the lightweight probe harness
+// intentionally loads fewer files. Load the real integration dependencies in
+// browser order, then the patch. Otherwise the probe tests the harness rather
+// than the game, which is a surprisingly efficient way to manufacture bugs.
+["spatial-memory", "engine", "v3-047-touch-meaning"].forEach(function (name) {
   vm.runInThisContext(fs.readFileSync(path.join(__dirname, "../../web/js/" + name + ".js"), "utf8"), { filename: name + ".js" });
 });
 
@@ -19,7 +19,7 @@ function ok(cond, msg) {
   else console.log("✓ " + msg);
 }
 
-ok(G.TouchMeaning && G.TouchMeaning.version === "3.0.1-v3047", "V3-047 модуль загружается");
+ok(G.TouchMeaning && G.TouchMeaning.version === "3.0.1-v3048", "V3-047 модуль загружается");
 ok(G.TouchMeaning.target === 104 && G.TouchMeaning.min === 84, "touch target имеет безопасный запас");
 ok(G.Game && G.Game.prototype.__v3047TargetPatch === true, "расширенный tap-target подключён к onDown");
 ok(G.Renderer && G.Renderer.__v3047MeaningPatch === true, "возвращение получает визуальный ripple");
