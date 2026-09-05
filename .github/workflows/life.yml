@@ -67,3 +67,5 @@ jobs:
         run: node --expose-gc tools/probe/rc-hardening.js
       - name: Проверка плотного берега и свободной ходьбы
         run: node tools/probe/dense-interaction.js
+      - name: Проверка V3-046 telemetry/performance guard
+        run: node tools/probe/v3-046-telemetry.js
