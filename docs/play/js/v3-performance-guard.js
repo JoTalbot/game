@@ -2,15 +2,11 @@ var IGRA = IGRA || {};
 (function (G) {
   "use strict";
 
-  // V3-046: слабый телефон должен получить дешёвый кадр ДО первого
-  // восьмисекундного окна Quality.watch. Реальный RC1 427×948 показал
-  // 1504 тяжёлых кадра за 7 минут. Железный паспорт Android часто говорит
-  // «сильный», а холст честно говорит обратное. Для узкого/высокого
-  // телефона заранее выключаем дорогую косметику, не трогая механику.
-  // Это именно presentation guard: мир, сейв, ввод и правила не меняются.
+  // V3-048: низкий профиль для реально слабого телефона.
+  // Только presentation budget: не трогаем мир, механику, сейв или ввод.
   var Q = G.Quality;
-  if (!Q || Q.__v3046) return;
-  Q.__v3046 = true;
+  if (!Q || !Q.__v3046 || Q.__v3048) return;
+  Q.__v3048 = true;
   var init = Q.init;
 
   Q.init = function () {
@@ -20,10 +16,11 @@ var IGRA = IGRA || {};
     var narrow = Math.min(w || 9999, h || 9999) < 460;
     if (narrow) {
       this.dpr = 1;
-      this.particles = Math.min(this.particles, 120);
-      this.fog = Math.min(this.fog, 5);
+      this.particles = Math.min(this.particles, 72);
+      this.fog = Math.min(this.fog, 3);
       this.glow = false;
       this.demoted = true;
+      this.lowDevice = true;
     }
   };
 })(IGRA);
