@@ -10,9 +10,9 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-3.0.0-rc1"
-VCODE=600
-VNAME="3.0.0-rc1"
+NAME="igra-3.0.1.apk"
+VCODE=601
+VNAME="3.0.1"
 
 # Signing contract:
 # - Release builds MUST provide IGRA_KEYSTORE and IGRA_KEYSTORE_PASSWORD.
@@ -99,9 +99,9 @@ fi
   --ks-pass "pass:$KEYSTORE_PASSWORD" \
   --key-pass "pass:$KEYSTORE_PASSWORD" \
   --ks-key-alias "$KEY_ALIAS" \
-  --out "$OUT/$NAME.apk" \
+  --out "$OUT/$NAME" \
   "$WORK/aligned.apk"
-"$BT/apksigner" verify --verbose "$OUT/$NAME.apk" | head -20
+"$BT/apksigner" verify --verbose "$OUT/$NAME" | head -20
 
 echo "==> checksum"
-sha256sum "$OUT/$NAME.apk" | tee "$OUT/$NAME.apk.sha256"
+sha256sum "$OUT/$NAME" | tee "$OUT/$NAME.sha256"
