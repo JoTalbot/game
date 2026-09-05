@@ -69,3 +69,7 @@ jobs:
         run: node tools/probe/dense-interaction.js
       - name: Проверка V3-046 telemetry/performance guard
         run: node tools/probe/v3-046-telemetry.js
+      - name: Проверка V3-047 touch target и return meaning
+        run: node tools/probe/v3-047-touch-meaning.js
+      - name: Проверка V3-048 low-device guard
+        run: node tools/probe/v3-048-performance.js

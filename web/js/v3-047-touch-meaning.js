@@ -2,9 +2,8 @@ var IGRA = IGRA || {};
 (function (G) {
   "use strict";
 
-  // V3-047: пальцу нужен запас, глазу — чистый берег.
-  // Не увеличиваем визуальные узлы и не добавляем HUD. Расширяем только
-  // невидимую область выбора живого узла, если штатный tap-target не сработал.
+  // V3-047/048: пальцу нужен запас, возврат должен быть привязан к месту.
+  // Не увеличиваем визуальные узлы и не добавляем HUD.
   var TARGET = 104;
   var MIN = 84;
 
@@ -48,16 +47,21 @@ var IGRA = IGRA || {};
     proto.__v3047TargetPatch = true;
   }
 
-  // Возвращение должно ощущаться как изменение берега, но без панели и
-  // постоянной подсказки. Один короткий ripple вокруг игрока появляется
-  // только когда SpatialMemory действительно увеличила счётчик returns.
   if (G.SpatialMemory && G.SpatialMemory.observe && !G.SpatialMemory.__v3047MeaningPatch) {
     var originalObserve = G.SpatialMemory.observe;
     G.SpatialMemory.observe = function (dt, game) {
       var before = G.SpatialMemory.profile ? Number(G.SpatialMemory.profile().returns || 0) : 0;
       var result = originalObserve.call(this, dt, game);
-      var after = G.SpatialMemory.profile ? Number(G.SpatialMemory.profile().returns || 0) : before;
-      if (game && after > before) game.__v3047ReturnBeat = 1.25;
+      var afterProfile = G.SpatialMemory.profile ? G.SpatialMemory.profile() : null;
+      var after = afterProfile ? Number(afterProfile.returns || 0) : before;
+      if (game && after > before) {
+        var last = afterProfile && afterProfile.last;
+        game.__v3047ReturnBeat = {
+          t: 1.25,
+          x: last && Number.isFinite(Number(last.x)) ? Number(last.x) : null,
+          y: last && Number.isFinite(Number(last.y)) ? Number(last.y) : null
+        };
+      }
       return result;
     };
     G.SpatialMemory.__v3047MeaningPatch = true;
@@ -67,15 +71,24 @@ var IGRA = IGRA || {};
     var originalDraw = G.Renderer.draw;
     G.Renderer.draw = function (ctx, game) {
       originalDraw.apply(this, arguments);
-      var beat = game && Number(game.__v3047ReturnBeat || 0);
-      if (!beat || !game.player || !game.cam) return;
+      var beat = game && game.__v3047ReturnBeat;
+      var left = typeof beat === "object" ? Number(beat.t || 0) : Number(beat || 0);
+      if (!left || !game.player || !game.cam) return;
       var dt = Math.max(0, Math.min(0.05, Number(game.dt) || 1 / 60));
-      game.__v3047ReturnBeat = Math.max(0, beat - dt);
+      var next = Math.max(0, left - dt);
+      if (typeof beat === "object") beat.t = next;
+      else game.__v3047ReturnBeat = next;
       var z = Number(game.cam.z) || 1;
-      var sx = (game.player.x - game.cam.x) * z + game.cam.w / 2;
-      var sy = (game.player.y - game.cam.y) * z + game.cam.h / 2;
-      var p = 1 - game.__v3047ReturnBeat / 1.25;
-      var radius = 16 + p * 28;
+      var px = game.player.x, py = game.player.y;
+      var b = game.world && Number(game.world.bounds) || 2200;
+      if (typeof beat === "object" && Number.isFinite(beat.x) && Number.isFinite(beat.y)) {
+        px = beat.x * b;
+        py = beat.y * b;
+      }
+      var sx = (px - game.cam.x) * z + game.cam.w / 2;
+      var sy = (py - game.cam.y) * z + game.cam.h / 2;
+      var p = 1 - next / 1.25;
+      var radius = 14 + p * 26;
       ctx.save();
       ctx.strokeStyle = G.rgb(220, 230, 255, 0.20 * (1 - p));
       ctx.lineWidth = 1.1;
@@ -90,6 +103,6 @@ var IGRA = IGRA || {};
   G.TouchMeaning = {
     target: TARGET,
     min: MIN,
-    version: "3.0.1-v3047"
+    version: "3.0.1-v3048"
   };
 })(IGRA);
