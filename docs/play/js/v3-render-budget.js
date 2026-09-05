@@ -18,7 +18,7 @@ var IGRA = IGRA || {};
     }
 
     // До 14 живых узлов ничего не меняем.
-    if (live < 14) return originalDraw.call(this, ctx, game);
+    if (live < 14 && !(G.Quality && G.Quality.lowDevice)) return originalDraw.call(this, ctx, game);
 
     var originalStroke = ctx.stroke;
     ctx.stroke = function () {
@@ -32,12 +32,49 @@ var IGRA = IGRA || {};
       return originalStroke.apply(ctx, arguments);
     };
 
+    // V3-049: на слабом телефоне режем только декоративные коллекции во
+    // время одного кадра. Мир, узлы, существа и их состояния не меняются.
+    // Renderer.js уже имеет budgets для glow/fog/particles, но 160 дальних
+    // звёзд и до 40 цветов всё равно выполнялись каждый кадр. Именно эти
+    // циклы дают много мелких canvas-операций, которые WebView плохо
+    // пережёвывает на слабом CPU/GPU.
+    var weak = !!(G.Quality && G.Quality.lowDevice);
+    var oldFar = null;
+    var oldStars = null;
+    var oldBlooms = null;
+    var oldTide = null;
     try {
+      if (weak) {
+        oldFar = this.starsFar;
+        if (oldFar && oldFar.length > 48) this.starsFar = oldFar.slice(0, 48);
+
+        if (game && game.world) {
+          oldStars = game.world.stars;
+          if (oldStars && oldStars.length > 48 && !game.sky) game.world.stars = oldStars.slice(0, 48);
+
+          oldBlooms = game.world.blooms;
+          if (oldBlooms && oldBlooms.length > 18) game.world.blooms = oldBlooms.slice(0, 18);
+
+          // Tide is presentation-only here: suppress its full-screen radial
+          // gradient on weak devices, without changing the saved world value.
+          oldTide = game.world.tide;
+          if (oldTide > 0) game.world.tide = 0;
+        }
+      }
       return originalDraw.call(this, ctx, game);
     } finally {
+      if (weak) {
+        if (oldFar) this.starsFar = oldFar;
+        if (game && game.world) {
+          if (oldStars) game.world.stars = oldStars;
+          if (oldBlooms) game.world.blooms = oldBlooms;
+          if (oldTide != null) game.world.tide = oldTide;
+        }
+      }
       ctx.stroke = originalStroke;
     }
   };
 
   G.Renderer.__v3038RenderBudget = true;
+  G.Renderer.__v3049RenderBudget = true;
 })(IGRA);
