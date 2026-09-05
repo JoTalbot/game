@@ -2,8 +2,17 @@
 var H = require("./harness");
 var fs = require("fs");
 var vm = require("vm");
+var path = require("path");
 var G = H.boot();
-vm.runInThisContext(fs.readFileSync(require("path").join(__dirname, "../../web/js/v3-047-touch-meaning.js"), "utf8"), { filename: "v3-047-touch-meaning.js" });
+
+// V3-047 is an integration patch. The normal browser shell has these layers
+// before it, while the lightweight probe harness intentionally loads fewer
+// files. Load only the two real dependencies needed by the patch, then the
+// patch itself. Otherwise the probe would test the harness ordering instead
+// of the game, which is a charmingly human way to manufacture a false bug.
+["spatial-memory", "v3-047-touch-meaning"].forEach(function (name) {
+  vm.runInThisContext(fs.readFileSync(path.join(__dirname, "../../web/js/" + name + ".js"), "utf8"), { filename: name + ".js" });
+});
 
 function ok(cond, msg) {
   if (!cond) { console.error("✗ " + msg); process.exitCode = 1; }
