@@ -13,5 +13,5 @@ ok(patch.indexOf("MAX_BEINGS = 8") >= 0, "being population has a hard mobile cei
 ok(patch.indexOf("MAX_BLOOMS = 24") >= 0, "bloom population is bounded");
 ok(patch.indexOf("MAX_WOUNDS = 12") >= 0, "wound population is bounded");
 ok(patch.indexOf("if (!(this.__v3044StartGrace > 0))") >= 0, "steady-state cap does not fight the authored opening grace");
-ok(patch.indexOf("this.nodes = keep.concat(candidates.slice(0, room))") >= 0, "node pruning preserves nearby meaningful nodes first");
+ok(patch.indexOf("world.nodes = keep.concat(candidates.slice(0, room))") >= 0, "node pruning preserves nearby meaningful nodes first");
 console.log("density-guard probe: PASS");
