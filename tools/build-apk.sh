@@ -10,14 +10,13 @@ JAR="$SDK/platforms/android-$API/android.jar"
 APP="$ROOT/android/app/src/main"
 OUT="$ROOT/dist"
 WORK="/tmp/igra-apk"
-NAME="igra-3.0.1.apk"
+NAME="igra-3.0.1"
 VCODE=601
 VNAME="3.0.1"
 
 # Signing contract:
 # - Release builds MUST provide IGRA_KEYSTORE and IGRA_KEYSTORE_PASSWORD.
 # - Local/non-release checks may fall back to the generated debug key.
-# The CI workflow enforces the release contract for tags.
 SIGNING_MODE="${IGRA_SIGNING_MODE:-debug}"
 KEYSTORE="${IGRA_KEYSTORE:-$OUT/debug.keystore}"
 KEYSTORE_PASSWORD="${IGRA_KEYSTORE_PASSWORD:-android}"
@@ -99,9 +98,9 @@ fi
   --ks-pass "pass:$KEYSTORE_PASSWORD" \
   --key-pass "pass:$KEYSTORE_PASSWORD" \
   --ks-key-alias "$KEY_ALIAS" \
-  --out "$OUT/$NAME" \
+  --out "$OUT/$NAME.apk" \
   "$WORK/aligned.apk"
-"$BT/apksigner" verify --verbose "$OUT/$NAME" | head -20
+"$BT/apksigner" verify --verbose "$OUT/$NAME.apk" | head -20
 
 echo "==> checksum"
-sha256sum "$OUT/$NAME" | tee "$OUT/$NAME.sha256"
+sha256sum "$OUT/$NAME.apk" | tee "$OUT/$NAME.apk.sha256"
