@@ -18,4 +18,4 @@ ok(src.indexOf("originalDraw.call(this, ctx, game)") >= 0, "оригинальн
 ok(src.indexOf("__v3038StrokeBudget") >= 0, "canvas stroke wrapper создаётся один раз на context");
 ok(src.indexOf("slice(0, 48)") < 0, "V3-050 не копирует декоративные массивы на кадр");
 ok(src.indexOf("oldFarLen") >= 0, "V3-050 восстанавливает длину исходного массива");
-console.log("render-budget probe: PASS");
+console.log("render-budget probe: PASS (V3-050)");
