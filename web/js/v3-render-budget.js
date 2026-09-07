@@ -2,12 +2,15 @@ var IGRA = IGRA || {};
 (function (G) {
   "use strict";
 
-  // V3-038: при высокой плотности режем только второстепенные связи.
-  // Сами узлы, существа, зов и интерактивные линии не отключаем.
-  // Слой links в renderer.js рисует lineWidth=1 и alpha <= 0.12.
+  // V3-038/V3-049 render budget. The hot path must allocate nothing.
+  // The previous implementation created Array#slice copies and replaced
+  // ctx.stroke with a fresh closure on EVERY frame. On weak WebViews that
+  // turns a presentation guard into GC pressure and can erase the FPS it
+  // was supposed to protect. Keep the policy, remove the per-frame churn.
   if (!G.Renderer || !G.Renderer.draw || G.Renderer.__v3038RenderBudget) return;
 
   var originalDraw = G.Renderer.draw;
+
   G.Renderer.draw = function (ctx, game) {
     var nodes = game && game.world && game.world.nodes;
     var live = 0;
@@ -17,61 +20,55 @@ var IGRA = IGRA || {};
       }
     }
 
-    // До 14 живых узлов ничего не меняем.
-    if (live < 14 && !(G.Quality && G.Quality.lowDevice)) return originalDraw.call(this, ctx, game);
+    // Patch each persistent CanvasRenderingContext only once. The closure is
+    // retained by the context; it is NOT allocated on subsequent frames.
+    if (ctx && !ctx.__v3038StrokeBudget) {
+      var originalStroke = ctx.stroke;
+      if (typeof originalStroke === "function") {
+        ctx.stroke = function () {
+          if (G.Quality && G.Quality.lowDevice && this.lineWidth === 1) {
+            var style = String(this.strokeStyle || "");
+            var alpha = null;
+            var m = style.match(/rgba?\([^)]*,\s*([0-9.]+)\s*\)$/i);
+            if (m) alpha = parseFloat(m[1]);
+            if (alpha !== null && alpha <= 0.12) return;
+          }
+          return originalStroke.apply(this, arguments);
+        };
+        ctx.__v3038StrokeBudget = true;
+      }
+    }
 
-    var originalStroke = ctx.stroke;
-    ctx.stroke = function () {
-      // В renderer.js обычная связь между узлами: lineWidth=1,
-      // strokeStyle=rgba/rgb(..., alpha <= 0.12). Не трогаем остальные линии.
-      var style = String(ctx.strokeStyle || "");
-      var alpha = null;
-      var m = style.match(/rgba?\([^)]*,\s*([0-9.]+)\s*\)$/i);
-      if (m) alpha = parseFloat(m[1]);
-      if (ctx.lineWidth === 1 && alpha !== null && alpha <= 0.12) return;
-      return originalStroke.apply(ctx, arguments);
-    };
-
-    // V3-049: на слабом телефоне режем только декоративные коллекции во
-    // время одного кадра. Мир, узлы, существа и их состояния не меняются.
-    // Renderer.js уже имеет budgets для glow/fog/particles, но 160 дальних
-    // звёзд и до 40 цветов всё равно выполнялись каждый кадр. Именно эти
-    // циклы дают много мелких canvas-операций, которые WebView плохо
-    // пережёвывает на слабом CPU/GPU.
     var weak = !!(G.Quality && G.Quality.lowDevice);
-    var oldFar = null;
-    var oldStars = null;
-    var oldBlooms = null;
-    var oldTide = null;
+    var oldFarLen = -1;
+    var oldStarsLen = -1;
+    var oldBloomsLen = -1;
     try {
       if (weak) {
-        oldFar = this.starsFar;
-        if (oldFar && oldFar.length > 48) this.starsFar = oldFar.slice(0, 48);
-
+        // Temporarily cap existing arrays by length. Unlike slice(), this
+        // allocates nothing and preserves the exact same backing arrays.
+        if (this.starsFar && this.starsFar.length > 48) {
+          oldFarLen = this.starsFar.length;
+          this.starsFar.length = 48;
+        }
         if (game && game.world) {
-          oldStars = game.world.stars;
-          if (oldStars && oldStars.length > 48 && !game.sky) game.world.stars = oldStars.slice(0, 48);
-
-          oldBlooms = game.world.blooms;
-          if (oldBlooms && oldBlooms.length > 18) game.world.blooms = oldBlooms.slice(0, 18);
-
-          // Tide is presentation-only here: suppress its full-screen radial
-          // gradient on weak devices, without changing the saved world value.
-          oldTide = game.world.tide;
-          if (oldTide > 0) game.world.tide = 0;
+          if (game.world.stars && game.world.stars.length > 48 && !game.sky) {
+            oldStarsLen = game.world.stars.length;
+            game.world.stars.length = 48;
+          }
+          if (game.world.blooms && game.world.blooms.length > 18) {
+            oldBloomsLen = game.world.blooms.length;
+            game.world.blooms.length = 18;
+          }
         }
       }
       return originalDraw.call(this, ctx, game);
     } finally {
-      if (weak) {
-        if (oldFar) this.starsFar = oldFar;
-        if (game && game.world) {
-          if (oldStars) game.world.stars = oldStars;
-          if (oldBlooms) game.world.blooms = oldBlooms;
-          if (oldTide != null) game.world.tide = oldTide;
-        }
+      if (oldFarLen >= 0) this.starsFar.length = oldFarLen;
+      if (game && game.world) {
+        if (oldStarsLen >= 0) game.world.stars.length = oldStarsLen;
+        if (oldBloomsLen >= 0) game.world.blooms.length = oldBloomsLen;
       }
-      ctx.stroke = originalStroke;
     }
   };
 
