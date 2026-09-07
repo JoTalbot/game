@@ -13,7 +13,7 @@ ok(src.indexOf("__v3038RenderBudget") >= 0, "патч защищён от дво
 ok(src.indexOf("var live = 0") >= 0, "renderer считает живые узлы без изменения модели");
 ok(src.indexOf("state === \"alive\"") >= 0, "порог плотности опирается на состояние живых узлов");
 ok(src.indexOf("lowDevice") >= 0, "слабый профиль учитывается отдельно от плотности");
-ok(src.indexOf("ctx.lineWidth === 1") >= 0, "фильтр ограничен тонкими линиями");
+ok(src.indexOf("this.lineWidth === 1") >= 0, "фильтр ограничен тонкими линиями");
 ok(src.indexOf("alpha <= 0.12") >= 0, "фильтр ограничен слабой прозрачностью");
 ok(src.indexOf("originalDraw.call(this, ctx, game)") >= 0, "оригинальный renderer сохраняется");
 ok(src.indexOf("__v3038StrokeBudget") >= 0, "canvas stroke wrapper создаётся один раз на context");
