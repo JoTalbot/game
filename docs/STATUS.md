@@ -2,7 +2,7 @@
 
 ## Текущий инженерный статус
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-049 закрыли визуальный/touch/performance hardening; физический weak-device acceptance для V3-049 подтверждён реальным Android-прогоном.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-050 закрыли визуальный/touch/performance hardening; физический weak-device acceptance для V3-050 подтверждён реальным Android-прогоном.
 
 ### Реализовано
 
@@ -32,32 +32,33 @@
 - V3-047 touch target + return meaning — расширенный невидимый tap-target и дешёвый spatial return feedback.
 - V3-048 low-device presentation guard — более жёсткий профиль слабого устройства с сохранением V3-046 base guard.
 - V3-049 render budget — слабому устройству сокращены декоративные far-stars/blooms и тяжёлый tide-gradient без изменения world/save state.
+- V3-050 render budget hardening — убран per-frame GC churn: `slice()` и повторная `ctx.stroke` closure заменены allocation-free hot path с обязательным восстановлением массивов.
 - Service Worker cache — offline shell содержит новые assets.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 и публикует его рядом с artifact.
 
-### Последний подтверждённый V3-049 build
+### Последний подтверждённый V3-050 build
 
 - Версия: `3.0.1`
-- commit: `357c2d922cdf9619c888296db84072d9a19ebe1c`
+- commit: `8d37a564a6c66cc21ca5848e9e4baf44a4bbf761`
 - APK workflow: SUCCESS
-- workflow run: `33971147959`
+- workflow run: `34153566905`
 - APK artifact: `igra-3.0.1`
-- artifact ID: `9970990758`
-- GitHub artifact digest: `sha256:771b8e788cd5f53644c681b85cfd955bd19ab6084d10a1298645025c1c1bdbc8`
-- mirror sync: SUCCESS
+- artifact ID: `10030212614`
+- GitHub artifact digest: `sha256:879a288b0981e7465928ccd8e405517cbcd254f72e06b985d27e1ec10e902698`
 - физический weak-device test: `427×948 @1.0`, профиль `слабый`
-- физический test duration: `2.8 мин`
-- физический performance: `53 FPS`, `525` тяжёлых кадров
+- физический test duration: `1.3 мин`
+- физический performance: `56 FPS`, `109` тяжёлых кадров
 - native save: жив
-- touch: `48`, gaze `33`, growth `22`, dropped `2`
-- drop reason: `отпустил сам ×2`
-- conclusion: V3-049 performance/touch hardening acceptance passed on the tested weak Android device.
+- touch: `25`, gaze `22`, growth `19`, dropped `1`
+- drop reason: `отпустил сам ×1`
+- drop median: `0.68с`, almost-immediate `0/1`
+- conclusion: V3-050 performance/touch hardening acceptance passed on the tested weak Android device; performance exceeded V3-049 baseline (`53 FPS / 525 heavy frames`).
 
 ### Автоматические gate
 
-APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Последний подтверждённый V3-049 workflow завершён SUCCESS. CI подтверждает автоматические инварианты, но физический Android smoke остаётся отдельным acceptance layer.
+APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Последний подтверждённый V3-050 workflow завершён SUCCESS. CI подтверждает автоматические инварианты, но физический Android smoke остаётся отдельным acceptance layer.
 
 ### Что ещё нельзя считать закрытым
 
@@ -66,6 +67,7 @@ APK workflow выполняет probes, boot, Android security, sync, expanded R
 3. Полный offline smoke на физическом Android.
 4. Audio/haptic/fullscreen и отсутствие critical visual/touch blocker на физическом устройстве.
 5. Финальная сверка Play listing/privacy материалов с фактическим APK.
+6. Чистая сборка после merge на `main` должна быть подтверждена перед signed production tag.
 
 ### Следующий milestone
 
