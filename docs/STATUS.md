@@ -1,8 +1,8 @@
-# Статус — 4 сентября 2026
+# Статус — 7 сентября 2026
 
 ## Текущий инженерный статус
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. После визуального hardening V3-032 → V3-038 новый RC artifact собран и полностью прошёл автоматический gate.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-049 закрыли визуальный/touch/performance hardening; физический weak-device acceptance для V3-049 подтверждён реальным Android-прогоном.
 
 ### Реализовано
 
@@ -26,38 +26,50 @@
 - V3-036 start density — начальная плотность снижена до трёх значимых узлов; первые 25 секунд автоматический scatter Director подавлен.
 - V3-037 spawn budget — автоматический scatter ограничивается при росте живых узлов, без interception `spawnNode`.
 - V3-038 render budget — при высокой плотности подавляются только слабые тонкие второстепенные связи; узлы, существа, gaze и интерактивные линии сохраняются.
-- Service Worker cache — offline shell содержит все новые V3-03x assets.
+- V3-043 touch race hardening — live-node capture синхронизирован с touch-down.
+- V3-045 density guard — bounded caps для узлов, существ, bloom и ран.
+- V3-046 performance guard — weak-device quality demotion и persisted low-quality profile.
+- V3-047 touch target + return meaning — расширенный невидимый tap-target и дешёвый spatial return feedback.
+- V3-048 low-device presentation guard — более жёсткий профиль слабого устройства с сохранением V3-046 base guard.
+- V3-049 render budget — слабому устройству сокращены декоративные far-stars/blooms и тяжёлый tide-gradient без изменения world/save state.
+- Service Worker cache — offline shell содержит новые assets.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 и публикует его рядом с artifact.
 
-### Последний подтверждённый RC build
+### Последний подтверждённый V3-049 build
 
-- Версия: `3.0.0-rc1`
-- versionCode: `600`
-- commit: `35dc7c45f2807a9188acd4ed17539cf73c72a8d1`
-- APK artifact: `igra-3.0.0-rc1`
-- artifact ID: `9913792214`
-- GitHub artifact SHA-256: `4daa72e79fb888fccfc18151587492369773db3c4dad3acd8725b94e8523fb7e`
+- Версия: `3.0.1`
+- commit: `357c2d922cdf9619c888296db84072d9a19ebe1c`
 - APK workflow: SUCCESS
+- workflow run: `33971147959`
+- APK artifact: `igra-3.0.1`
+- artifact ID: `9970990758`
+- GitHub artifact digest: `sha256:771b8e788cd5f53644c681b85cfd955bd19ab6084d10a1298645025c1c1bdbc8`
 - mirror sync: SUCCESS
+- физический weak-device test: `427×948 @1.0`, профиль `слабый`
+- физический test duration: `2.8 мин`
+- физический performance: `53 FPS`, `525` тяжёлых кадров
+- native save: жив
+- touch: `48`, gaze `33`, growth `22`, dropped `2`
+- drop reason: `отпустил сам ×2`
+- conclusion: V3-049 performance/touch hardening acceptance passed on the tested weak Android device.
 
 ### Автоматические gate
 
-APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Последний workflow #811 завершён SUCCESS. Render-budget probe отдельно подтверждает подключение V3-038 в `index.html` и Service Worker, защиту от двойной установки, порог в 14 живых узлов и ограничение фильтра тонкими слабо-прозрачными линиями. CI подтверждает автоматические инварианты, но не заменяет физический Android smoke.
+APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Последний подтверждённый V3-049 workflow завершён SUCCESS. CI подтверждает автоматические инварианты, но физический Android smoke остаётся отдельным acceptance layer.
 
 ### Что ещё нельзя считать закрытым
 
-1. Финальный физический acceptance именно нового RC artifact.
-2. Upgrade со всех поддерживаемых старых save на текущем устройстве.
-3. Force-stop/process death → recovery на текущей сборке.
-4. Полный offline smoke на физическом Android.
-5. Audio/haptic/fullscreen и отсутствие critical visual/touch blocker на физическом устройстве.
-6. Финальная сверка Play listing/privacy материалов с фактическим APK.
+1. Upgrade со всех поддерживаемых старых save на текущем устройстве.
+2. Force-stop/process death → recovery на текущей сборке.
+3. Полный offline smoke на физическом Android.
+4. Audio/haptic/fullscreen и отсутствие critical visual/touch blocker на физическом устройстве.
+5. Финальная сверка Play listing/privacy материалов с фактическим APK.
 
 ### Следующий milestone
 
-Закрыть физический RC gate. Если физический прогон выявляет дефект, сначала фиксируем его в RC/P9 backlog, реализуем минимальное исправление, повторяем полный CI и физический smoke. Если blocker отсутствует, можно переходить к signed production tag и Play release preparation.
+Закрыть оставшийся эксплуатационный RC gate. Если blocker отсутствует, переходить к signed production tag и Play release preparation. Новые продуктовые механики после RC freeze не добавлять; blocker/critical fixes допускаются только с повторным полным CI и физическим smoke.
 
 ### После RC
 
