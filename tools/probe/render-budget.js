@@ -1,5 +1,7 @@
 "use strict";
 var fs = require("fs");
+var vm = require("vm");
+var path = require("path");
 var src = fs.readFileSync("web/js/v3-render-budget.js", "utf8");
 var index = fs.readFileSync("web/index.html", "utf8");
 var sw = fs.readFileSync("web/sw.js", "utf8");
@@ -21,4 +23,22 @@ ok(src.indexOf("slice(0, 48)") < 0, "V3-050 не копирует декорат
 ok(src.indexOf("oldFarLen") >= 0, "V3-050 восстанавливает длину исходного массива");
 ok(src.indexOf("oldStarsLen") >= 0, "V3-050 восстанавливает длину world.stars");
 ok(src.indexOf("oldBloomsLen") >= 0, "V3-050 восстанавливает длину world.blooms");
-console.log("render-budget probe: PASS (V3-050)");
+
+// V3-052: regression for the physical `undefined.age` failure. The previous
+// guard covered beings but World.update also dereferenced bloom entries.
+var H = require("./harness");
+var G = H.boot();
+var cap = fs.readFileSync(path.join("web", "js", "v3-being-cap.js"), "utf8");
+vm.runInThisContext(cap, { filename: "v3-being-cap.js" });
+var game = H.makeWorld(G, 52052);
+game.world.blooms = [null, undefined, { x: 1, y: 2 }, { x: 3, y: 4, age: NaN, phase: null }];
+game.world.beings = [null, undefined, new G.Being(20, 20, "empathy")];
+var updateErr = null;
+try { H.step(G, game, 1 / 60, null, 0); } catch (e) { updateErr = e; }
+ok(!updateErr, "malformed blooms do not crash World.update");
+ok(game.world.blooms.length === 2 && game.world.blooms.every(function (b) { return b && Number.isFinite(b.age) && Number.isFinite(b.phase); }), "malformed bloom entries are removed and normalized");
+var drawErr = null;
+try { G.Renderer.draw(H.ctxStub(), game); } catch (e) { drawErr = e; }
+ok(!drawErr, "malformed blooms do not crash Renderer.draw");
+
+console.log("render-budget probe: PASS (V3-052)");
