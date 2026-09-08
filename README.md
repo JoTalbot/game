@@ -110,6 +110,8 @@ docs/ROADMAP.md     куда растём
 
 V3-001 → V3-029, V5 living world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты автоматическими probes/CI. RC1-контракт: versionCode **600**, release signing для `v*` tags обязателен, APK получает SHA-256.
 
+V3-052 устранён класс runtime-ошибок malformed collections, включая повторный `undefined.age`, и добавлена regression-проверка перед физическим RC smoke.
+
 Автоматический RC gate — **GREEN**: probes, live boot, Android WebView security, sync check, Android SDK 34 build и количественный release-candidate gate проходят. Исправлена также миграция V8 lineage: повреждённая schema version/history нормализуется вместо принятия неизвестной схемы.
 
 **Production ещё не объявлен.** Остался физический Android gate, который CI принципиально не может подтвердить:
