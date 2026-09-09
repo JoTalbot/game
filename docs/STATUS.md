@@ -71,7 +71,7 @@
 
 ### Автоматические gate
 
-APK workflow на текущем `main` commit `d93446e11b401af879364091afc19a58da9720e5` завершён SUCCESS: probes, live boot, Android security, sync, Android SDK 34 build и checksum verification прошли. Sync play mirror также SUCCESS. filecite не вставлять в документацию: ссылки на CI являются внешними артефактами репозитория.
+Последний подтверждённый `main` commit `d93446e11b401af879364091afc19a58da9720e5` прошёл APK workflow SUCCESS: probes, live boot, Android security, sync, Android SDK 34 build и checksum verification. Sync play mirror также SUCCESS.
 
 ### Что ещё нельзя считать закрытым
 
