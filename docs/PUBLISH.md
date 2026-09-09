@@ -60,15 +60,18 @@ CI декодирует keystore во временный `dist/release.keystore`
 
 ## 3. Версия и актуальный RC artifact
 
-Текущая Release Candidate: **3.0.0-rc1**, versionCode **600**.
+Текущая Release Candidate: **3.0.1**, versionCode **601**.
 
-Последний подтверждённый CI artifact:
-- artifact: `igra-3.0.0-rc1`
-- artifact ID: `9895393085`
-- commit: `df6b8224b54a3f90954f3ed6d2251a3016cf8238`
-- SHA-256: `5a0d48960ee2e2419fd130c0196925614c39137b996de67802f0d24bbd5b1072`
+Последний подтверждённый CI artifact для текущего кода:
+- artifact: `igra-3.0.1`
+- artifact ID: `10117341876`
+- commit: `8adb93012c85847d3dcd8d2e09f9d52ed161d280`
+- SHA-256: `sha256:cbd77adda2fde0e1e9b6bc7eed15de2da8ee2b67c758da3def701946b163cee0`
 - APK workflow: SUCCESS
 - mirror sync: SUCCESS
+
+Это **не release-tag artifact**: сборка выполнена с push в `main`, поэтому она
+не заменяет обязательную release-signed сборку по immutable RC tag.
 
 Единая версия проверяется в:
 
@@ -77,9 +80,9 @@ CI декодирует keystore во временный `dist/release.keystore`
 - `web/js/math.js`
 - `docs/PUBLISH.md`
 
-## 4. Проверки перед release tag
+## 4. Физический RC gate
 
-До создания `v3.0.0-rc1` должны быть подтверждены:
+Перед созданием immutable RC tag должны быть подтверждены:
 
 1. `life.yml` — green.
 2. `apk.yml` — green.
@@ -88,23 +91,26 @@ CI декодирует keystore во временный `dist/release.keystore`
 5. Upgrade со старого сейва → новая версия → продолжение.
 6. Process death → сейв не теряется.
 7. Offline → shell и core loop запускаются без сети.
-8. APK artifact существует и имеет SHA-256.
-9. Нет critical/blocker.
-10. APK на release tag подписан release/upload key, а не debug key.
+8. Финальные `release` / `become` сценарии работают.
+9. Вибрация, аудио и fullscreen WebView работают без blocker.
+10. Нет critical/blocker, crash/ANR и критического visual/touch-регресса.
+11. APK artifact существует и имеет SHA-256.
+12. Play listing/privacy материалы соответствуют фактическому APK.
+13. Release tag будет собираться только с release/upload key, а не debug key.
 
-Пункты 4–7 требуют **реального Android-устройства** и не считаются выполненными
+Пункты 4–10 требуют **реального Android-устройства** и не считаются выполненными
 только потому, что Node/CI probes зелёные.
 
 ## 5. После физического gate
 
-Только после подтверждения пунктов 1–10:
+Только после подтверждения пунктов 1–13:
 
-1. создаётся signed production tag;
-2. CI собирает release artifact;
+1. создаётся immutable RC tag **`v3.0.1-rc1`**;
+2. CI собирает release-signed artifact;
 3. SHA-256 сверяется с artifact;
-4. release загружается в Play Console;
-5. сначала Internal testing;
-6. затем controlled rollout.
+4. проводится ограниченное RC-тестирование;
+5. затем принимается отдельное решение о production Play release;
+6. при production approval release artifact загружается в Play Console.
 
 Пакет приложения **не менять**: `world.igra.app`.
 
@@ -113,4 +119,4 @@ daily reward.
 
 ---
 
-Актуально для **v3.0.0-rc1 / versionCode 600**. Последнее обновление: 3 сентября 2026.
+Актуально для **v3.0.1 / versionCode 601**. Последнее обновление: 9 сентября 2026.
