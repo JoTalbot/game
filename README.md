@@ -108,7 +108,7 @@ docs/ROADMAP.md     куда растём
 
 **v3.0.1 — Release Candidate candidate build.**
 
-V3-001 → V3-029, V5 living world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты автоматическими probes/CI. RC-контракт: versionCode **600**, release signing для `v*` tags обязателен, APK получает SHA-256.
+V3-001 → V3-029, V5 living world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты автоматическими probes/CI. RC-контракт: versionCode **601**, release signing для `v*` tags обязателен, APK получает SHA-256.
 
 V3-052 устранил класс runtime-ошибок malformed collections, включая `undefined.age`, и добавил regression-проверку. Визуальный text/floater spam и bloom-verse flooding также устранены.
 
