@@ -106,28 +106,42 @@ docs/ROADMAP.md     куда растём
 
 ## Статус
 
-**v3.0.0-rc1 — Release Candidate engineering build.**
+**v3.0.1 — Release Candidate candidate build.**
 
-V3-001 → V3-029, V5 living world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты автоматическими probes/CI. RC1-контракт: versionCode **600**, release signing для `v*` tags обязателен, APK получает SHA-256.
+V3-001 → V3-029, V5 living world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты автоматическими probes/CI. RC-контракт: versionCode **600**, release signing для `v*` tags обязателен, APK получает SHA-256.
 
-V3-052 устранён класс runtime-ошибок malformed collections, включая повторный `undefined.age`, и добавлена regression-проверка перед физическим RC smoke.
+V3-052 устранил класс runtime-ошибок malformed collections, включая `undefined.age`, и добавил regression-проверку. Визуальный text/floater spam и bloom-verse flooding также устранены.
 
-Автоматический RC gate — **GREEN**: probes, live boot, Android WebView security, sync check, Android SDK 34 build и количественный release-candidate gate проходят. Исправлена также миграция V8 lineage: повреждённая schema version/history нормализуется вместо принятия неизвестной схемы.
+### RC gate — GREEN
 
-**Production ещё не объявлен.** Остался физический Android gate, который CI принципиально не может подтвердить:
-- clean install → boot → birth → play → save → restart;
+Автоматические проверки проходят: probes, live boot, Android WebView security, sync check, Android SDK 34 build, APK build и checksum.
+
+Физическая проверка `3.0.1` на слабом устройстве `427×948 @1.0` также GREEN:
+- 2 минуты;
+- 55 FPS;
+- 4 тяжёлых кадра;
+- runtime render exceptions: **0**;
+- visual spam: **нет**;
+- native save: **жив**;
+- save → restart → recovery: **успешно**;
+- accidental drops: **0**.
+
+Issue #7 закрыта после физической верификации. Issues #5 и #6 закрыты после физического подтверждения читаемости и отсутствия визуального спама. Issue #4 остаётся открытой как UX/playtest backlog, но текущих release-blocker'ов не содержит.
+
+**Production ещё не объявлен.** До production остаются release-операционные шаги:
 - upgrade со старого сейва;
 - process death → recovery;
-- полный offline smoke на реальном устройстве;
-- отсутствие critical/blocker;
-- финальная сверка Play listing/privacy материалов с фактическим APK.
+- расширенный offline smoke;
+- финальная сверка Play listing/privacy материалов с фактическим APK;
+- создание immutable RC tag после завершения gate;
+- ограниченное RC-тестирование и отдельное production decision.
 
 Подробный текущий статус: `docs/STATUS.md`.  
 Физический RC-чеклист: `docs/RC1_SMOKE.md`.  
 Передача смены: `docs/HANDOFF.md`.  
 Витрина магазина: `docs/STORE.md`. Чек-лист публикации: `docs/PUBLISH.md`.
 
-После физического RC gate создаётся immutable `v3.0.0-rc1`, проводится ограниченное RC-тестирование, и только затем принимается отдельное решение о production Play release.
+После физического RC gate создаётся immutable RC tag, проводится ограниченное RC-тестирование, и только затем принимается отдельное решение о production Play release.
 
 ---
 
