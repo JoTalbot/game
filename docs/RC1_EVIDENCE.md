@@ -1,10 +1,10 @@
 # RC1 — полевые evidence
 
-Дата фиксации: 3 сентября 2026.
+Дата фиксации: 9 сентября 2026.
 
-> Важно: эти паспорта сняты на **v2.33**, а не на текущем `v3.0.0-rc1`. Они являются реальным player baseline и не закрывают физический RC1 gate.
+> Эти паспорта сняты на **v2.33** и являются реальным player baseline. Они не закрывают физический RC gate текущего `v3.0.1`.
 
-## Session 1
+## Session 1 — v2.33 baseline
 
 - Версия: `2.33`
 - Время: `5.7 мин`
@@ -25,7 +25,7 @@
 - Максимум ухода: `139 px`
 - Порог: `126 px`
 
-## Session 2
+## Session 2 — v2.33 baseline
 
 - Версия: `2.33`
 - Время: `14 мин`
@@ -51,15 +51,40 @@
 - Цветов: `2`
 - Судьба: `become`
 
-## Combined interpretation
+## Session 3 — v3.0.1 physical weak-device gate
 
-Две независимые физические сессии подтверждают пограничную touch-зону: `8` finger-left событий суммарно, медиана ухода `128–132 px`, при пороге `126 px`.
+- Версия: `3.0.1`
+- Экран: `427×948 @1.0`, слабый профиль
+- Время: `2 мин`
+- Плавность: `55 fps`
+- Тяжёлых кадров: `4`
+- Native save: жив
+- Касаний: `3`
+- Взяли взгляд: `3`
+- Выросло: `2`
+- Сорвалось: `0`
+- Шагов: `1`
+- В пустоту: `0`
+- Пульсов: `0`
+- Runtime render exceptions: `0`
+- Visual spam: нет
+- Save → restart → recovery: успешно
+- Camera: `0.99–1.01`, среднее `1.00`
+- Accidental drops: `0`
+
+### Combined interpretation
+
+Две независимые v2.33 сессии подтверждают пограничную touch-зону: `8` finger-left событий суммарно, медиана ухода `128–132 px`, при пороге `126 px`. Это основание для исследования hysteresis/grace zone, но не доказательство blocker.
 
 Одновременно во второй сессии `20/27` срывов были явным отпусканием. Поэтому простое повышение глобального порога до `140 px` не принимается.
 
-### Принятое улучшение
+Текущий v3.0.1 physical weak-device smoke подтвердил отдельный release gate: `55 fps`, только `4` тяжёлых кадра, `0` runtime render exceptions, отсутствие visual spam, `0` accidental drops и успешное восстановление save после restart.
 
-`IMP-RC1-TOUCH` принят к реализации через hysteresis/grace zone:
+### IMP-RC1-TOUCH
+
+Статус: **P1 candidate, не release blocker**.
+
+Гипотеза для следующей touch-итерации:
 
 - `0–126 px` → обычное удержание;
 - `126–140 px` → grace zone;
@@ -68,7 +93,7 @@
 - `touchend` → явное отпускание;
 - `touchcancel` → отдельный системный исход.
 
-`140 px` является стартовой консервативной границей для проверки, а не окончательным балансом.
+`140 px` — стартовая консервативная граница для проверки, а не окончательный баланс. Не менять touch threshold без deterministic probes и нового физического smoke.
 
 ### Color
 
@@ -76,7 +101,8 @@
 
 ## Статус
 
-- Field evidence: 🟢 две физические сессии.
-- Touch improvement: 🟡 принято, реализация + deterministic probes требуются.
-- Physical RC1 smoke текущего `v3.0.0-rc1`: 🔴 ещё не закрыт.
-- Production release: 🔴 заблокирован до RC gate.
+- Field evidence: 🟢 две независимые baseline-сессии + текущий v3.0.1 weak-device smoke.
+- v3.0.1 weak-device performance/readability gate: 🟢.
+- Touch improvement: 🟡 candidate, implementation + deterministic probes не являются текущим release blocker.
+- Physical RC operational gate: 🟡 требует process death, old-save upgrade, extended offline и финальные release UX checks.
+- Production release: 🔴 заблокирован до завершения RC gate.
