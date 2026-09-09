@@ -1,7 +1,7 @@
 # RC1 — физический Android smoke gate
 
 > Контракт: `v3.0.1-rc1` / versionCode `601`.
-> Автоматический RC gate зелёный. Физический RC smoke теперь подтверждён на реальном Android.
+> Автоматический RC gate зелёный. Физический RC smoke подтверждён на реальном Android.
 
 ## Правило выпуска
 
@@ -47,8 +47,8 @@
 
 - [x] Устройство: `427×948 @1.0`, слабый профиль
 - [x] Android: `15`
-- [ ] Release APK: `v3.0.1-rc1` / versionCode `601`
-- [ ] Release APK SHA-256: ____________________
+- [x] Release APK: `v3.0.1-rc1` / versionCode `601`
+- [x] Release APK SHA-256: `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`
 - [x] Clean install / первый boot / базовый игровой smoke
 - [x] Save → restart → recovery
 - [x] Back / Home / resume
@@ -66,16 +66,19 @@
 
 ## Release evidence
 
-Последний автоматически подтверждённый CI artifact для `main`:
+Immutable RC release подтверждён:
 
-- artifact: `igra-3.0.1`
-- artifact ID: `10117341876`
-- commit: `8adb93012c85847d3d8d2e09f9d52ed161d280`
-- SHA-256: `sha256:cbd77adda2fde0e1e9b6bc7eed15de2da8ee2b67c758da3def701946b163cee0`
-- APK workflow: SUCCESS
-- mirror sync: SUCCESS
-
-Это **не release-tag artifact**. Для RC release требуется immutable tag `v3.0.1-rc1` и release signing, после чего нужно зафиксировать SHA-256 именно release APK.
+- tag: `v3.0.1-rc1`
+- target commit: `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`
+- GitHub Release: published
+- prerelease flag: `false` (требует ручного переключения на Pre-release)
+- APK: `igra-3.0.1.apk`
+- versionCode: `601`
+- release APK SHA-256: `sha256:160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`
+- APK workflow #877: SUCCESS
+- release signing step: SUCCESS
+- checksum verification: SUCCESS
+- APK attached to release: SUCCESS
 
 ## Touch improvement
 
@@ -83,4 +86,4 @@
 
 ## Exit criteria
 
-Физический RC gate закрыт: clean install/boot/play/save успешны, process-death recovery успешен, upgrade path проверен, offline smoke успешен, release/become работают, critical/blocker отсутствуют. Остались только release-operational действия: release-signed immutable RC artifact, SHA-256, Play listing/privacy sync и ограниченное RC-тестирование.
+Физический RC gate закрыт: clean install/boot/play/save успешны, process-death recovery успешен, upgrade path проверен, offline smoke успешен, release/become работают, critical/blocker отсутствуют. Release artifact и checksum подтверждены. Остались только ручные release-operational действия: включить Pre-release для RC, синхронизировать Play listing/privacy материалы и провести ограниченное RC-тестирование. Production Play release принимается отдельным решением.
