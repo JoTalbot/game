@@ -1,8 +1,8 @@
-# Статус — 7 сентября 2026
+# Статус — 9 сентября 2026
 
 ## Текущий инженерный статус
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-050 закрыли визуальный/touch/performance hardening; физический weak-device acceptance для V3-050 подтверждён реальным Android-прогоном.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-052 закрыли визуальный/touch/performance/runtime hardening; физический weak-device acceptance для V3-050/V3-052 подтверждён реальным Android-прогоном.
 
 ### Реализовано
 
@@ -19,7 +19,8 @@
 - V8 lineage — release/become, наследование, deterministic fingerprint и migration.
 - RC1 accessibility — reduced-motion, semantic UI signals, stable accessible names и offline cache.
 - RC hardening — RU/EN parity, offline asset completeness, Android lifecycle/save/security checks, bounded persistence и real-engine long-session soak.
-- V3-031 visual text silence — стихи больше не рисуются под каждым цветком: renderer выбирает только ближайший допустимый bloom, сохраняя текст в модели памяти.
+- V3-030 visual text/floater silence — глобальное ограничение визуального текста и приоритет важных событий.
+- V3-031 playfield readability — bloom verse labels больше не flooding visual playfield.
 - V3-032 touch hysteresis — движение получает приоритет над случайным gaze; захват требует осознанного удержания.
 - V3-033 density visual cleanup — в плотных областях подавляются второстепенные обводки.
 - V3-034 being cap — bounded pruning для избытка существ.
@@ -33,45 +34,49 @@
 - V3-048 low-device presentation guard — более жёсткий профиль слабого устройства с сохранением V3-046 base guard.
 - V3-049 render budget — слабому устройству сокращены декоративные far-stars/blooms и тяжёлый tide-gradient без изменения world/save state.
 - V3-050 render budget hardening — убран per-frame GC churn: `slice()` и повторная `ctx.stroke` closure заменены allocation-free hot path с обязательным восстановлением массивов.
+- V3-052 malformed runtime collection hardening — `beings`, `blooms`, `wounds`, `cracks`, `stars`, `forgotten`, `active` санитизируются вокруг update/render lifecycle; добавлена regression-проверка против `undefined.age`.
 - Service Worker cache — offline shell содержит новые assets.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 и публикует его рядом с artifact.
 
-### Последний подтверждённый V3-050 build
+### Последний подтверждённый V3.0.1 build
 
 - Версия: `3.0.1`
-- commit: `8d37a564a6c66cc21ca5848e9e4baf44a4bbf761`
+- physical acceptance commit lineage: `e680dc8f58cc31c0f12096a1626f5f8fc03ef7da`
 - APK workflow: SUCCESS
-- workflow run: `34153566905`
+- workflow run: `34224997229`
 - APK artifact: `igra-3.0.1`
-- artifact ID: `10030212614`
-- GitHub artifact digest: `sha256:879a288b0981e7465928ccd8e405517cbcd254f72e06b985d27e1ec10e902698`
+- artifact ID: `10063426019`
+- artifact digest: `sha256:c42f129eba67e8ff09c06f055b3a6e3cfda936fee307e45e2d5e6a776cf7ebdc`
 - физический weak-device test: `427×948 @1.0`, профиль `слабый`
-- физический test duration: `1.3 мин`
-- физический performance: `56 FPS`, `109` тяжёлых кадров
+- физический test duration: `2 мин`
+- физический performance: `55 FPS`, `4` тяжёлых кадра
 - native save: жив
-- touch: `25`, gaze `22`, growth `19`, dropped `1`
-- drop reason: `отпустил сам ×1`
-- drop median: `0.68с`, almost-immediate `0/1`
-- conclusion: V3-050 performance/touch hardening acceptance passed on the tested weak Android device; performance exceeded V3-049 baseline (`53 FPS / 525 heavy frames`).
+- touch: `3`, gaze `3`, growth `2`, dropped `0`, steps `1`, void `0`, pulses `0`
+- runtime render exceptions: `0`
+- visual spam: нет
+- save → restart → recovery: успешно
+- conclusion: V3-050/V3-052 weak-device acceptance passed; previous `undefined.age` render failure did not reproduce.
 
 ### Автоматические gate
 
-APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. Последний подтверждённый V3-050 workflow завершён SUCCESS. CI подтверждает автоматические инварианты, но физический Android smoke остаётся отдельным acceptance layer.
+APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. V3.0.1 workflow run `34224997229` завершён SUCCESS; Sync run `34224997333` также SUCCESS. CI подтверждает автоматические инварианты, а физический Android smoke теперь подтверждает текущую сборку на целевом слабом устройстве.
 
 ### Что ещё нельзя считать закрытым
 
 1. Upgrade со всех поддерживаемых старых save на текущем устройстве.
 2. Force-stop/process death → recovery на текущей сборке.
-3. Полный offline smoke на физическом Android.
-4. Audio/haptic/fullscreen и отсутствие critical visual/touch blocker на физическом устройстве.
+3. Расширенный offline smoke на физическом Android.
+4. Audio/haptic/fullscreen и отсутствие critical visual/touch blocker в расширенном физическом прогоне.
 5. Финальная сверка Play listing/privacy материалов с фактическим APK.
-6. Чистая сборка после merge на `main` должна быть подтверждена перед signed production tag.
+6. Immutable RC tag и ограниченное RC-тестирование.
 
 ### Следующий milestone
 
-Закрыть оставшийся эксплуатационный RC gate. Если blocker отсутствует, переходить к signed production tag и Play release preparation. Новые продуктовые механики после RC freeze не добавлять; blocker/critical fixes допускаются только с повторным полным CI и физическим smoke.
+Физический основной RC gate GREEN. Не добавлять новые продуктовые механики перед RC freeze. Завершить release-operational checklist, выполнить оставшиеся lifecycle/upgrade/offline проверки, затем создать immutable RC tag и провести ограниченное RC-тестирование. Production Play release принимается отдельным решением после RC.
+
+Issue #7 закрыта как completed после физической проверки. Issues #5 и #6 закрыты после подтверждения отсутствия визуального спама. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
 ### После RC
 
