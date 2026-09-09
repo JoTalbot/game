@@ -1,4 +1,4 @@
-# Статус — 9 сентября 2026
+# Статус — 10 сентября 2026
 
 ## Текущий инженерный статус
 
@@ -40,41 +40,49 @@
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 и публикует его рядом с artifact.
 
-### Последний подтверждённый V3.0.1 build
+### Последний подтверждённый V3.0.1 RC1 build
 
 - Версия: `3.0.1`
-- physical acceptance commit lineage: `e680dc8f58cc31c0f12096a1626f5f8fc03ef7da`
-- APK workflow: SUCCESS
-- workflow run: `34224997229`
-- APK artifact: `igra-3.0.1`
-- artifact ID: `10063426019`
-- artifact digest: `sha256:c42f129eba67e8ff09c06f055b3a6e3cfda936fee307e45e2d5e6a776cf7ebdc`
-- физический weak-device test: `427×948 @1.0`, профиль `слабый`
-- физический test duration: `2 мин`
-- физический performance: `55 FPS`, `4` тяжёлых кадра
-- native save: жив
-- touch: `3`, gaze `3`, growth `2`, dropped `0`, steps `1`, void `0`, pulses `0`
-- runtime render exceptions: `0`
-- visual spam: нет
-- save → restart → recovery: успешно
-- conclusion: V3-050/V3-052 weak-device acceptance passed; previous `undefined.age` render failure did not reproduce.
+- RC tag: `v3.0.1-rc1`
+- release commit/tag target: `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`
+- release APK SHA-256: `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`
+- APK workflow для RC tag: SUCCESS
+- release asset: `igra-3.0.1.apk`
+- physical RC1 smoke: `10 мин`, `427×948`, Android `15`
+- Clean install: PASS
+- Boot: PASS
+- Gameplay: PASS
+- Home → resume: PASS
+- Save: PASS
+- Force-stop → recovery: PASS
+- Old save upgrade: PASS
+- Offline: PASS
+- Release: PASS
+- Become/NG+: PASS
+- Vibration: PASS
+- Audio: PASS
+- Fullscreen: PASS
+- Crash: `0`
+- ANR: `0`
+- visual blocker: `0`
+- touch blocker: `0`
+- heavy frames: `0`
+- conclusion: физический RC1 smoke полностью пройден на целевом слабом устройстве.
 
 ### Автоматические gate
 
-APK workflow выполняет probes, boot, Android security, sync, expanded RC hardening, Android build и checksum verification. V3.0.1 workflow run `34224997229` завершён SUCCESS; Sync run `34224997333` также SUCCESS. CI подтверждает автоматические инварианты, а физический Android smoke теперь подтверждает текущую сборку на целевом слабом устройстве.
+APK workflow на текущем `main` commit `d93446e11b401af879364091afc19a58da9720e5` завершён SUCCESS: probes, live boot, Android security, sync, Android SDK 34 build и checksum verification прошли. Sync play mirror также SUCCESS. filecite не вставлять в документацию: ссылки на CI являются внешними артефактами репозитория.
 
 ### Что ещё нельзя считать закрытым
 
-1. Upgrade со всех поддерживаемых старых save на текущем устройстве.
-2. Force-stop/process death → recovery на текущей сборке.
-3. Расширенный offline smoke на физическом Android.
-4. Audio/haptic/fullscreen и отсутствие critical visual/touch blocker в расширенном физическом прогоне.
-5. Финальная сверка Play listing/privacy материалов с фактическим APK.
-6. Immutable RC tag и ограниченное RC-тестирование.
+1. Финальная сверка Play listing/privacy материалов с фактическим APK.
+2. Ограниченное RC-тестирование после физического smoke.
+3. Production rollout в Google Play и последующий production monitoring.
+4. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
 ### Следующий milestone
 
-Физический основной RC gate GREEN. Не добавлять новые продуктовые механики перед RC freeze. Завершить release-operational checklist, выполнить оставшиеся lifecycle/upgrade/offline проверки, затем создать immutable RC tag и провести ограниченное RC-тестирование. Production Play release принимается отдельным решением после RC.
+Физический RC1 gate GREEN. Immutable tag `v3.0.1-rc1` создан и не должен перемещаться. Release APK подписан release-ключом и опубликован как GitHub Release asset. Не добавлять новые продуктовые механики перед RC freeze. Завершить release-operational checklist, провести ограниченное RC-тестирование и только после этого принимать отдельное решение о production Play release.
 
 Issue #7 закрыта как completed после физической проверки. Issues #5 и #6 закрыты после подтверждения отсутствия визуального спама. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
