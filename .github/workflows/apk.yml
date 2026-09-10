@@ -14,6 +14,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      NODE_OPTIONS: --require=${{ github.workspace }}/tools/probe/node22-compat.js
     steps:
       - uses: actions/checkout@v4
 
@@ -27,9 +29,6 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: "22"
-
-      - name: Node 22 compatibility
-        run: echo "NODE_OPTIONS=--require=$GITHUB_WORKSPACE/tools/probe/node22-compat.js" >> "$GITHUB_ENV"
 
       - name: Проверки души
         run: |
