@@ -1,0 +1,16 @@
+"use strict";
+var assert=require("assert");
+var fs=require("fs"),vm=require("vm");
+var ctx={console:console,Math:Math};vm.createContext(ctx);
+["v20-hardening.js","v21-playtest.js","v22-optimization.js"].forEach(function(f){vm.runInContext(fs.readFileSync("web/js/"+f,"utf8"),ctx,{filename:f});});
+var G=ctx.IGRA,w={};
+assert(G.V20Hardening&&G.V21Playtest&&G.V22Optimization);
+var h=G.V20Hardening.ensure(w);
+assert.strictEqual(G.V20Hardening.validateSave({v9v25:{schema:2}}).ok,true);
+assert.strictEqual(G.V20Hardening.validateSave({v9v25:[]}).ok,false);
+assert.strictEqual(G.V20Hardening.validateSave(null).ok,false);
+G.V20Hardening.markCorrupt(w);G.V20Hardening.recover(w,"probe");G.V20Hardening.lifecycle(w,"background");G.V20Hardening.lifecycle(w,"foreground");G.V20Hardening.budget(w,20,12,192);
+assert.strictEqual(h.corruptions,1);assert.strictEqual(h.recoveries,1);assert.strictEqual(h.lifecycle.background,1);assert.strictEqual(h.lifecycle.foreground,1);assert.strictEqual(h.budgets.simulation,12);
+var p=G.V21Playtest.session(w,120,"soak");G.V21Playtest.complete(w,p,"finished");var suite=G.V21Playtest.suite(w,{"5m":true,"15m":true,"30m":true,"60m":true,"120m":true,"repeat-life":true,"multi-generation":true,offline:true,recovery:true});assert.strictEqual(suite.ready,true);assert.strictEqual(w.playtestV21.milestones[120],true);
+G.V22Optimization.configure(w,16.7,8);G.V22Optimization.sample(w,10);G.V22Optimization.sample(w,17);G.V22Optimization.sample(w,8);var r=G.V22Optimization.report(w);assert.strictEqual(r.samples,3);assert.strictEqual(r.slowFrames,1);assert(r.maxFrameMs>=17);assert(r.averageFrameMs>0);G.V22Optimization.resetSamples(w);assert.strictEqual(G.V22Optimization.report(w).samples,0);
+console.log("V20-V22 hardening/playtest/optimization probe: PASS");
