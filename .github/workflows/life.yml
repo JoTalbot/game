@@ -8,17 +8,11 @@ on:
 jobs:
   life:
     runs-on: ubuntu-latest
-    env:
-      NODE_OPTIONS: --require=${{ github.workspace }}/tools/probe/node22-compat.js
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        env:
-          NODE_OPTIONS: ""
       - name: Node 22
         uses: actions/setup-node@v5
-        env:
-          NODE_OPTIONS: ""
         with:
           node-version: 22
       - name: Guard workflow configuration
