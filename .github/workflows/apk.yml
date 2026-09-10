@@ -28,6 +28,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Node 22 compatibility
+        run: echo "NODE_OPTIONS=--require=$GITHUB_WORKSPACE/tools/probe/node22-compat.js" >> "$GITHUB_ENV"
+
       - name: Проверки души
         run: |
           set -euo pipefail
