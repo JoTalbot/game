@@ -1,0 +1,13 @@
+"use strict";
+var assert=require("assert"),fs=require("fs"),vm=require("vm");
+var ctx={console:console,Math:Math};vm.createContext(ctx);
+["v21-playtest.js","v22-optimization.js","v23-rc2-gate.js","v25-production.js"].forEach(function(f){vm.runInContext(fs.readFileSync("web/js/"+f,"utf8"),ctx,{filename:f});});
+var G=ctx.IGRA,w={};
+assert(G.V21Playtest&&G.V22Optimization&&G.V23RC2Gate&&G.V25Production);
+var suite=G.V21Playtest.suite(w,{"5m":true,"15m":true,"30m":true,"60m":true,"120m":true,"repeat-life":true,"multi-generation":true,offline:true,recovery:true});
+assert.strictEqual(suite.ready,true);
+var s=G.V21Playtest.session(w,120,"soak");G.V21Playtest.complete(w,s,"finished");assert.strictEqual(s.completed,true);assert.strictEqual(w.playtestV21.milestones[120],true);
+G.V22Optimization.configure(w,16.7,8);for(var i=0;i<32;i++)G.V22Optimization.sample(w,12+i%4);var report=G.V22Optimization.report(w);assert.strictEqual(report.samples,32);assert.strictEqual(report.withinBudget,true);assert(report.averageFrameMs<16.7);
+var rc=G.V23RC2Gate.evaluate({probes:true,migration:true,replay:true,performance:true,accessibility:true,privacy:true,signing:true,android:true});assert.strictEqual(rc.ready,true);assert.deepStrictEqual(rc.missing,[]);
+var prod=G.V25Production.evaluate({v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true});assert.strictEqual(prod.ready,true);
+console.log("V21/V22 playtest + optimization + RC2/production gate probe: PASS");
