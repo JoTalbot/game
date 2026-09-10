@@ -66,4 +66,4 @@ A genre that did not exist: reflektum.
 - трейлер: `docs/TRAILER.md`
 - политика: `docs/PRIVACY.md`
 
-Цена: разовая. Без подписки.
+Цена: бесплатно. Без подписки и встроенных покупок.
