@@ -11,10 +11,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Node 20
+      - name: Node 22
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
       - name: Проверка синтаксиса игровых JS
         run: |
           set -euo pipefail
