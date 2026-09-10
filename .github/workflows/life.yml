@@ -65,6 +65,8 @@ jobs:
         run: node tools/probe/v9-world.js
       - name: Проверка V9-V25 системной интеграции
         run: node tools/probe/v9-v25-systems.js
+      - name: Проверка V9-V25 live bridge
+        run: node tools/probe/v9-v25-bridge.js
       - name: Проверка Release Candidate
         run: node tools/probe/release-candidate.js
       - name: Проверка RC hardening, localization, lifecycle и soak
