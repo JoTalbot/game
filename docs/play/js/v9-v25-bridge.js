@@ -103,6 +103,10 @@ var IGRA = IGRA || {};
     s.eventCount = s.world.history.length;
   }
 
+  // Expose the bridge API even in probe/VM environments where the full Game
+  // constructor is intentionally absent. Runtime installation remains opt-in.
+  G.V9V25Bridge = { ensure: ensure, step: step };
+
   function install() {
     if (!G.Game || !G.Game.prototype || !G.Game.prototype.update || G.Game.prototype.__v9v25Bridge) return;
     var original = G.Game.prototype.update;
@@ -114,7 +118,6 @@ var IGRA = IGRA || {};
       return result;
     };
     G.Game.prototype.__v9v25Bridge = true;
-    G.V9V25Bridge = { ensure: ensure, step: step };
   }
 
   install();
