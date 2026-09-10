@@ -6,6 +6,7 @@ var ctx={console:console,Math:Math};vm.createContext(ctx);
 var G=ctx.IGRA,w={};
 assert(G.V20Hardening&&G.V21Playtest&&G.V22Optimization);
 var h=G.V20Hardening.ensure(w);
+assert.strictEqual(h.schema,3);
 assert.strictEqual(G.V20Hardening.validateSave({v9v25:{schema:2}}).ok,true);
 assert.strictEqual(G.V20Hardening.validateSave({v9v25:[]}).ok,false);
 assert.strictEqual(G.V20Hardening.validateSave(null).ok,false);
