@@ -69,6 +69,8 @@ jobs:
         run: node tools/probe/v9-v25-bridge.js
       - name: Проверка V9-V25 persistence и deterministic replay
         run: node tools/probe/v9-v25-persistence.js
+      - name: Проверка V20-V22 hardening/playtest/optimization
+        run: node tools/probe/v20-v22-hardening.js
       - name: Проверка Release Candidate
         run: node tools/probe/release-candidate.js
       - name: Проверка RC hardening, localization, lifecycle и soak
