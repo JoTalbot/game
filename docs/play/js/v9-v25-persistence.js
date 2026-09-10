@@ -21,9 +21,13 @@ var IGRA = IGRA || {};
   }
   function record(game, action) {
     var s = ensure(game);
-    if (!s || !action) return;
-    s.replay.push({ tick: finite(s.world && s.world.tick, 0), type: String(action.type || ""), region: String(action.region || "r0"), amount: finite(action.amount, 0) });
+    if (!s || !action) return false;
+    var item = { tick: finite(s.world && s.world.tick, 0), type: String(action.type || ""), region: String(action.region || "r0"), amount: finite(action.amount, 0) };
+    var last = s.replay.length ? s.replay[s.replay.length - 1] : null;
+    if (last && last.type === item.type && last.region === item.region && last.amount === item.amount) return false;
+    s.replay.push(item);
     if (s.replay.length > MAX_REPLAY) s.replay.splice(0, s.replay.length - MAX_REPLAY);
+    return true;
   }
   function pack(game) {
     var s = ensure(game);
@@ -36,7 +40,7 @@ var IGRA = IGRA || {};
       lastRegion: String(s.lastRegion || "r0"),
       stepCount: finite(s.stepCount, 0),
       eventCount: finite(s.eventCount, 0),
-      replay: clone(s.replay || []),
+      replay: clone(s.replay || []).slice(-MAX_REPLAY),
       world: s.world.snapshot ? s.world.snapshot() : null
     };
   }
@@ -81,19 +85,13 @@ var IGRA = IGRA || {};
     return { equal: first === second, snapshot: first };
   }
 
-  G.V9V25Persistence = { ensure: ensure, record: record, pack: pack, migrate: migrate, restore: restore, deterministic: deterministic, currentSchema: CURRENT };
+  G.V9V25Persistence = { ensure: ensure, record: record, pack: pack, migrate: migrate, restore: restore, deterministic: deterministic, currentSchema: CURRENT, maxReplay: MAX_REPLAY };
 
-  if (G.V9V25Bridge && G.V9V25Bridge.step && !G.V9V25Bridge.__persistenceWrapped) {
-    var originalStep = G.V9V25Bridge.step;
-    G.V9V25Bridge.step = function (game, dt) {
-      var result = originalStep(game, dt);
-      var s = ensure(game);
-      if (s && s.lastAction) record(game, s.lastAction);
-      return result;
-    };
-    G.V9V25Bridge.__persistenceWrapped = true;
-  }
-
+  // The bridge is installed before this file. Save/load are wrapped here so
+  // the integrated systems survive process death without changing the legacy
+  // save schema for old clients. The replay stream is deliberately explicit:
+  // a frame is not an action, because recording 60 identical "visit" actions
+  // per second would produce a very convincing lie about what the player did.
   if (G.Game && G.Game.prototype && !G.Game.prototype.__v9v25Persistence) {
     var save = G.Game.prototype.save;
     G.Game.prototype.save = function () {
