@@ -42,13 +42,18 @@ function boot(opts) {
     requestAnimationFrame: function () {},
     location: { href: "http://local/", search: "" }
   };
-  global.navigator = {
-    vibrate: function () {},
-    deviceMemory: 4,
-    hardwareConcurrency: 4,
-    language: "ru",
-    userAgent: "probe"
-  };
+  Object.defineProperty(global, "navigator", {
+    value: {
+      vibrate: function () {},
+      deviceMemory: 4,
+      hardwareConcurrency: 4,
+      language: "ru",
+      userAgent: "probe"
+    },
+    configurable: true,
+    writable: true,
+    enumerable: true
+  });
   // Живой подставной DOM: без него не поднять ui.js — 452 строки
   // интерфейса, которые не проверялись ни разу за всю историю игры.
   // Заглушка возвращала null на любой getElementById, и bind() падал бы
