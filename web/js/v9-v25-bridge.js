@@ -57,7 +57,8 @@ var IGRA = IGRA || {};
   }
 
   function social(game) {
-    if (!G.V11Social || !game.world || !game.player) return;
+    if (!G.V11Social || !game.world) return;
+    G.V11Social.ensure(game.world);
     var target = game.gazeTarget;
     if (!target || !target.id) return;
     G.V11Social.record(game.world, "player", target.id, "bond", 0.01);
@@ -66,6 +67,7 @@ var IGRA = IGRA || {};
 
   function knowledge(game, action) {
     if (!G.V13Knowledge || !game.world || !action) return;
+    G.V13Knowledge.ensure(game.world);
     var key = "region:" + action.region + ":" + action.type;
     G.V13Knowledge.discover(game.world, key, clamp(action.amount, 0, 1));
   }
