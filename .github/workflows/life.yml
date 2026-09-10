@@ -71,6 +71,8 @@ jobs:
         run: node tools/probe/v9-v25-persistence.js
       - name: Проверка V20-V22 hardening/playtest/optimization
         run: node tools/probe/v20-v22-hardening.js
+      - name: Проверка V20 production save sanitization
+        run: node tools/probe/v20-production-hardening.js
       - name: Проверка Release Candidate
         run: node tools/probe/release-candidate.js
       - name: Проверка RC hardening, localization, lifecycle и soak
