@@ -15,6 +15,8 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 22
+      - name: Guard workflow configuration
+        run: node tools/probe/life-workflow.js
       - name: Проверка синтаксиса игровых JS
         run: |
           set -euo pipefail
