@@ -1,10 +1,6 @@
 var IGRA = IGRA || {};
 (function (G) {
   "use strict";
-
-  // V9-V25 integration seam. The feature modules stay deterministic and
-  // bounded; this adapter gives them a real home in the running game without
-  // teaching the renderer about meta-systems.
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function finite(v, fallback) { return Number.isFinite(Number(v)) ? Number(v) : fallback; }
 
@@ -12,19 +8,18 @@ var IGRA = IGRA || {};
     if (!game || !game.world) return null;
     if (!game.world.v9v25) {
       var seed = finite(game.world.seed, 1) | 0;
-      game.world.v9v25 = {
-        version: 1,
-        seed: seed,
-        clock: 0,
+      game.world.v9v25 = { version: 1, seed: seed, clock: 0,
         world: G.V9World ? G.V9World.create(seed) : null,
-        lastAction: null,
-        lastRegion: "r0",
-        stepCount: 0,
-        eventCount: 0
-      };
+        lastAction: null, lastRegion: "r0", stepCount: 0, eventCount: 0 };
     }
     var s = game.world.v9v25;
     if (!s.world && G.V9World) s.world = G.V9World.create(s.seed || 1);
+    if (G.V11Social) G.V11Social.ensure(game.world);
+    if (G.V13Knowledge) G.V13Knowledge.ensure(game.world);
+    if (G.V18Experiments) G.V18Experiments.ensure(game.world);
+    if (G.V19Simulation) G.V19Simulation.ensure(game.world);
+    if (G.V16Presentation) G.V16Presentation.ensure(game.world);
+    if (G.V17AdaptiveAudio) G.V17AdaptiveAudio.ensure(game.world);
     return s;
   }
 
@@ -51,8 +46,7 @@ var IGRA = IGRA || {};
       if (!b || typeof b !== "object") continue;
       var dx = finite(b.x, 0) - finite(player.x, 0);
       var dy = finite(b.y, 0) - finite(player.y, 0);
-      var near = (dx * dx + dy * dy) < 180 * 180;
-      if (near) G.V10Personality.observe(b, game.gazeTarget === b ? "care" : "gaze", 0.01);
+      if ((dx * dx + dy * dy) < 180 * 180) G.V10Personality.observe(b, game.gazeTarget === b ? "care" : "gaze", 0.01);
     }
   }
 
@@ -75,12 +69,11 @@ var IGRA = IGRA || {};
   function director(game) {
     if (!G.V14Director2 || !game.world) return;
     G.V14Director2.ensure(game.world);
-    var candidates = [
+    G.V14Director2.choose(game.world, [
       { id: "quiet", setup: 0.3, consequence: 0.2, rarity: 0.9 },
       { id: "memory", setup: 0.6, consequence: 0.5, rarity: 0.5 },
       { id: "change", setup: 0.8, consequence: 0.7, rarity: 0.25 }
-    ];
-    G.V14Director2.choose(game.world, candidates);
+    ]);
   }
 
   function step(game, dt) {
@@ -88,25 +81,15 @@ var IGRA = IGRA || {};
     if (!s || !s.world) return;
     var stepDt = clamp(finite(dt, 0), 0, 0.25);
     s.clock += stepDt;
-    var region = regionFor(game);
-    var action = actionFor(game, region);
-    s.lastRegion = region;
-    s.lastAction = action;
-    if (G.V9World && s.world.observe) s.world.observe(stepDt, action);
-    if (G.V19Simulation) G.V19Simulation.tick(s.world, stepDt);
-    touchPersonality(game);
-    social(game);
-    knowledge(game, action);
-    director(game);
-    if (G.V18Experiments) G.V18Experiments.ensure(game.world);
+    var region = regionFor(game), action = actionFor(game, region);
+    s.lastRegion = region; s.lastAction = action;
+    if (s.world.observe) s.world.observe(stepDt, action);
+    if (G.V19Simulation) G.V19Simulation.tick(game.world, stepDt);
+    touchPersonality(game); social(game); knowledge(game, action); director(game);
     if (G.V16Presentation) G.V16Presentation.budget(game.world, game.w <= 480 ? 0.7 : 1, game.w <= 480 ? 10 : 24, game.w <= 480 ? 3 : 8);
-    if (G.V17AdaptiveAudio) G.V17AdaptiveAudio.ensure(game.world);
-    s.stepCount++;
-    s.eventCount = s.world.history.length;
+    s.stepCount++; s.eventCount = s.world.history.length;
   }
 
-  // Expose the bridge API even in probe/VM environments where the full Game
-  // constructor is intentionally absent. Runtime installation remains opt-in.
   G.V9V25Bridge = { ensure: ensure, step: step };
 
   function install() {
@@ -114,13 +97,10 @@ var IGRA = IGRA || {};
     var original = G.Game.prototype.update;
     G.Game.prototype.update = function (dt) {
       var result = original.apply(this, arguments);
-      if (this.state === "play" || this.state === "birth") {
-        step(this, dt);
-      }
+      if (this.state === "play" || this.state === "birth") step(this, dt);
       return result;
     };
     G.Game.prototype.__v9v25Bridge = true;
   }
-
   install();
 })(IGRA);
