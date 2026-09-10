@@ -75,6 +75,8 @@ jobs:
         run: node tools/probe/v20-production-hardening.js
       - name: Проверка V21/V22 + RC2/production gate
         run: node tools/probe/v21-v22-gate.js
+      - name: Проверка V23-V25 release gates
+        run: node tools/probe/v23-v25-release-gates.js
       - name: Проверка Release Candidate
         run: node tools/probe/release-candidate.js
       - name: Проверка RC hardening, localization, lifecycle и soak
