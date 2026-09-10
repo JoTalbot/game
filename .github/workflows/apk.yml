@@ -23,10 +23,10 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Node 20
+      - name: Node 22
         uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Проверки души
         run: |
