@@ -24,7 +24,8 @@ ok(/actions\/checkout@v4/.test(text), 'checkout step is present');
 ok(/actions\/setup-node@v5/.test(text), 'Node setup is present');
 ok(/node-version:\s*22/.test(text), 'Life Arc uses Node 22');
 ok(/node tools\/probe\/life-workflow\.js/.test(text), 'workflow guard is executed');
-ok(/node tools\/probe\/v23-v25-release-gates\.js/.test(text), 'V23-V25 release gate probe is present');
+ok(/v23-v25-release-gates\.js/.test(text), 'V23-V25 release gate probe is present in the probe list');
+ok(/for probe in \"\$\{probes\[@\]\}\"; do/.test(text), 'probe list is executed');
 ok(!fs.existsSync(path.join(root, '.github', 'workflows', 'life.yml')), 'obsolete life.yml is deleted');
 
 console.log('Life workflow guard: PASS');
