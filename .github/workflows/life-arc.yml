@@ -1,0 +1,37 @@
+name: Life Arc Gate
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  life:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Life Arc probes
+        run: |
+          set -euo pipefail
+          node tools/probe/life-workflow.js
+          find web/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          probes=(
+            life.js consequences.js relationships.js world-memory.js trajectory.js act.js
+            director-events.js director-content.js v3-depth.js v3-continuity.js organ-conflicts.js
+            metamorphosis.js boss-shadow.js spatial-memory.js spawn-distribution.js v5-world.js
+            v6-body.js v6-signals.js accessibility.js v7-climax.js v8-lineage.js
+            v4-second-act.js v4-depth.js v9-world.js v9-v25-systems.js v9-v25-bridge.js
+            v9-v25-persistence.js v20-v22-hardening.js v20-production-hardening.js
+            v21-v22-gate.js v23-v25-release-gates.js release-candidate.js dense-interaction.js
+            v3-046-telemetry.js v3-047-touch-meaning.js v3-048-performance.js
+          )
+          for probe in "${probes[@]}"; do
+            node "tools/probe/$probe"
+          done
+          node --expose-gc tools/probe/rc-hardening.js
