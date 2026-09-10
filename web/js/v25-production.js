@@ -1,6 +1,15 @@
 var IGRA = IGRA || {};
 (function(G){"use strict";
 var REQUIRED=["v23","v24","save","migration","offline","performance","accessibility","privacy","signing","store"];
-function evaluate(results){var r=results||{},missing=[];REQUIRED.forEach(function(k){if(r[k]!==true)missing.push(k);});return {ready:missing.length===0,missing:missing};}
-function report(results){var e=evaluate(results);return {status:e.ready?"production-ready":"blocked",missing:e.missing};}
-G.V25Production={required:REQUIRED,evaluate:evaluate,report:report};})(IGRA);
+function evaluate(results){
+  var r=results||{},missing=[];
+  REQUIRED.forEach(function(k){if(r[k]!==true)missing.push(k);});
+  return {ready:missing.length===0,missing:missing,checked:REQUIRED.length};
+}
+function report(results){
+  var e=evaluate(results);
+  return {status:e.ready?"production-ready":"blocked",ready:e.ready,missing:e.missing,checked:e.checked};
+}
+function isComplete(results){return evaluate(results).ready;}
+G.V25Production={required:REQUIRED,evaluate:evaluate,report:report,isComplete:isComplete};
+})(IGRA);
