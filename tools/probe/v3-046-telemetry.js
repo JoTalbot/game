@@ -20,7 +20,7 @@ const engine = read('web/js/engine.js');
 
 ok(index.includes('js/v3-performance-guard.js'), 'performance guard loaded before game bootstrap');
 ok(sw.includes('./js/v3-performance-guard.js'), 'performance guard is offline-cached');
-ok(sw.includes('igra-shell-v26'), 'offline cache version bumped');
+ok(sw.includes('igra-shell-v29'), 'offline cache version bumped');
 ok(guard.includes('Math.min(w || 9999, h || 9999) < 460'), 'reported 427px weak device gets early guard');
 ok(guard.includes('this.particles = Math.min(this.particles, 120)'), 'weak device particle budget is bounded');
 ok(guard.includes('this.fog = Math.min(this.fog, 5)'), 'weak device fog budget is bounded');
@@ -33,7 +33,7 @@ ok(report.includes('G.Memory.climateName()'), 'season report uses memory climate
 
 // Zero energy is a legal floor, not a dead-end.
 ok(engine.includes('Math.max(0, this.player.energy - 16)'), 'pulse cannot drive energy below zero');
-ok(engine.includes('Math.max(0, player.energy'), 'engine has a zero-energy floor');
+ok(engine.includes('Math.max(0, this.player.energy'), 'engine has a zero-energy floor');
 
 // Early release is measured honestly, not hidden by changing telemetry thresholds.
 ok(engine.includes('this.player.gazeT > 0.15') && engine.includes('gestureTorn("let"'), 'early release telemetry is explicit');
