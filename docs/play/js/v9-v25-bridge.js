@@ -10,7 +10,8 @@ var IGRA = IGRA || {};
       var seed = finite(game.world.seed, 1) | 0;
       game.world.v9v25 = { version: 1, seed: seed, clock: 0,
         world: G.V9World ? G.V9World.create(seed) : null,
-        lastAction: null, lastRegion: "r0", stepCount: 0, eventCount: 0 };
+        lastAction: null, lastRegion: "r0", stepCount: 0, eventCount: 0,
+        lastExperimentEvent: 0 };
     }
     var s = game.world.v9v25;
     if (!s.world && G.V9World) s.world = G.V9World.create(s.seed || 1);
@@ -76,17 +77,59 @@ var IGRA = IGRA || {};
     ]);
   }
 
+  function presentationAudio(game, region, action) {
+    if (!game.world || !region) return;
+    var r = region;
+    if (G.V16Presentation) {
+      var detail = game.w <= 480 ? 0.7 : 1;
+      var effects = game.w <= 480 ? 10 : 24;
+      var floats = game.w <= 480 ? 3 : 8;
+      G.V16Presentation.budget(game.world, detail, effects, floats);
+      var p = G.V16Presentation.ensure(game.world);
+      p.weather = r.weather || p.weather;
+      p.season = r.season == null ? p.season : r.season;
+    }
+    if (G.V17AdaptiveAudio && G.V17AdaptiveAudio.react) {
+      var storm = r.weather === "storm";
+      var rain = r.weather === "rain";
+      var intensity = action.type === "harm" ? 0.72 : action.type === "care" ? 0.48 : 0.34;
+      if (storm) intensity += 0.16;
+      G.V17AdaptiveAudio.react(game.world, {
+        intensity: clamp(intensity, 0, 1),
+        motif: storm ? "storm" : rain ? "rain" : action.type,
+        silence: action.type === "visit" ? 0.34 : 0.18
+      });
+    }
+  }
+
+  function experiment(game, action, beforeEvents) {
+    if (!G.V18Experiments || !game.world || !action) return;
+    var history = game.world.history || [];
+    if (history.length <= beforeEvents || history.length === 0) return;
+    var latest = history[history.length - 1];
+    var s = game.world.v9v25;
+    if (!latest || latest.id === s.lastExperimentEvent) return;
+    s.lastExperimentEvent = latest.id;
+    G.V18Experiments.record(game.world,
+      "what follows " + action.type + " in " + action.region,
+      action.type,
+      latest.type + ":" + latest.region);
+  }
+
   function step(game, dt) {
     var s = ensure(game);
     if (!s || !s.world) return;
     var stepDt = clamp(finite(dt, 0), 0, 0.25);
     s.clock += stepDt;
-    var region = regionFor(game), action = actionFor(game, region);
-    s.lastRegion = region; s.lastAction = action;
+    var regionId = regionFor(game), action = actionFor(game, regionId);
+    var region = s.world.region(regionId);
+    var beforeEvents = s.world.history.length;
+    s.lastRegion = regionId; s.lastAction = action;
     if (s.world.observe) s.world.observe(stepDt, action);
     if (G.V19Simulation) G.V19Simulation.tick(game.world, stepDt);
     touchPersonality(game); social(game); knowledge(game, action); director(game);
-    if (G.V16Presentation) G.V16Presentation.budget(game.world, game.w <= 480 ? 0.7 : 1, game.w <= 480 ? 10 : 24, game.w <= 480 ? 3 : 8);
+    presentationAudio(game, region, action);
+    experiment(game, action, beforeEvents);
     s.stepCount++; s.eventCount = s.world.history.length;
   }
 
