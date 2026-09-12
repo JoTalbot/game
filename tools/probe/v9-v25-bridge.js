@@ -1,7 +1,7 @@
 "use strict";
 var assert = require("assert");
 var fs = require("fs"), vm = require("vm");
-var ctx = { console: console, Math: Math };
+var ctx = { console: console, Math: Math, performance: { now: function () { return 100; } } };
 vm.createContext(ctx);
 [
   "v9-world.js", "v10-personality.js", "v11-social.js", "v12-lineage.js",
@@ -32,4 +32,10 @@ assert(game.world.v9v25.world.history.length > 0, "player action becomes causal 
 assert(game.world.social && game.world.knowledge, "social and knowledge layers attach to live world");
 assert(game.world.presentationV16 && game.world.presentationV16.floats <= 3, "weak-device presentation budget is enforced");
 assert(game.world.simulationV19 && game.world.simulationV19.tick >= 0, "deep simulation is attached");
+assert(game.world.playtestV21 && game.world.playtestV21.active, "live playtest session is attached");
+assert(game.world.playtestV21.metrics.minutes > 0, "playtest clock advances from runtime dt");
+assert(game.world.playtestV21.evidence.length > 0, "playtest evidence is recorded from runtime");
+assert(game.world.optimizationV22 && game.world.optimizationV22.frameSamples.length === 1, "optimization frame sample is attached");
+assert(game.world.optimizationV22.simSamples.length === 1, "optimization simulation sample is attached");
+assert(game.world.optimizationV22.frameBudget === 20, "weak-device frame budget is configured");
 console.log("V9-V25 live bridge probe: PASS");
