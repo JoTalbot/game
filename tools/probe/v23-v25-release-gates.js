@@ -1,0 +1,10 @@
+"use strict";
+var assert=require("assert"),fs=require("fs"),vm=require("vm");
+var ctx={console:console,Math:Math};vm.createContext(ctx);
+["v23-rc2-gate.js","v24-limited-release.js","v25-production.js"].forEach(function(f){vm.runInContext(fs.readFileSync("web/js/"+f,"utf8"),ctx,{filename:f});});
+var G=ctx.IGRA;assert(G.V23RC2Gate&&G.V24LimitedRelease&&G.V25Production);assert.strictEqual(G.V23RC2Gate.required.length,8);
+var rc={probes:true,migration:true,replay:true,performance:true,accessibility:true,privacy:true,signing:true,android:true};assert.strictEqual(G.V23RC2Gate.evaluate(rc).ready,true);
+var w={limitedReleaseV24:{enabled:1,crashes:-2,anr:"bad",saveFailures:0,feedback:[1,2]}};var s=G.V24LimitedRelease.ensure(w);assert.strictEqual(G.V24LimitedRelease.gate(w),true);for(var i=0;i<70;i++)G.V24LimitedRelease.feedback(w,"test",i);assert.strictEqual(s.feedback.length,64);s.crashes=1;assert.strictEqual(G.V24LimitedRelease.gate(w),false);G.V24LimitedRelease.disable(w);assert.strictEqual(s.enabled,false);
+var prod={v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true};var pr=G.V25Production.report(prod);assert.strictEqual(pr.status,"production-ready");assert.strictEqual(pr.ready,true);assert.strictEqual(pr.missing.length,0);assert.strictEqual(pr.blockers.length,0);assert.strictEqual(pr.evidence.passed,10);assert.strictEqual(pr.evidence.stability,true);assert.strictEqual(pr.evidence.saveIntegrity,true);
+var blocked=G.V25Production.report({v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true,crashes:true});assert.strictEqual(blocked.status,"blocked");assert.strictEqual(blocked.ready,false);assert(blocked.blockers.indexOf("crashes")>=0);var missing=G.V25Production.report({v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:false,signing:true,store:true});assert.strictEqual(missing.status,"blocked");assert.strictEqual(missing.missing[0],"privacy");
+console.log("V23-V25 release gates/evidence probe: PASS");
