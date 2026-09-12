@@ -1,0 +1,17 @@
+var IGRA = IGRA || {};
+(function(G){"use strict";
+var MAX_SESSIONS=32, MAX_EVIDENCE=64, DURATIONS=[5,15,30,60,120];
+function n(v,f){return Number.isFinite(Number(v))?Number(v):f;}
+function ensure(world){world=world||{};world.playtestV21=world.playtestV21||{schema:4,sessions:[],evidence:[],active:null,metrics:{touches:0,events:0,returns:0,abandons:0,minutes:0,repeatLives:0,multiGeneration:0,offline:0,recoveries:0},milestones:{5:false,15:false,30:false,60:false,120:false},gates:{understood:false,confusion:false,boredom:false,memorable:false,ignoredSystems:false,repeatedBehavior:false,abandonment:false,performance:false}};var s=world.playtestV21;if(!Array.isArray(s.sessions))s.sessions=[];if(!Array.isArray(s.evidence))s.evidence=[];if(!s.metrics||typeof s.metrics!=="object")s.metrics={};if(!s.milestones||typeof s.milestones!=="object")s.milestones={};if(!s.gates||typeof s.gates!=="object")s.gates={};return s;}
+function push(a,x,max){a.push(x);if(a.length>max)a.splice(0,a.length-max);}
+function session(world,minutes,mode){var s=ensure(world),m=Math.max(0,n(minutes,0)),x={id:"p"+(s.sessions.length+1),minutes:m,mode:String(mode||"standard"),completed:false,startedAtStep:n(world&&world.v9v25&&world.v9v25.stepCount,0),events:0,touches:0};push(s.sessions,x,MAX_SESSIONS);s.active=x;s.metrics.minutes+=m;DURATIONS.forEach(function(v){if(m>=v)s.milestones[v]=true;});return x;}
+function begin(world,mode){var s=ensure(world);if(s.active&&!s.active.completed)return s.active;return session(world,0,mode);}
+function tick(world,dt,events,touches){var s=ensure(world),x=begin(world,"runtime"),minutes=Math.max(0,n(dt,0))/60,ev=Math.max(0,Math.floor(n(events,0))),t=Math.max(0,Math.floor(n(touches,0)));x.minutes+=minutes;s.metrics.minutes+=minutes;x.events+=ev;x.touches+=t;s.metrics.events+=ev;s.metrics.touches+=t;DURATIONS.forEach(function(v){if(x.minutes>=v)s.milestones[v]=true;});return x;}
+function complete(world,x,reason){var s=ensure(world);x=x||s.active;if(!x)return false;x.completed=true;if(reason)x.endReason=String(reason);if(s.active===x)s.active=null;return true;}
+function metric(world,key,amount){var s=ensure(world),value=n(amount,1);s.metrics[key]=n(s.metrics[key],0)+value;return s.metrics[key];}
+function evidence(world,type,value,detail){var s=ensure(world);push(s.evidence,{type:String(type||""),value:!!value,detail:detail==null?"":String(detail),step:Math.floor(n(world&&world.v9v25&&world.v9v25.stepCount,0))},MAX_EVIDENCE);return s.evidence[s.evidence.length-1];}
+function gate(world,key,value){var s=ensure(world);s.gates[String(key)]=!!value;return s.gates[String(key)];}
+function observe(world,results){var s=ensure(world),r=results||{};Object.keys(s.gates).forEach(function(k){if(Object.prototype.hasOwnProperty.call(r,k))s.gates[k]=!!r[k];});Object.keys(r).forEach(function(k){if(["5m","15m","30m","60m","120m","repeat-life","multi-generation","offline","recovery"].indexOf(k)>=0&&r[k]===true)metric(world,k,1);});return s.gates;}
+function suite(world,results){var s=ensure(world),r=results||{};observe(world,r);var required=["5m","15m","30m","60m","120m","repeat-life","multi-generation","offline","recovery"],missing=required.filter(function(k){return r[k]!==true;});return {ready:missing.length===0,required:required,missing:missing,metrics:s.metrics,gates:s.gates,evidence:s.evidence.slice(-MAX_EVIDENCE)};}
+G.V21Playtest={ensure:ensure,session:session,begin:begin,tick:tick,complete:complete,metric:metric,evidence:evidence,gate:gate,observe:observe,suite:suite};
+})(IGRA);
