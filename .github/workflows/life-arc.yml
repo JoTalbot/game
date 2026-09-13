@@ -35,4 +35,12 @@ jobs:
             node "tools/probe/$probe"
           done
           node --expose-gc tools/probe/rc-hardening.js
-          node tools/probe/rc2-evidence.js
+          node tools/probe/rc2-evidence.js | tee rc2-evidence.json
+      - name: Upload RC2 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: igra-rc2-evidence
+          path: rc2-evidence.json
+          if-no-files-found: ignore
+          retention-days: 14
