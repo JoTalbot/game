@@ -28,7 +28,7 @@ jobs:
             v6-body.js v6-signals.js accessibility.js v7-climax.js v8-lineage.js
             v9-world.js v9-v25-systems.js v9-v25-bridge.js v9-v25-persistence.js v23-v25-persistence-fuzz.js v19-deep-simulation.js
             v20-v22-hardening.js v20-production-hardening.js v21-v22-gate.js
-            v23-v25-release-gates.js release-candidate.js dense-interaction.js
+            v23-v25-release-gates.js v23-v25-evidence.js release-candidate.js dense-interaction.js
             v3-046-telemetry.js v3-047-touch-meaning.js v3-048-performance.js
           )
           for probe in "${probes[@]}"; do
