@@ -17,7 +17,10 @@ ok(report.p95FrameMs<=16.7,"p95 frame укладывается в 16.7 ms");
 ok(report.slowFrames===0,"fixture не содержит slow frames");
 ok(report.withinBudget===true,"frame budget gate PASS");
 
-var baseline={p95FrameMs:15.0};
+// Baseline is intentionally >2 ms faster than the fixture p95 so the
+// regression branch is exercised deterministically, rather than merely
+// asserting a true value against an incompatible baseline.
+var baseline={p95FrameMs:14.0};
 var comparison=G.V22Optimization.compare(w,baseline);
 ok(comparison.regressed===true,"регрессия >2 ms корректно обнаруживается");
 ok(comparison.deltaP95Ms>2,"delta p95 корректно вычисляется");
