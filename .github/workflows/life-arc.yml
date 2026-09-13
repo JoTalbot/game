@@ -35,3 +35,4 @@ jobs:
             node "tools/probe/$probe"
           done
           node --expose-gc tools/probe/rc-hardening.js
+          node tools/probe/rc2-evidence.js
