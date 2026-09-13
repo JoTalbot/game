@@ -18,17 +18,20 @@ var game = {
   w: 427,
   state: "play",
   player: { x: 10, y: 20 },
-  dna: { dominant: function () { return "empathy"; } },
+  dna: { dominant: function () { return "empathy"; }, taps: 0, gazes: 0, pulses: 0 },
   world: { seed: 4242, beings: [], history: [] },
-  gazeTarget: null
+  gazeTarget: null,
+  __v9v25Action: { type: "care", amount: 0.1 }
 };
 assert(G.V9V25Bridge, "live bridge loads");
 G.V9V25Bridge.step(game, 0.1);
 assert(game.world.v9v25, "bridge attaches bounded state to live world");
 assert(game.world.v9v25.world && game.world.v9v25.world.regions.length === 6, "live V9 world has bounded regions");
 assert(game.world.v9v25.stepCount === 1, "one live integration step recorded");
-assert(game.world.v9v25.lastAction.type === "care", "dominant empathy drives care action");
-assert(game.world.v9v25.world.history.length > 0, "player action becomes causal world history");
+assert(game.world.v9v25.lastAction.type === "care", "real action signal drives care action");
+assert(game.world.v9v25.world.history.length > 0, "real action becomes causal world history");
+assert(game.world.v9v25.metrics.actions === 1, "action is counted once");
+assert(game.world.v9v25.metrics.idleSteps === 0, "action step is not misclassified as idle");
 assert(game.world.social && game.world.knowledge, "social and knowledge layers attach to live world");
 assert(game.world.presentationV16 && game.world.presentationV16.floats <= 3, "weak-device presentation budget is enforced");
 assert(game.world.simulationV19 && game.world.simulationV19.tick >= 0, "deep simulation is attached");
