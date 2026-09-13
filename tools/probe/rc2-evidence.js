@@ -7,7 +7,7 @@ const groups={
   probes:["v9-world.js","v9-v25-systems.js","v9-v25-bridge.js","v19-deep-simulation.js","v20-v22-hardening.js"],
   migration:["v9-v25-persistence.js","v23-v25-persistence-fuzz.js","v20-production-hardening.js"],
   replay:["v9-v25-persistence.js","v23-v25-persistence-fuzz.js"],
-  performance:["v3-048-performance.js","v3-046-telemetry.js","v20-v22-hardening.js"],
+  performance:["v3-048-performance.js","v3-046-telemetry.js","v20-v22-hardening.js","v22-regression-gate.js"],
   accessibility:["accessibility.js","v3-047-touch-meaning.js"],
   privacy:["v20-production-hardening.js"],
   signing:["release-candidate.js"],
