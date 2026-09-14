@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const ROOT = path.resolve(__dirname, '../..');
 global.IGRA = {};
 vm.runInThisContext(fs.readFileSync(path.join(ROOT, 'web/js/v9-world.js'), 'utf8'), { filename: 'v9-world.js' });
 
@@ -40,8 +39,8 @@ ok(a.regions[0].care > 0, 'care is retained as local memory');
 ok(a.regions[2].harm > 0, 'harm is retained as local memory');
 ok(a.regions[2].fertility < b.regions[2].fertility || a.regions[2].pressure > 0, 'harm leaves an observable causal state');
 
-const contrastCare = run(2468, Array.from({ length: 8 }, () => ({ type: 'care', region: 'r1', amount: 1 })));
-const contrastHarm = run(2468, Array.from({ length: 8 }, () => ({ type: 'harm', region: 'r1', amount: 1 })));
+const contrastCare = run(2468, Array.from({ length: 16 }, () => ({ type: 'care', region: 'r1', amount: 1 })));
+const contrastHarm = run(2468, Array.from({ length: 16 }, () => ({ type: 'harm', region: 'r1', amount: 1 })));
 ok(contrastCare.regions[1].care > contrastHarm.regions[1].care, 'contrasting profiles produce distinct place memory');
 ok(contrastCare.regions[1].fertility > contrastHarm.regions[1].fertility, 'contrasting profiles produce distinct ecology');
 ok(contrastCare.history.some(e => e.type === 'place:remembered-care'), 'sustained care creates a rare causal place beat');
