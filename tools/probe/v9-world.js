@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
+const ROOT = path.resolve(__dirname, '../..');
 global.IGRA = {};
 vm.runInThisContext(fs.readFileSync(path.join(ROOT, 'web/js/v9-world.js'), 'utf8'), { filename: 'v9-world.js' });
 
