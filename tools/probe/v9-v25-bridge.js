@@ -41,4 +41,13 @@ assert(game.world.playtestV21.evidence.length > 0, "playtest evidence is recorde
 assert(game.world.optimizationV22 && game.world.optimizationV22.frameSamples.length === 1, "optimization frame sample is attached");
 assert(game.world.optimizationV22.simSamples.length === 1, "optimization simulation sample is attached");
 assert(game.world.optimizationV22.frameBudget === 20, "weak-device frame budget is configured");
+
+// A quiet frame must remain quiet: no synthetic player action or causal event.
+var eventsBeforeIdle = game.world.v9v25.world.history.length;
+var actionsBeforeIdle = game.world.v9v25.metrics.actions;
+G.V9V25Bridge.step(game, 0.1);
+assert(game.world.v9v25.metrics.actions === actionsBeforeIdle, "idle frame does not invent an action");
+assert(game.world.v9v25.metrics.idleSteps === 1, "quiet frame is classified as idle");
+assert(game.world.v9v25.world.history.length === eventsBeforeIdle, "idle frame does not create causal player history");
+assert(game.world.v9v25.lastAction.type === "idle", "last action becomes explicit idle state");
 console.log("V9-V25 live bridge probe: PASS");
