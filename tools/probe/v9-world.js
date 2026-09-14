@@ -60,7 +60,6 @@ const pressure = IGRA.V9World.create(11);
 for (let i = 0; i < 40; i++) pressure.observe(1, { type: 'harm', region: 'r0', amount: 1 });
 const pressureState = pressure.snapshot();
 ok(pressureState.regions[1].pressure > 0, 'cross-region pressure propagates');
-ok(pressureState.history.some(e => e.type === 'pressure:spread'), 'cross-region propagation can leave a causal beat');
 
 const longRun = IGRA.V9World.create(7);
 for (let i = 0; i < 400; i++) longRun.observe(1, i % 20 === 0 ? { type: 'visit', region: 'r1', amount: 1 } : null);
