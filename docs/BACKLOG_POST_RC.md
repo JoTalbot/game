@@ -27,7 +27,7 @@
 - touch blocker — 0;
 - heavy frames — 0.
 
-Evidence: Android 15, экран 427×948 @1.0, weak-device profile, 10 минут; APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`.
+Evidence: Android 15, экран 427×948 @1.0, weak-device profile, 10 минут; APK SHA-256 `160cec76dee27c903fab4956ea05c813b6430760c7021a03b85360f36c78f6bc`.
 
 ## 1. Release preparation — почти закрыто
 
@@ -55,57 +55,56 @@ Evidence: Android 15, экран 427×948 @1.0, weak-device profile, 10 мину
 
 Immutable RC artifact не изменяется и не заменяется.
 
-## 3. V9 — World Depth
+## 3. V9 — World Depth — ЗАКРЫТ
 
-**Статус:** post-RC development backlog, не release blocker.
+**Статус:** реализован и закрыт deterministic gate; не release blocker.
 
 ### V9-001 — richer persistent places
-**Приоритет:** P1
-Добавить новые качественно разные состояния уже существующих мест без процедурного шума.
+**Статус:** IMPLEMENTED.
 
 ### V9-002 — multi-life causal chains
-**Приоритет:** P1
-Довести несколько причинных цепочек до 3–5 звеньев через события, места, существ и игрока.
+**Статус:** FOUNDATION IMPLEMENTED. Бounded world history и причинные события доступны следующим межжизненным системам.
 
 ### V9-003 — relationship depth
-**Приоритет:** P1
-Расширить память ключевых существ так, чтобы разные типы поведения игрока давали разные отношения и последствия.
+**Статус:** FOUNDATION IMPLEMENTED через personality/social слои.
 
 ### V9-004 — rare world beats
-**Приоритет:** P1
-Развивать V4.3: редкие события должны быть следствием накопленной истории, а не случайным контентом.
+**Статус:** IMPLEMENTED. Rare beats используют накопленную familiarity/care/harm/visits; без случайного event spam.
 
 ### V9-005 — anti-repeat Director policy
-**Приоритет:** P1
-Усилить защиту от event spam и повторяемого скелета.
+**Статус:** IMPLEMENTED / GATE PASS.
 
-**Gate V9:** 3 контрастных профиля игрока создают различимые world-state; несколько жизней меняют знакомые места заметным, но объяснимым образом.
+**Gate V9:** PASS. Контрастные care/harm/visit профили и bounded cross-region propagation проверяются детерминированным probe; Life Arc Gate GREEN на `09d18776fa84200263ee486bbe18d72d6e9c01a2`.
 
-## 4. V10 — Personal Myth / Replay
+## 4. V10 — Personal Myth / Replay — В РАБОТЕ
 
-**Статус:** post-RC development backlog, не release blocker.
+**Статус:** текущий post-RC development batch, не release blocker.
 
 ### V10-001 — cross-life identity
-**Приоритет:** P1
-Наследование должно проявляться поведением, визуальными признаками, отношениями и состоянием мира, а не только текстом.
+**Статус:** IMPLEMENTED foundation.
+
+`web/js/v10-myth.js` вводит bounded generational state: generation, latest lives, memories, signals и inherited conditions.
 
 ### V10-002 — finale-dependent starting conditions
-**Приоритет:** P1
-Разные финалы формируют разные стартовые условия следующей жизни.
+**Статус:** IMPLEMENTED foundation.
+
+`release` наследуется как `open`, `become` как `transform`; следующая жизнь получает измеримые inherited freedom/bond/change/world-memory условия.
 
 ### V10-003 — inter-life relationships
-**Приоритет:** P1
-Ключевые существа и места должны узнавать накопленную историю без явного quest journal.
+**Статус:** FOUNDATION через remembered region, dominant trait и generational signals; глубокая социальная реакция остаётся частью следующих V10/V11 итераций.
 
 ### V10-004 — generational rare events
-**Приоритет:** P1
-Добавить редкие события, открывающиеся только при накоплении определённой истории поколений.
+**Статус:** IMPLEMENTED foundation.
+
+При накоплении поколений и сигналов доступны bounded `generational:echo` / `generational:awakening`.
 
 ### V10-005 — bounded generational memory
 **Приоритет:** P0
-Любое новое наследование обязано оставаться bounded и проходить migration/replay probes.
+**Статус:** IMPLEMENTED foundation; migration/save integration и deterministic probe добавлены в текущий batch.
 
-**Gate V10:** три последовательные жизни дают три различимых опыта и меняют смысл следующих решений.
+Persistence schema поднята до `5`, старые schema 1–4 мигрируются без обязательной генерационной памяти.
+
+**Gate V10:** IN PROGRESS. Deterministic probe создан; финальное закрытие требует зелёного Life Arc Gate на актуальном main и последующего анализа результатов.
 
 ## 5. V11 — Final Polish
 
