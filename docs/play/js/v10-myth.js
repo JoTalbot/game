@@ -60,6 +60,7 @@ var IGRA = IGRA || {};
     var conditions = {
       generation: s.generation,
       echo: prior.finale,
+      inheritedDominant: cleanId(prior.dominant, "unknown"),
       familiarity: Number(clamp(0.12 + s.generation * 0.08, 0, 0.48).toFixed(3)),
       worldMemory: Number(clamp(0.18 + s.generation * 0.1, 0, 0.65).toFixed(3)),
       inheritedFreedom: Number(clamp(prior.freedom, 0, 1).toFixed(3)),
@@ -86,8 +87,10 @@ var IGRA = IGRA || {};
   }
   function rare(world) {
     var s = ensure(world); if (!s || s.generation < 2) return null;
-    var finale = s.signals["finale:" + (s.current && s.current.echo || "unknown")] || 0;
-    var memory = s.signals["dominant:" + (s.current && s.current.dominant || "unknown")] || 0;
+    var echo = s.current && s.current.echo || "unknown";
+    var dominant = s.current && s.current.inheritedDominant || "unknown";
+    var finale = s.signals["finale:" + echo] || 0;
+    var memory = s.signals["dominant:" + dominant] || 0;
     if (finale >= 0.7 && memory >= 0.5) return "generational:echo";
     if (s.generation >= 3 && Object.keys(s.signals).length >= 2) return "generational:awakening";
     return null;
