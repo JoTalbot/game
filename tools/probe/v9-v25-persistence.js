@@ -54,17 +54,23 @@ assert.strictEqual(JSON.stringify(restored.world.v9v25.world.snapshot()), JSON.s
 assert.strictEqual(JSON.stringify(ctx2.IGRA.V19Simulation.snapshot(restored.world)), JSON.stringify(packed.simulationV19), "V19 simulation snapshot survives actual restore exactly");
 assert.strictEqual(P.deterministic(777, actions).equal, true, "actual persistence deterministic helper passes");
 
-// Runtime bridge must feed the same replay used by saves. A silent frame is
-// not an action; a real event is recorded once and survives pack().
+// Runtime bridge and persistence intentionally have separate ownership:
+// bridge.ensure creates bounded integration state, while persistence.record
+// creates/updates the replay stream. Test that contract explicitly.
 vm.runInContext(fs.readFileSync("web/js/v9-v25-bridge.js", "utf8"), ctx2, { filename: "v9-v25-bridge.js" });
 var live = { w: 427, state: "play", player: { x: 10, y: 20 },
   dna: { dominant: function () { return "empathy"; }, taps: 0, gazes: 0, pulses: 0 },
   world: { seed: 5150, beings: [], history: [] }, gazeTarget: null };
 ctx2.IGRA.V9V25Bridge.step(live, 0.1);
-assert.strictEqual(live.world.v9v25.replay.length, 0, "idle runtime does not create replay entry");
+assert(live.world.v9v25, "bridge attaches bounded state to live world");
+assert.strictEqual(live.world.v9v25.lastAction.type, "idle", "idle runtime remains explicit idle state");
+assert(!Array.isArray(live.world.v9v25.replay), "bridge does not own the persistence replay array");
+
 live.__v9v25Action = { type: "care", amount: 0.1 };
 ctx2.IGRA.V9V25Bridge.step(live, 0.1);
-assert.strictEqual(live.world.v9v25.replay.length, 1, "real runtime action is persisted to replay");
+assert.strictEqual(live.world.v9v25.metrics.actions, 1, "real runtime action is counted once");
+assert.strictEqual(live.world.v9v25.lastAction.type, "care", "runtime action preserves type");
+assert(Array.isArray(live.world.v9v25.replay) && live.world.v9v25.replay.length === 1, "persistence.record creates replay entry");
 assert.strictEqual(live.world.v9v25.replay[0].type, "care", "runtime replay preserves action type");
 ctx2.IGRA.V9V25Bridge.step(live, 0.1);
 assert.strictEqual(live.world.v9v25.replay.length, 1, "idle frame does not duplicate runtime action");
