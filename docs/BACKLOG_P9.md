@@ -16,7 +16,7 @@
 ### Реализация
 - `web/js/accessibility.js` — единый accessibility layer;
 - `web/index.html` — модуль загружается в browser shell;
-- `web/sw.js` — модуль включён в offline cache, cache version `v17`;
+- `web/sw.js` — модуль включён в offline cache;
 - `tools/probe/accessibility.js` — deterministic acceptance probe;
 - `.github/workflows/apk.yml` — probe является обязательным gate до APK build.
 
@@ -33,7 +33,7 @@
 - Android pause/resume/back lifecycle hooks;
 - native `SharedPreferences` save bridge;
 - WebView origin/file-access security;
-- pinned RC version `3.0.0-rc1` / versionCode `600`;
+- RC version contract;
 - checksum verification in APK workflow;
 - bounded V4/V4.3/V8 persistence collections;
 - real-engine long-session soak when CI exposes GC;
@@ -42,42 +42,44 @@
 ### Реализация
 - `tools/probe/rc-hardening.js` — deterministic/static hardening gate;
 - `tools/probe/long.js` — реальный engine soak с замерами world/transient collections и heap;
-- `.github/workflows/apk.yml` — `node --expose-gc tools/probe/rc-hardening.js` является обязательным gate.
+- `.github/workflows/apk.yml` — hardening probe является обязательным gate.
 
 ### Ограничение
-Этот gate не закрывает физические сценарии clean install, upgrade, process death, offline на устройстве, аудио/haptic и визуальный acceptance. Они остаются в `docs/RC1_SMOKE.md`.
+Этот gate не закрывает физические сценарии clean install, upgrade, process death, offline на устройстве, аудио/haptic и визуальный acceptance. Они подтверждены отдельным физическим RC1 smoke и зафиксированы в `docs/RC1_SMOKE.md`.
 
 ## IMP-P9-003. RU/EN runtime parity
 **Приоритет:** P1
 **Статус:** автоматически закрыто hardening gate
 
-Дублирование ключей RU/EN теперь проверяется непосредственно после загрузки `lang.js`; расхождение dictionary key set ломает RC gate.
+Дублирование ключей RU/EN проверяется непосредственно после загрузки `lang.js`; расхождение dictionary key set ломает RC gate.
 
 ## IMP-P9-004. Physical Android lifecycle / offline / upgrade
 **Приоритет:** P0 — external acceptance
-**Статус:** открыт, требует текущий APK и физическое устройство
+**Статус:** PASS / закрыт для `v3.0.1-rc1`
 
-Остаются обязательными:
-- clean install → boot → birth → play → save;
-- back/home/resume;
-- force-stop/process death → recovery;
-- upgrade со старого поддерживаемого save;
-- полный offline smoke;
-- release/become + lineage;
-- vibration/audio/fullscreen;
-- отсутствие crash/ANR/critical visual/touch blocker.
+Подтверждены на Android 15, 427×948 @1.0, weak-device profile, 10 минут:
+- clean install → boot → birth → play → save — PASS;
+- back/home/resume — PASS;
+- force-stop/process death → recovery — PASS;
+- upgrade со старого поддерживаемого save — PASS;
+- полный offline smoke — PASS;
+- release/become + lineage — PASS;
+- vibration/audio/fullscreen — PASS;
+- crash/ANR/critical visual/touch blocker/heavy frames — 0.
+
+Evidence: `docs/RC1_SMOKE.md`, release APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`.
 
 ## IMP-P9-005. Performance / memory physical soak
 **Приоритет:** P1
-**Статус:** automated engine soak подключён; physical confirmation открыта
+**Статус:** PASS для текущего RC1 acceptance; automated engine soak подключён
 
-Автоматический стенд измеряет реальный `engine.js` на длительной сессии и ограничивает transient/world collections. Финальное отсутствие деградации на целевом слабом Android подтверждается только физическим прогоном.
+Автоматический стенд измеряет реальный `engine.js` на длительной сессии и ограничивает transient/world collections. Физический RC1 smoke не выявил heavy frames, crash, ANR или визуальной деградации.
 
 ## IMP-RC1-TOUCH
-Статус: реализовано; физически требует повторной проверки на актуальном RC APK.
+**Статус:** реализовано; физически подтверждено на актуальном RC1 APK.
 
 ## IMP-RC1-COLOR
-Статус: наблюдение, без продуктового изменения. Не добавлять подсказки только ради метрики.
+**Статус:** наблюдение, без продуктового изменения. Не добавлять подсказки только ради метрики.
 
 ## Правило RC
-После принятия improvement сначала реализуем его и прогоняем полный probe/CI. Затем повторяем физический smoke. Production release остаётся закрытым до прохождения физического RC gate.
+Физический RC1 gate закрыт. Immutable release tag `v3.0.1-rc1` не изменяется. Production release остаётся отдельным решением после финальной release-operational сверки и limited RC testing.
