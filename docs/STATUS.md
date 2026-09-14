@@ -38,7 +38,8 @@
 - V9 → V25 runtime bridge, systems, persistence и production hardening — подключены и покрыты автоматическими probes.
 - V9 World Depth — реализован и закрыт deterministic gate.
 - V10 Personal Myth / Replay — реализован и закрыт deterministic gate; bounded generational memory, finale-dependent starts, inherited dominant trait, generational rare beats и межжизненная continuity отношений.
-- Service Worker cache — offline shell содержит новые assets.
+- V11-001 first-session UX — реализован: одноразовая контекстная подсказка birth → touch → gaze → first growth, RU/EN, без изменения save/game rules.
+- Service Worker cache — offline shell содержит новые assets; cache version `v30`.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
 - APK получает SHA-256 и публикует его рядом с artifact.
@@ -82,6 +83,18 @@
 - RC2 evidence digest: `sha256:7b28ca2e4bbecfa78a28a96e47cacd6f3298b042e001c2ec70b66a865c3c8e88`.
 - Evidence generated for the current V10 commit; required groups present, blockers false, production gate in automated evidence PASS.
 
+### V11-001 gate
+
+- Implementation commit: `dc0f2e24720c1fafcbd51ce4991dd4a3409748db`.
+- Follow-up offline cache fix: `94b29e9b465c4985cc39bbf27e7a190b8ae3ce04`.
+- Probe alignment fix: `d168142914491d23c0343c089978e75096870131`.
+- Life Arc Gate #96: **SUCCESS**.
+- APK #1062: **SUCCESS**.
+- Sync play mirror #588: **SUCCESS**.
+- V11 first-session deterministic probe: PASS.
+- Offline shell probe: PASS after cache v30 alignment.
+- APK checks, Android SDK/signing/build/checksum: PASS.
+
 ### Текущие незакрытые release-operational задачи
 
 1. Финальная сверка Play listing/privacy материалов с фактическим APK.
@@ -92,14 +105,13 @@
 
 ### Следующий milestone — V11 Final Polish
 
-V10 закрыт. Следующий development milestone — V11 Final Polish:
+V10 закрыт. V11 начат. Следующий development batch:
 
-1. P0 first-session UX.
-2. P0 long-session performance.
-3. P0 localization/accessibility final pass.
-4. P0 release QA matrix.
-5. P1 balance.
-6. P1 visual/audio coherence.
+1. P0 long-session performance.
+2. P0 localization/accessibility final pass.
+3. P0 release QA matrix.
+4. P1 balance.
+5. P1 visual/audio coherence.
 
 Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
 
