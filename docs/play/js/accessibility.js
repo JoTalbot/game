@@ -72,7 +72,7 @@ var IGRA = IGRA || {};
   }
 
   G.Accessibility = {
-    version: 2,
+    version: 1,
     reducedMotion: reduced,
     applyMotion: applyMotion,
     refreshLabels: labelButtons,
