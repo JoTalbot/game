@@ -31,7 +31,7 @@ var raw = {
 var s = G.V20Hardening.sanitizeSave(raw);
 assert.strictEqual(s.ok, true);
 assert.strictEqual(s.data.score, 7);
-assert.strictEqual(s.data.v9v25.schema, 4);
+assert.strictEqual(s.data.v9v25.schema, 5);
 assert.strictEqual(s.data.v9v25.clock, 0);
 assert.strictEqual(s.data.v9v25.stepCount, 9);
 assert.strictEqual(s.data.v9v25.eventCount, 0);
