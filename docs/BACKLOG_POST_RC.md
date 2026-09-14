@@ -1,46 +1,63 @@
 # ИГРА — backlog после RC1
 
-> Дата: 2026-09-03.
-> База: `3.0.0-rc1`, versionCode `600`.
+> Дата: 2026-09-14.
+> База: `v3.0.1-rc1`, versionCode `601`.
 > Правило: production release не заменяет развитие игры. После выпуска изменения идут только через подтверждённые проблемы и продуктовые IMP-пункты.
 
-## 0. Непереговорный RC gate
+## 0. RC1 gate — ЗАКРЫТ
 
 ### RC-PHYS-001 — физический acceptance актуального APK
 **Приоритет:** P0 / release blocker
-**Статус:** ожидает физического прогона
+**Статус:** PASS / закрыт.
 
-Проверить именно последний artifact:
-- clean install;
-- first boot / birth / основной игровой цикл;
-- drag / long-press / tap / double-tap pulse;
-- Back / Home / Resume;
-- save / restart;
-- force-stop / process death / recovery;
-- upgrade старого поддерживаемого save;
-- offline / airplane mode;
-- release / become;
-- NG+ / lineage;
-- audio / haptic / fullscreen;
-- отсутствие crash / ANR / critical visual или touch regression.
+Проверен именно release artifact `v3.0.1-rc1`:
+- clean install — PASS;
+- first boot / birth / основной игровой цикл — PASS;
+- Home → Resume — PASS;
+- save / restart — PASS;
+- force-stop / recovery — PASS;
+- upgrade старого поддерживаемого save — PASS;
+- offline — PASS;
+- release / become — PASS;
+- NG+ / lineage — PASS;
+- audio / haptic / fullscreen — PASS;
+- crash — 0;
+- ANR — 0;
+- critical visual blocker — 0;
+- touch blocker — 0;
+- heavy frames — 0.
 
-Evidence: устройство, Android, APK SHA-256, timestamp, pass/fail по каждому пункту, screenshots/video/logs для дефектов.
+Evidence: Android 15, экран 427×948 @1.0, weak-device profile, 10 минут; APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`.
 
-## 1. Release preparation
+## 1. Release preparation — почти закрыто
 
 ### R10-001 — RC contract freeze
-**Статус:** автоматические инварианты закрыты; физический acceptance отдельно.
+**Статус:** PASS. Автоматические инварианты и физический acceptance закрыты.
 
 ### R10-002 — release artifact
-**Статус:** CI-ready.
+**Статус:** PASS. APK собран, подписан, checksum проверен и приложен к GitHub Release.
 
 ### R10-003 — Play package audit
-**Статус:** store/privacy материалы существуют; требуется финальная сверка с фактическим APK.
+**Статус:** в работе только финальная ручная сверка Store/Privacy материалов с фактическим APK.
 
-### R10-004 — production tag
-**Статус:** заблокирован до RC-PHYS-001.
+### R10-004 — production decision
+**Статус:** PENDING. Не блокируется физическим RC gate; решение принимается отдельно после limited RC testing и финальной release-operational проверки.
 
-## 2. V9 — World Depth
+## 2. Текущие release-operational действия
+
+До production ничего автоматически не публикуем. Осталось:
+
+1. В GitHub Release `v3.0.1-rc1` вручную включить флаг **Pre-release**. Текущий GitHub connector не предоставляет операции изменения release.
+2. Финально сверить Play listing и `docs/PRIVACY.md` с фактическим APK.
+3. Провести limited RC testing.
+4. Принять отдельное решение о production.
+5. Только после явного одобрения — production rollout и мониторинг.
+
+Immutable RC artifact не изменяется и не заменяется.
+
+## 3. V9 — World Depth
+
+**Статус:** post-RC development backlog, не release blocker.
 
 ### V9-001 — richer persistent places
 **Приоритет:** P1
@@ -64,7 +81,9 @@ Evidence: устройство, Android, APK SHA-256, timestamp, pass/fail по 
 
 **Gate V9:** 3 контрастных профиля игрока создают различимые world-state; несколько жизней меняют знакомые места заметным, но объяснимым образом.
 
-## 3. V10 — Personal Myth / Replay
+## 4. V10 — Personal Myth / Replay
+
+**Статус:** post-RC development backlog, не release blocker.
 
 ### V10-001 — cross-life identity
 **Приоритет:** P1
@@ -88,7 +107,9 @@ Evidence: устройство, Android, APK SHA-256, timestamp, pass/fail по 
 
 **Gate V10:** три последовательные жизни дают три различимых опыта и меняют смысл следующих решений.
 
-## 4. V11 — Final Polish
+## 5. V11 — Final Polish
+
+**Статус:** post-RC development backlog, не release blocker.
 
 ### V11-001 — first-session UX
 **Приоритет:** P0
@@ -114,7 +135,7 @@ RU/EN parity, overflow, reduced motion, semantic names, audio/haptic fallbacks.
 **Приоритет:** P0
 Clean install, upgrade, process death, offline, lifecycle, touch, lineage, финалы.
 
-## 5. Правила развития
+## 6. Правила развития
 
 1. Любое продуктовое улучшение сначала получает `IMP-*`.
 2. Реализация идёт батчами.
