@@ -1,0 +1,39 @@
+"use strict";
+var assert = require("assert"), fs = require("fs"), vm = require("vm");
+var ctx = { console: console, Math: Math };
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync("web/js/v9-world.js", "utf8"), ctx);
+vm.runInContext(fs.readFileSync("web/js/v10-myth.js", "utf8"), ctx);
+var G = ctx.IGRA;
+assert(G && G.V9World && G.V10Myth, "V10 myth modules load");
+assert.strictEqual(G.V10Myth.constants.maxLives, 3, "life memory is bounded to three lives");
+assert.strictEqual(G.V10Myth.constants.maxMemory, 24, "generational memory is bounded");
+function life(world, finale, dominant, region) {
+  var start = G.V10Myth.start(world);
+  var memory = G.V10Myth.absorb(world, finale, { dominant: dominant, freedom: finale === "release" ? 0.9 : 0.2, bond: dominant === "empathy" ? 0.8 : 0.3, change: finale === "become" ? 0.9 : 0.2 }, region);
+  return { start: start, memory: memory };
+}
+var a = G.V9World.create(2026);
+var first = life(a, "release", "empathy", "r1");
+assert.strictEqual(first.memory.generation, 1, "first life increments generation");
+var secondStart = G.V10Myth.start(a);
+assert.strictEqual(secondStart.echo, "release", "next life remembers release");
+assert.strictEqual(secondStart.rule, "open", "release creates open starting condition");
+var second = life(a, "become", "curiosity", "r4");
+assert.strictEqual(second.memory.generation, 2, "second life increments generation");
+var thirdStart = G.V10Myth.start(a);
+assert.strictEqual(thirdStart.echo, "become", "next life remembers become");
+assert.strictEqual(thirdStart.rule, "transform", "become creates transformation starting condition");
+life(a, "release", "aggression", "r2");
+assert.strictEqual(a.mythV10.lives.length, 3, "only the latest three lives are retained");
+assert(G.V10Myth.rare(a) === "generational:echo" || G.V10Myth.rare(a) === "generational:awakening", "generation three can unlock a rare generational beat");
+for (var i = 0; i < 40; i++) G.V10Myth.touch(a, "r" + (i % 6), i % 2 ? "care" : "harm", 0.2);
+assert(a.mythV10.memories.length <= 24, "myth memory remains bounded");
+assert(Object.keys(a.mythV10.signals).length <= 12, "myth signals remain bounded");
+var snap = G.V10Myth.snapshot(a), b = G.V9World.create(2026);
+assert.strictEqual(G.V10Myth.restore(b, snap), true, "myth snapshot restores");
+assert.strictEqual(JSON.stringify(G.V10Myth.snapshot(b)), JSON.stringify(snap), "myth snapshot round-trips deterministically");
+var x = G.V9World.create(5150), y = G.V9World.create(5150), finals = ["release", "become", "release"], profiles = ["empathy", "curiosity", "aggression"];
+for (var j = 0; j < 3; j++) { G.V10Myth.absorb(x, finals[j], { dominant: profiles[j] }, "r" + j); G.V10Myth.absorb(y, finals[j], { dominant: profiles[j] }, "r" + j); }
+assert.strictEqual(JSON.stringify(G.V10Myth.snapshot(x)), JSON.stringify(G.V10Myth.snapshot(y)), "same seed and life history are deterministic");
+console.log("V10 personal myth probe: PASS");
