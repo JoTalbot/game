@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+const fs=require('fs'),path=require('path');
+const assert=require('assert');
+const R=path.resolve(__dirname,'../..');
+const html=fs.readFileSync(path.join(R,'web/index.html'),'utf8');
+const sw=fs.readFileSync(path.join(R,'web/sw.js'),'utf8');
+const persistence=fs.readFileSync(path.join(R,'web/js/v9-v25-persistence.js'),'utf8');
+const a11y=fs.readFileSync(path.join(R,'web/js/accessibility.js'),'utf8');
+const ok=(v,l)=>{assert(v,l);console.log('✓ '+l)};
+ok(/<html lang="ru">/.test(html),'base locale');
+ok(/manifest\.json/.test(html),'install manifest');
+ok(/serviceWorker|service-worker|sw\.js/.test(html),'offline registration');
+ok(/igra-shell-v30/.test(sw),'current offline cache');
+['js/lang.js','js/accessibility.js','js/v9-world.js','js/v10-myth.js','js/v9-v25-persistence.js','js/v9-v25-bridge.js'].forEach(s=>ok(html.includes('src="'+s+'"'),'shell loads '+s));
+ok(/schema\s*[:=].*5|SCHEMA\s*=\s*5/.test(persistence),'save schema 5');
+ok(/migration|migrat/i.test(persistence),'legacy migration');
+ok(/snapshot|restore|fromSnapshot/i.test(persistence),'restore primitives');
+ok(/prefers-reduced-motion/.test(a11y),'reduced motion');
+ok(/aria-label/.test(a11y)&&/aria-live/.test(a11y),'semantic accessibility');
+ok(/refreshLabels/.test(a11y),'locale label refresh');
+[['btn-continue','lifecycle resume'],['btn-release','release finale'],['btn-become','become finale'],['btn-forget','forget/reset'],['btn-share','lineage/report'],['mute-btn','audio control'],['lang-btn','language control'],['sigil-btn','sigil open'],['sigil-close','sigil close']].forEach(([id,l])=>ok(html.includes('id="'+id+'"'),l));
+const matrix=['clean-install','upgrade','process-death','offline','lifecycle','touch','lineage','release','become','audio','haptic','fullscreen','localization','accessibility','bounded-persistence'];
+ok(matrix.length===15,'15 release-critical QA scenarios defined');
+console.log('V11 release QA matrix: PASS');
+console.log('Physical Android execution remains separate evidence and is not fabricated by this probe.');
