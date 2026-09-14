@@ -53,4 +53,22 @@ assert(P.restore(restored, packed), "actual persistence restore succeeds");
 assert.strictEqual(JSON.stringify(restored.world.v9v25.world.snapshot()), JSON.stringify(game.world.v9v25.world.snapshot()), "world snapshot survives actual restore exactly");
 assert.strictEqual(JSON.stringify(ctx2.IGRA.V19Simulation.snapshot(restored.world)), JSON.stringify(packed.simulationV19), "V19 simulation snapshot survives actual restore exactly");
 assert.strictEqual(P.deterministic(777, actions).equal, true, "actual persistence deterministic helper passes");
+
+// Runtime bridge must feed the same replay used by saves. A silent frame is
+// not an action; a real event is recorded once and survives pack().
+vm.runInContext(fs.readFileSync("web/js/v9-v25-bridge.js", "utf8"), ctx2, { filename: "v9-v25-bridge.js" });
+var live = { w: 427, state: "play", player: { x: 10, y: 20 },
+  dna: { dominant: function () { return "empathy"; }, taps: 0, gazes: 0, pulses: 0 },
+  world: { seed: 5150, beings: [], history: [] }, gazeTarget: null };
+ctx2.IGRA.V9V25Bridge.step(live, 0.1);
+assert.strictEqual(live.world.v9v25.replay.length, 0, "idle runtime does not create replay entry");
+live.__v9v25Action = { type: "care", amount: 0.1 };
+ctx2.IGRA.V9V25Bridge.step(live, 0.1);
+assert.strictEqual(live.world.v9v25.replay.length, 1, "real runtime action is persisted to replay");
+assert.strictEqual(live.world.v9v25.replay[0].type, "care", "runtime replay preserves action type");
+ctx2.IGRA.V9V25Bridge.step(live, 0.1);
+assert.strictEqual(live.world.v9v25.replay.length, 1, "idle frame does not duplicate runtime action");
+var livePacked = ctx2.IGRA.V9V25Persistence.pack(live);
+assert(livePacked && livePacked.replay.length === 1, "live replay survives actual pack");
+
 console.log("V9-V25 persistence/replay probe: PASS");
