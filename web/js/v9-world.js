@@ -3,12 +3,13 @@ var IGRA = IGRA || {};
   "use strict";
 
   // V9 foundation: bounded, deterministic world simulation kept separate from
-  // presentation. The module deliberately exposes compact state so later V10+
-  // systems can consume it without coupling themselves to renderer internals.
+  // presentation. Place memory is intentionally compact so later V10+ systems
+  // can consume it without coupling themselves to renderer internals.
   var MAX_REGIONS = 6;
   var MAX_EVENTS = 48;
   var MAX_HISTORY = 96;
   var WEATHER = ["clear", "mist", "rain", "storm", "dry"];
+  var BEAT_COOLDOWN = 8;
 
   function clamp(v, lo, hi) {
     return Math.max(lo, Math.min(hi, v));
@@ -37,13 +38,19 @@ var IGRA = IGRA || {};
       weather: WEATHER[(h >>> 7) % WEATHER.length],
       recovery: 0,
       trace: 0,
+      familiarity: 0,
+      care: 0,
+      harm: 0,
+      visits: 0,
+      lastBeatTick: -BEAT_COOLDOWN,
+      beatCount: 0,
       neighbors: [],
       rule: climate < 0.33 ? "silence" : climate < 0.66 ? "growth" : "change"
     };
   }
 
   function LivingWorld(seed) {
-    this.version = 1;
+    this.version = 2;
     this.seed = seed | 0;
     this.tick = 0;
     this.time = 0;
@@ -81,6 +88,13 @@ var IGRA = IGRA || {};
     return event;
   };
 
+  LivingWorld.prototype.beat = function (region, type, cause, magnitude) {
+    if (!region || this.tick - region.lastBeatTick < BEAT_COOLDOWN) return null;
+    region.lastBeatTick = this.tick;
+    region.beatCount = Math.min(99, region.beatCount + 1);
+    return this.record(type, region, cause, magnitude);
+  };
+
   LivingWorld.prototype.observe = function (dt, action) {
     dt = clamp(Number(dt) || 0, 0, 10);
     action = action || null;
@@ -90,9 +104,19 @@ var IGRA = IGRA || {};
     var focus = action && action.region ? this.region(action.region) : null;
     if (focus && action.type) {
       var amount = clamp(Number(action.amount) || 0.1, -1, 1);
-      if (action.type === "care") focus.fertility = clamp(focus.fertility + amount * 0.08, 0, 1);
-      if (action.type === "harm") focus.fertility = clamp(focus.fertility - Math.abs(amount) * 0.12, 0, 1);
-      if (action.type === "visit") focus.trace = clamp(focus.trace + 0.05, 0, 1);
+      if (action.type === "care") {
+        focus.fertility = clamp(focus.fertility + amount * 0.08, 0, 1);
+        focus.care = clamp(focus.care + Math.abs(amount) * 0.1, 0, 1);
+      }
+      if (action.type === "harm") {
+        focus.fertility = clamp(focus.fertility - Math.abs(amount) * 0.12, 0, 1);
+        focus.harm = clamp(focus.harm + Math.abs(amount) * 0.1, 0, 1);
+      }
+      if (action.type === "visit") {
+        focus.trace = clamp(focus.trace + 0.05, 0, 1);
+        focus.visits = Math.min(999, focus.visits + 1);
+      }
+      focus.familiarity = clamp(focus.familiarity + (action.type === "visit" ? 0.08 : 0.025), 0, 1);
       focus.pressure = clamp(focus.pressure + Math.abs(amount) * 0.03, 0, 1);
       this.record("player:" + action.type, focus, "player", amount);
     }
@@ -110,12 +134,24 @@ var IGRA = IGRA || {};
       r.population = Math.max(0, Math.min(99, Math.round(r.population + growth)));
       r.pressure = clamp(r.pressure - 0.004 * dt, 0, 1);
       r.trace = clamp(r.trace - 0.001 * dt, 0, 1);
+      r.familiarity = clamp(r.familiarity - 0.0005 * dt, 0, 1);
       if (r.fertility < 0.2 && r.recovery === 0) {
         r.recovery = 1;
-        this.record("degraded", r, "ecology", r.fertility);
+        this.beat(r, "degraded", "ecology", r.fertility);
       } else if (r.fertility > 0.65 && r.recovery > 0) {
         r.recovery = 0;
-        this.record("recovered", r, "ecology", r.fertility);
+        this.beat(r, "recovered", "ecology", r.fertility);
+      }
+
+      // Personal history turns accumulated actions into rare, explainable
+      // place beats. The thresholds are deliberately high to prevent spam.
+      var careHarm = r.care - r.harm;
+      if (r.familiarity >= 0.32 && careHarm >= 0.24) {
+        this.beat(r, "place:remembered-care", "player-care", careHarm);
+      } else if (r.familiarity >= 0.32 && careHarm <= -0.24) {
+        this.beat(r, "place:scarred", "player-harm", Math.abs(careHarm));
+      } else if (r.visits >= 4 && r.trace >= 0.15) {
+        this.beat(r, "place:familiar", "repeated-visits", r.trace);
       }
     }
 
@@ -127,7 +163,9 @@ var IGRA = IGRA || {};
       for (var q = 0; q < source.neighbors.length; q++) {
         var target = this.region(source.neighbors[q]);
         if (!target) continue;
+        var before = target.pressure;
         target.pressure = clamp(target.pressure + source.pressure * 0.002 * dt, 0, 1);
+        if (target.pressure - before >= 0.02) this.beat(target, "pressure:spread", "region:" + source.id, target.pressure - before);
       }
     }
     return this.snapshot();
@@ -149,6 +187,8 @@ var IGRA = IGRA || {};
           id: r.id, climate: Number(r.climate.toFixed(4)), moisture: Number(r.moisture.toFixed(4)),
           fertility: Number(r.fertility.toFixed(4)), population: r.population, pressure: Number(r.pressure.toFixed(4)),
           season: r.season, weather: r.weather, recovery: r.recovery, trace: Number(r.trace.toFixed(4)),
+          familiarity: Number(r.familiarity.toFixed(4)), care: Number(r.care.toFixed(4)), harm: Number(r.harm.toFixed(4)),
+          visits: r.visits, lastBeatTick: r.lastBeatTick, beatCount: r.beatCount,
           rule: r.rule, neighbors: r.neighbors.slice()
         };
       }),
@@ -166,7 +206,7 @@ var IGRA = IGRA || {};
     if (Array.isArray(snapshot.regions)) {
       for (var i = 0; i < snapshot.regions.length && i < w.regions.length; i++) {
         var src = snapshot.regions[i], dst = w.regions[i];
-        ["climate", "moisture", "fertility", "population", "pressure", "season", "recovery", "trace"].forEach(function (k) {
+        ["climate", "moisture", "fertility", "population", "pressure", "season", "recovery", "trace", "familiarity", "care", "harm", "visits", "lastBeatTick", "beatCount"].forEach(function (k) {
           if (src[k] !== undefined && Number.isFinite(Number(src[k]))) dst[k] = Number(src[k]);
         });
         if (typeof src.weather === "string" && WEATHER.indexOf(src.weather) >= 0) dst.weather = src.weather;
@@ -185,6 +225,6 @@ var IGRA = IGRA || {};
   G.V9World = {
     LivingWorld: LivingWorld,
     create: function (seed) { return new LivingWorld(seed); },
-    constants: { maxRegions: MAX_REGIONS, maxEvents: MAX_EVENTS, maxHistory: MAX_HISTORY }
+    constants: { maxRegions: MAX_REGIONS, maxEvents: MAX_EVENTS, maxHistory: MAX_HISTORY, beatCooldown: BEAT_COOLDOWN }
   };
 })(IGRA);
