@@ -63,7 +63,7 @@ Immutable RC artifact не изменяется и не заменяется.
 **Статус:** IMPLEMENTED.
 
 ### V9-002 — multi-life causal chains
-**Статус:** FOUNDATION IMPLEMENTED. Бounded world history и причинные события доступны следующим межжизненным системам.
+**Статус:** FOUNDATION IMPLEMENTED. Bounded world history и причинные события доступны следующим межжизненным системам.
 
 ### V9-003 — relationship depth
 **Статус:** FOUNDATION IMPLEMENTED через personality/social слои.
@@ -76,39 +76,41 @@ Immutable RC artifact не изменяется и не заменяется.
 
 **Gate V9:** PASS. Контрастные care/harm/visit профили и bounded cross-region propagation проверяются детерминированным probe; Life Arc Gate GREEN на `09d18776fa84200263ee486bbe18d72d6e9c01a2`.
 
-## 4. V10 — Personal Myth / Replay — В РАБОТЕ
+## 4. V10 — Personal Myth / Replay — ЗАКРЫТ
 
-**Статус:** текущий post-RC development batch, не release blocker.
+**Статус:** IMPLEMENTED / deterministic gate PASS; не release blocker.
 
 ### V10-001 — cross-life identity
-**Статус:** IMPLEMENTED foundation.
+**Статус:** IMPLEMENTED.
 
 `web/js/v10-myth.js` вводит bounded generational state: generation, latest lives, memories, signals и inherited conditions.
 
 ### V10-002 — finale-dependent starting conditions
-**Статус:** IMPLEMENTED foundation.
+**Статус:** IMPLEMENTED.
 
 `release` наследуется как `open`, `become` как `transform`; следующая жизнь получает измеримые inherited freedom/bond/change/world-memory условия.
 
 ### V10-003 — inter-life relationships
-**Статус:** FOUNDATION через remembered region, dominant trait и generational signals; глубокая социальная реакция остаётся частью следующих V10/V11 итераций.
+**Статус:** IMPLEMENTED foundation + continuity layer.
+
+Межжизненная связь теперь сохраняет стабильную пару регион/действие, доверие/страх, число встреч и bounded память. Сильная связь переносится в следующую жизнь, а metamorphosis оставляет живое legacy-эхо. fileciteturn381file0
 
 ### V10-004 — generational rare events
-**Статус:** IMPLEMENTED foundation.
+**Статус:** IMPLEMENTED.
 
-При накоплении поколений и сигналов доступны bounded `generational:echo` / `generational:awakening`.
+При накоплении поколений и сигналов доступны bounded `generational:echo` / `generational:awakening`; inherited dominant trait участвует в условии echo. fileciteturn382file0
 
 ### V10-005 — bounded generational memory
 **Приоритет:** P0
-**Статус:** IMPLEMENTED foundation; migration/save integration и deterministic probe добавлены в текущий batch.
+**Статус:** IMPLEMENTED.
 
-Persistence schema поднята до `5`, старые schema 1–4 мигрируются без обязательной генерационной памяти.
+Persistence schema поднята до `5`, старые schema 1–4 мигрируются; myth state имеет bounded lives/memories/signals и deterministic snapshot/restore. fileciteturn386file0
 
-**Gate V10:** IN PROGRESS. Deterministic probe создан; финальное закрытие требует зелёного Life Arc Gate на актуальном main и последующего анализа результатов.
+**Gate V10:** PASS. Актуальный `main` commit `7add878eded6267b7c17c39b79a705cd9b6c69a3`; Life Arc Gate #91 — SUCCESS, APK #1057 — SUCCESS, Sync play mirror #583 — SUCCESS. RC2 evidence artifact `10350957018` создан для этого commit.
 
 ## 5. V11 — Final Polish
 
-**Статус:** post-RC development backlog, не release blocker.
+**Статус:** следующий основной development milestone.
 
 ### V11-001 — first-session UX
 **Приоритет:** P0
