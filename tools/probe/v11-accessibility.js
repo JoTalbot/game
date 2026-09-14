@@ -1,0 +1,19 @@
+const fs = require("fs");
+const assert = require("assert");
+const html = fs.readFileSync("web/index.html", "utf8");
+const lang = fs.readFileSync("web/js/lang.js", "utf8");
+const a11y = fs.readFileSync("web/js/accessibility.js", "utf8");
+assert(/<html lang="ru">/.test(html), "base language exists");
+assert(/id="stage"/.test(html) && /id="sigil-canvas"/.test(html), "canvases exist");
+assert(/id="mouth-url"[^>]*type="url"/.test(html), "URL input exists");
+["mute-btn","lang-btn","sky-btn","sigil-btn","btn-continue","btn-born","btn-release","btn-become","sigil-close","btn-report","btn-share","btn-forget","report-copy","report-close"].forEach(id => assert(new RegExp('"'+id+'"\\s*:').test(a11y), "semantic label: "+id));
+assert(/aria-live/.test(a11y), "live regions exist");
+assert(/prefers-reduced-motion:\s*reduce/.test(a11y), "reduced motion detected");
+assert(/data-reduced-motion/.test(a11y), "reduced motion state exposed");
+const ru = lang.match(/ru:\s*\{([\s\S]*?)\n\s*\},\n\s*en:\s*\{/);
+const en = lang.match(/en:\s*\{([\s\S]*?)\n\s*\}\n\s*\};/);
+assert(ru && en, "RU and EN dictionaries exist");
+function keys(s){return [...s.matchAll(/^\s*([A-Za-z][A-Za-z0-9]*)\s*:/gm)].map(m=>m[1]).sort();}
+assert.deepStrictEqual(keys(ru[1]), keys(en[1]), "RU/EN dictionaries have identical keys");
+assert(keys(ru[1]).length > 50, "localization surface is substantial");
+console.log("V11 accessibility/localization probe: PASS");
