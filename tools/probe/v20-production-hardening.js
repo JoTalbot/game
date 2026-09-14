@@ -31,6 +31,7 @@ var raw = {
 var s = G.V20Hardening.sanitizeSave(raw);
 assert.strictEqual(s.ok, true);
 assert.strictEqual(s.data.score, 7);
+// V20Hardening has its own internal schema (4); persisted V10+ saves use schema 5.
 assert.strictEqual(s.data.v9v25.schema, 5);
 assert.strictEqual(s.data.v9v25.clock, 0);
 assert.strictEqual(s.data.v9v25.stepCount, 9);
