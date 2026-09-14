@@ -36,6 +36,8 @@
 - V3-050 render budget hardening — убран per-frame GC churn: `slice()` и повторная `ctx.stroke` closure заменены allocation-free hot path с обязательным восстановлением массивов.
 - V3-052 malformed runtime collection hardening — `beings`, `blooms`, `wounds`, `cracks`, `stars`, `forgotten`, `active` санитизируются вокруг update/render lifecycle; добавлена regression-проверка против `undefined.age`.
 - V9 → V25 runtime bridge, systems, persistence и production hardening — подключены и покрыты автоматическими probes.
+- V9 World Depth — реализован и закрыт deterministic gate.
+- V10 Personal Myth / Replay — реализован и закрыт deterministic gate; bounded generational memory, finale-dependent starts, inherited dominant trait, generational rare beats и межжизненная continuity отношений.
 - Service Worker cache — offline shell содержит новые assets.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
@@ -46,7 +48,7 @@
 - Версия: `3.0.1`
 - RC tag: `v3.0.1-rc1`
 - release commit/tag target: `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`
-- release APK SHA-256: `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`
+- release APK SHA-256: `160cec76dee27c903fab4956ea05c813b6430760c7021a03b85360f36c78f6bc`
 - APK workflow для RC tag: SUCCESS
 - release asset: `igra-3.0.1.apk`
 - physical RC1 smoke: `10 мин`, `427×948`, Android `15`
@@ -70,13 +72,17 @@
 - heavy frames: `0`
 - conclusion: физический RC1 smoke полностью пройден на целевом слабом устройстве.
 
-### Автоматические gate
+### Актуальный V10 gate
 
-После исправления persistence/replay ownership contract коммит `0fc1612a419bef028a3f3031144ca9cb8662ac37` прошёл `Life Arc Gate #65` — SUCCESS. Все job steps завершились успешно, включая полный набор Life Arc probes.
+- V10 integration commit: `7add878eded6267b7c17c39b79a705cd9b6c69a3`.
+- Life Arc Gate #91: **SUCCESS**.
+- APK #1057: **SUCCESS**.
+- Sync play mirror #583: **SUCCESS**.
+- RC2 evidence artifact: `igra-rc2-evidence`, artifact `10350957018`.
+- RC2 evidence digest: `sha256:7b28ca2e4bbecfa78a28a96e47cacd6f3298b042e001c2ec70b66a865c3c8e88`.
+- Evidence generated for the current V10 commit; required groups present, blockers false, production gate in automated evidence PASS.
 
-Последний подтверждённый `main` gate: Life Arc Gate #65 GREEN на `0fc1612`. Release RC artifact остаётся зафиксированным на immutable tag `v3.0.1-rc1` и не изменяется.
-
-### Текущие незакрытые задачи
+### Текущие незакрытые release-operational задачи
 
 1. Финальная сверка Play listing/privacy материалов с фактическим APK.
 2. Ограниченное RC-тестирование после физического smoke.
@@ -84,10 +90,17 @@
 4. Production rollout в Google Play и последующий production monitoring.
 5. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
-### Следующий milestone
+### Следующий milestone — V11 Final Polish
 
-RC1 технический и физический gates GREEN. Immutable tag `v3.0.1-rc1` создан и не должен перемещаться. Release APK подписан release-ключом и опубликован как GitHub Release asset. Не добавлять новые продуктовые механики в RC1. Следующий этап — release-operational checklist и ограниченное RC-тестирование; затем отдельное решение о production Play release.
+V10 закрыт. Следующий development milestone — V11 Final Polish:
 
-### После RC
+1. P0 first-session UX.
+2. P0 long-session performance.
+3. P0 localization/accessibility final pass.
+4. P0 release QA matrix.
+5. P1 balance.
+6. P1 visual/audio coherence.
 
-После завершения release-операционного цикла развитие продолжается по утверждённому V9 → V25 master-plan. Новые продуктовые улучшения проходят через `IMP-*`, bounded persistence, deterministic probes, CI и обязательную физическую проверку для Android UX/performance изменений.
+Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
+
+Immutable tag `v3.0.1-rc1` не перемещается и не изменяется. Google Play автоматически не публикуется.
