@@ -8,47 +8,73 @@
 
 **Важно:** v2.33 была играбельным фундаментом, а не финальной полной игрой.
 
-## v3.0 — первый полноценный игровой акт
+## v3.0–v3.0.1 — первый полноценный игровой акт и RC1
 
 Продуктовый backlog: `docs/BACKLOG_V3.md`.
 
-V3-001 → V3-029 реализованы. Они добавили длинную дугу жизни, реальные последствия, отношения, межсессионную память, разные жизненные траектории, первый акт, Director, конфликты органов, метаморфозу, долгосрочную тень, пространственную память, законы, экологические последствия и последствия финала.
+V3-001 → V3-029 реализованы. V3-030 → V3-052 закрыли релизный визуальный, touch, performance и runtime hardening. V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты probes/CI. V9 → V25 runtime bridge, systems, persistence и production-hardening подключены и имеют автоматические проверки.
 
-### V3-030 — релизный рубеж
+## RC1 — `v3.0.1-rc1`
 
-V3-030 считается завершённым по коду, когда:
+Immutable RC artifact: `v3.0.1-rc1`, versionCode `601`.
 
-- первый полноценный акт проходит через связанные переломы;
-- разные жизненные пути дают наблюдаемо разные результаты;
-- память, отношения, места и последствия переживают перезапуск;
-- offline core loop работает без сети;
-- probes и CI подтверждают критические инварианты;
-- release APK собирается только с release/upload signing;
-- checksum создаётся и проверяется;
-- документация соответствует фактическому состоянию проекта.
+RC1 технический и физический gates **GREEN**. Release APK подписан release/upload key, SHA-256 проверен, artifact опубликован в GitHub Release. Физический Android 15 smoke: 10 минут, 427×948 @1.0, weak-device profile; clean install, boot, gameplay, save/restart, recovery, old-save upgrade, offline, release/become/NG+, audio/haptic/fullscreen — PASS; crash, ANR, visual blocker, touch blocker и heavy frames — 0.
 
-## RC gate — перед Google Play
+RC gate закрыт, но production пока **не объявлен**. Release-operational действия описаны в `docs/PUBLISH.md` и `docs/BACKLOG_POST_RC.md`.
 
-RC не считается завершённым только по зелёному CI.
+## Release-operational stage
 
-Обязательны:
+Перед production остаются:
 
-1. `life.yml` green.
-2. `apk.yml` green.
-3. RC probe green.
-4. Реальный Android: clean install → boot → birth → play → save → restart.
-5. Upgrade со старого сейва → новая версия → продолжение.
-6. Process death → сейв сохраняется.
-7. Offline → shell и core loop работают без сети.
-8. APK artifact + SHA-256 существуют.
-9. Нет critical/blocker.
-10. Release tag использует release/upload key, не debug key.
-11. Play listing и privacy materials соответствуют текущему продукту.
+1. вручную включить **Pre-release** для GitHub Release `v3.0.1-rc1`;
+2. финально сверить Play listing и privacy materials с фактическим APK;
+3. провести ограниченное RC-тестирование;
+4. принять отдельное production decision;
+5. только после явного одобрения выполнить production rollout и monitoring.
 
-Пункты 4–7 требуют реального Android-устройства.
+Новые продуктовые изменения не должны менять immutable RC artifact.
 
-## После RC
+## Следующий большой цикл — V9 → V25
 
-После прохождения RC gate создаётся `v3.0.0-rc1`, затем выполняется ограниченное тестирование. Production release делается только после устранения найденных critical/blocker и подтверждения upgrade/save/signing сценариев.
+После release-operational цикла разработка продолжается по master-plan. Уже подключённые V9 → V25 слои являются техническим фундаментом; следующий этап — превращать их в заметную пользовательскую глубину, а не просто наращивать внутренние флаги.
 
-Следующая разработка после v3.0 должна идти не по принципу «добавим ещё механик», а по пользовательским результатам: глубина второго акта, новые формы живого мира, вариативность и качество повторных жизней, performance, accessibility и production polish.
+### V9 — World Depth
+
+- persistent places с качественно различимыми состояниями;
+- multi-life causal chains на 3–5 звеньев;
+- более глубокие отношения с recurring beings;
+- редкие world beats как следствие накопленной истории;
+- anti-repeat Director policy.
+
+**Gate:** три контрастных профиля игрока создают различимые world-state, а несколько жизней меняют знакомые места заметно и объяснимо.
+
+### V10 — Personal Myth / Replay
+
+- cross-life identity;
+- finale-dependent starting conditions;
+- inter-life relationships;
+- generational rare events;
+- bounded generational memory с migration/replay probes.
+
+**Gate:** три последовательные жизни дают три различимых опыта и меняют смысл следующих решений.
+
+### V11 — Final Polish
+
+- first-session UX;
+- balance;
+- visual/audio coherence;
+- long-session performance;
+- localization/accessibility final pass;
+- полная release QA matrix.
+
+### V12 → V25
+
+Развивать последовательно: каждое продуктовое изменение получает `IMP-*`; bounded persistence и migration обязательны; deterministic probes подтверждают новые инварианты; значимые изменения проходят CI; Android UX/performance изменения требуют физической проверки; offline-first core loop не ломается.
+
+Не добавлять XP, классы, quest journal, карту, streak, daily/FOMO или monetization только ради retention. Production и development остаются двумя отдельными линиями.
+
+## Критерий настоящего роста
+
+Следующая версия должна быть не просто «ещё больше механик». Каждый крупный батч обязан улучшать хотя бы одно из качеств: глубину причин и последствий, различимость жизней, качество отношений, читаемость первого опыта, вариативность повторного прохождения, производительность или доступность.
+
+Реальное поведение игры и результаты тестов важнее старых формулировок roadmap. Если система не создаёт нового пользовательского смысла, её не следует добавлять только ради увеличения версии.
