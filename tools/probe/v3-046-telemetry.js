@@ -20,7 +20,8 @@ const engine = read('web/js/engine.js');
 
 ok(index.includes('js/v3-performance-guard.js'), 'performance guard loaded before game bootstrap');
 ok(sw.includes('./js/v3-performance-guard.js'), 'performance guard is offline-cached');
-ok(sw.includes('igra-shell-v29'), 'offline cache version bumped');
+ok(sw.includes('igra-shell-v30'), 'offline cache version bumped');
+ok(sw.includes('./js/v11-first-session.js'), 'V11 first-session layer is offline-cached');
 ok(guard.includes('Math.min(w || 9999, h || 9999) < 460'), 'reported 427px weak device gets early guard');
 ok(guard.includes('this.particles = Math.min(this.particles, 120)'), 'weak device particle budget is bounded');
 ok(guard.includes('this.fog = Math.min(this.fog, 5)'), 'weak device fog budget is bounded');
