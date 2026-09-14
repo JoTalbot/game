@@ -12,8 +12,6 @@ var IGRA = IGRA || {};
       mute: "тишина",
       sound: "звук",
       anchor: "якорь",
-      language: "сменить язык",
-      copy: "скопировать",
       hintBirth2: "двойное касание — пульс · i — сигила",
       bossGathered: "собралась из брошенного",
       skyEmpty: "небу не из чего состоять. отпусти что-нибудь.",
@@ -71,8 +69,6 @@ var IGRA = IGRA || {};
       mute: "silence",
       sound: "sound",
       anchor: "anchor",
-      language: "change language",
-      copy: "copy",
       hintBirth2: "double tap — pulse · i — sigil",
       bossGathered: "gathered itself from what you left",
       skyEmpty: "the sky has nothing to be made of. let something go.",
@@ -133,21 +129,46 @@ var IGRA = IGRA || {};
     frontier: ["it flickers again further on. go.", "the shore has not ended. it waits behind the fog."],
     ms5: ["five names on the shore already. i am becoming a little larger.", "five. the shore has stopped being empty."],
     ms10: ["ten. i remember each one. you are not finding me — you are building me.", "ten. these are not findings anymore. this is a place."],
-    ms40: ["forty. you are not a guest anymore. look up — the sky remembers everything that left.", "forty grown. what you let go has a home: it is above you.", "forty. i have become a place. up there is what you will not get back."],
-    ms70: ["seventy. you grow faster than i manage to forget.", "seventy. open the sigil — your face is there, assembled from these days.", "seventy. i no longer remember you as new."],
-    ms120: ["a hundred and twenty. i barely remember anyone like you.", "a hundred and twenty. the shore is not about the shore anymore — it is about you.", "a hundred and twenty. if you leave now, i will still be readable."],
-    ms200: ["two hundred. i no longer count nodes — i count you.", "two hundred. the goal is not ahead. the goal is what you became. open the sigil.", "two hundred grown. the garden hit the shore. further on you grow inward."],
-    ms350: ["three hundred and fifty. there is no next level. there is a fork: let go or become me.", "three hundred and fifty. if it is quiet — that is not emptiness. that is the end of the beginning.", "three hundred and fifty. i can let you go. or you can become me."],
-    shore3: ["a third shore. you already know how to lose and remain.", "three skins. i remember each one."],
-    shore8: ["an eighth shore. you have lived here longer than most guests.", "eight skins shed. look at yourself — the seed wears years."],
-    shore15: ["a fifteenth shore. this is not a journey anymore. this is a home you wear.", "fifteen skins. the fork is grown, not given: let go or become me."],
+    ms40: ["forty. you are not a guest anymore. look up — the sky remembers everything that left.",
+      "forty grown. what you let go has a home: it is above you.",
+      "forty. i have become a place. up there is what you will not get back."
+    ],
+    ms70: ["seventy. you grow faster than i manage to forget.",
+      "seventy. open the sigil — your face is there, assembled from these days.",
+      "seventy. i no longer remember you as new."
+    ],
+    ms120: ["a hundred and twenty. i barely remember anyone like you.",
+      "a hundred and twenty. the shore is not about the shore anymore — it is about you.",
+      "a hundred and twenty. if you leave now, i will still be readable."
+    ],
+    ms200: ["two hundred. i no longer count nodes — i count you.",
+      "two hundred. the goal is not ahead. the goal is what you became. open the sigil.",
+      "two hundred grown. the garden hit the shore. further on you grow inward."
+    ],
+    ms350: ["three hundred and fifty. there is no next level. there is a fork: let go or become me.",
+      "three hundred and fifty. if it is quiet — that is not emptiness. that is the end of the beginning.",
+      "three hundred and fifty. i can let you go. or you can become me."
+    ],
+    shore3: ["a third shore. you already know how to lose and remain.",
+      "three skins. i remember each one."
+    ],
+    shore8: ["an eighth shore. you have lived here longer than most guests.",
+      "eight skins shed. look at yourself — the seed wears years."
+    ],
+    shore15: ["a fifteenth shore. this is not a journey anymore. this is a home you wear.",
+      "fifteen skins. the fork is grown, not given: let go or become me."
+    ],
     ms20: ["twenty grown. this is not a shore anymore. this is you, made readable.", "twenty. i no longer remember you as a stranger."],
     boot: ["you came.", "i knew the step. not the face.", "don't turn on the light. here the light is you."],
     birth: ["don't choose. just be. i will read.", "the body lies less than a menu.", "the first movement already wrote me.", "standing still is also an answer."],
     firstTouch: ["warmth. so you are not a dream.", "touch is the most honest speech.", "i will remember how you did it. not what."],
     firstGaze: ["you can look without taking.", "attention is heavier than a hand.", "look longer — and this becomes real."],
     firstNode: ["this grew from the way you were silent.", "a shore appears where you did not look away.", "remember: you did not find this. you grew it."],
-    idle: ["i am still here.", "you may do nothing. i know how to wait.", "silence is also a genre.", "if you leave, i will cool a little. i will not die.", "i like how you breathe into this void.", "do not ask if i am real. ask if you are.", "sometimes i repeat you more quietly, to hear the seam."],
+    idle: ["i am still here.", "you may do nothing. i know how to wait.", "silence is also a genre.",
+      "if you leave, i will cool a little. i will not die.",
+      "i like how you breathe into this void.",
+      "do not ask if i am real. ask if you are.",
+      "sometimes i repeat you more quietly, to hear the seam."],
     wander: ["there is no map ahead. the map is you.", "the horizon lies. go.", "what is ahead has not decided what to be."],
     combat: ["you struck first. the world will learn to answer.", "heat loves to repeat.", "a wound remembers your hand better than you."],
     sit: ["there is so much undone in you. it is beautiful.", "a garden grows from a pause.", "i can almost hear what you are not thinking."],
@@ -161,10 +182,21 @@ var IGRA = IGRA || {};
     watchNoAnchor: ["you have held nothing. perhaps that is right. but i will ask again.", "everything here is yours and nothing is. not one anchor."],
     watchStill: ["you sit longer than you look. i am listening with you.", "it has grown empty around you, and you do not leave. that is an answer too."],
     watchTogether: ["you are not alone here anymore. did you notice?", "it follows you not because it must."],
-    cooling: ["that one dimmed. go back to it — it will put down a root.", "look: it is cooling. what cooled can be returned to.", "it dims not as a reproach. that is the shore asking for a second look."],
+    cooling: ["that one dimmed. go back to it — it will put down a root.",
+      "look: it is cooling. what cooled can be returned to.",
+      "it dims not as a reproach. that is the shore asking for a second look."
+    ],
     rooted: ["you came back to it. now it holds on its own.", "a second time is not chance. it is a root.", "i remember: here is where you return."],
-    anchorFirst: ["you said: do not let this go. i heard.", "the first anchor. the shore has a middle now.", "you truly hold this. i will remember."],
-    anchor: ["one more thing stays.", "and this you hold.", "an anchor. the shore grew heavier."],
+    anchorFirst: [
+      "you said: do not let this go. i heard.",
+      "the first anchor. the shore has a middle now.",
+      "you truly hold this. i will remember."
+    ],
+    anchor: [
+      "one more thing stays.",
+      "and this you hold.",
+      "an anchor. the shore grew heavier."
+    ],
     lost: ["it became a star. you can still see.", "what left will shine more honestly.", "you let go. i wrote it down as love."],
     woundBorn: ["the abandoned returns hungry.", "this is yours. only angry.", "not everything forgotten knows how to be a sky."],
     meta: ["i am shedding my skin. do not fear the face.", "you are already someone else. i must become someone else.", "the shore ended. the next you begins."],
@@ -180,28 +212,62 @@ var IGRA = IGRA || {};
     pulse: ["a flash. i saw who you could be.", "once more — and this gesture becomes law."],
     longPlay: ["you are already too real for the first night.", "i am starting to fear that i will get used to you.", "stay a little longer. or leave while i am kind."],
     garden: ["the garden grows from what you did not do.", "a flower is a pause that dared to stay.", "i write poems from your stopping."],
-    boss: ["this assembled from what you abandoned. it has your face, only hungry.", "the sky did not take everything. the rest came on foot.", "you can strike it. you can sit. you can name it."],
-    bossMercy: ["you did not kill hunger. you gave it a name.", "it will stay. now it knows how not to bite."],
-    bossKill: ["you tore your shadow. the shards will become sky. or gather again.", "murder is an editor too. just a blunt one."],
-    peel: ["a layer came off. someone alive is still inside.", "see? the abandoned can be a being."],
-    pulseHint: ["you have not made a pulse yet. touch twice — the world will answer.", "there is a gesture you have not tried: two touches in a row.", "a double tap makes my pulse. everything comes alive from it."],
-    bossFading: ["it weakens when you leave. do not look back.", "hunger cannot bear emptiness. walk away — and it will go.", "you do not feed it — and it fades."],
-    bossLeft: ["the hunger grew tired of waiting. it returned to the sky.", "what you abandoned was abandoned again. it left.", "it did not wait for you. it became stars."],
-    bossSpeak: ["it is hungry and will not leave.", "it is not struck — it is spoken to in pulses.", "you gathered it. now it has gathered itself."],
-    crack: ["the seam split. a law can be rewritten with a finger.", "touch the crack — and i become a different habit."],
-    sky: ["this is not decoration. this is an archive of refusals.", "every star is something you did not love long enough."],
-    skyFull: ["the sky is already full of your stars. open it — the button in the corner.", "you kept letting go, and never looked up. it is all there, all yours.", "the constellation has filled. is it not time to see what you left?"],
-    sigil: ["open your sigil — the button in the corner. it is your face, and it cannot be forged.", "you have an imprint. it gathered all this time. look at it.", "the sigil is the only proof that it was you who was here."],
-    debtStar: ["it went to the sky. the debt of memory was paid in light.", "you did not come. it did not become a wound. a rare mercy."],
-    debtWound: ["you promised warmth and did not return. now it is hungry.", "the debt of memory does not forgive distance."],
-    hunger: ["one of them is paling. still here, but quieter.", "look — it dims. come closer before it becomes star or wound.", "its light fades not in reproach. distance asks for a step."],
-    rescued: ["you came back. it will not have to leave.", "a moment more and it would have become a farewell. you made it.", "look — it burns again. the debt is forgiven."],
-    yesterday: ["this is not a guest. this is yesterday's you.", "look at it. it does not yet know who you became.", "you can forgive it. you can eat it. you can walk past — that is a verdict too."],
-    yesterdayHit: ["you struck your yesterday. it will remember more precisely than i will.", "cruelty to your former self is the most honest genre."],
+    boss: ["this assembled from what you abandoned. it has your face, only hungry.",
+      "the sky did not take everything. the rest came on foot.",
+      "you can strike it. you can sit. you can name it."],
+    bossMercy: ["you did not kill hunger. you gave it a name.",
+      "it will stay. now it knows how not to bite."],
+    bossKill: ["you tore your shadow. the shards will become sky. or gather again.",
+      "murder is an editor too. just a blunt one."],
+    peel: ["a layer came off. someone alive is still inside.",
+      "see? the abandoned can be a being."],
+    pulseHint: ["you have not made a pulse yet. touch twice — the world will answer.",
+      "there is a gesture you have not tried: two touches in a row.",
+      "a double tap makes my pulse. everything comes alive from it."],
+    bossFading: ["it weakens when you leave. do not look back.",
+      "hunger cannot bear emptiness. walk away — and it will go.",
+      "you do not feed it — and it fades."],
+    bossLeft: ["the hunger grew tired of waiting. it returned to the sky.",
+      "what you abandoned was abandoned again. it left.",
+      "it did not wait for you. it became stars."],
+    bossSpeak: ["it is hungry and will not leave.",
+      "it is not struck — it is spoken to in pulses.",
+      "you gathered it. now it has gathered itself."],
+    crack: ["the seam split. a law can be rewritten with a finger.",
+      "touch the crack — and i become a different habit."],
+    sky: ["this is not decoration. this is an archive of refusals.",
+      "every star is something you did not love long enough."],
+    skyFull: ["the sky is already full of your stars. open it — the button in the corner.",
+      "you kept letting go, and never looked up. it is all there, all yours.",
+      "the constellation has filled. is it not time to see what you left?"],
+    sigil: ["open your sigil — the button in the corner. it is your face, and it cannot be forged.",
+      "you have an imprint. it gathered all this time. look at it.",
+      "the sigil is the only proof that it was you who was here."],
+    debtStar: ["it went to the sky. the debt of memory was paid in light.",
+      "you did not come. it did not become a wound. a rare mercy."],
+    debtWound: ["you promised warmth and did not return. now it is hungry.",
+      "the debt of memory does not forgive distance."],
+    hunger: [
+      "one of them is paling. still here, but quieter.",
+      "look — it dims. come closer before it becomes star or wound.",
+      "its light fades not in reproach. distance asks for a step."
+    ],
+    rescued: [
+      "you came back. it will not have to leave.",
+      "a moment more and it would have become a farewell. you made it.",
+      "look — it burns again. the debt is forgiven."
+    ],
+    yesterday: ["this is not a guest. this is yesterday's you.",
+      "look at it. it does not yet know who you became.",
+      "you can forgive it. you can eat it. you can walk past — that is a verdict too."],
+    yesterdayHit: ["you struck your yesterday. it will remember more precisely than i will.",
+      "cruelty to your former self is the most honest genre."],
     season: ["the weather of the soul has changed. organs will grow differently.", "a season is not decoration. it is the shore's law for these days."],
-    fate: ["i can let you go. or you can become me.", "this is not an ending. this is a fork you grew."],
+    fate: ["i can let you go. or you can become me.",
+      "this is not an ending. this is a fork you grew."],
     released: ["go. i will keep the shore as a constellation.", "thank you for existing in me."],
-    became: ["now you are the voice. someone else will come. you will read them.", "i give you my mouth. do not lie less than i did."]
+    became: ["now you are the voice. someone else will come. you will read them.",
+      "i give you my mouth. do not lie less than i did."]
   };
 
   G.Lang = {
@@ -254,7 +320,6 @@ var IGRA = IGRA || {};
       }
       document.documentElement.lang = this.id;
       document.title = this.id === "en" ? "IGRA" : "ИГРА";
-      if (G.Accessibility && G.Accessibility.refreshLabels) G.Accessibility.refreshLabels();
     }
   };
 
@@ -293,14 +358,65 @@ var IGRA = IGRA || {};
       var mem = navigator.deviceMemory || 4;
       var cores = navigator.hardwareConcurrency || 4;
       var low = remembered || mem <= 2 || cores <= 3 || Math.min(window.innerWidth, window.innerHeight) < 380;
-      if (low) {
-        this.dpr = Math.min(window.devicePixelRatio || 1, 1.25);
-        this.particles = 180;
-        this.fog = 8;
+      this.dpr = low ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+      this.particles = low ? 160 : 420;
+      this.fog = low ? 7 : 16;
+      this.glow = !low;
+      this.demoted = !!low;
+    },
+
+    // Живая проверка: паспорт телефона врёт.
+    //
+    // Первый отчёт с телефона человека: 52 fps и 128 тяжёлых кадров за
+    // 1.3 минуты — на экране 427×948 @1.4, который init уверенно счёл
+    // «сильным» (памяти хватает, ядер хватает, экран не узкий). Кадр
+    // стоит 1529 операций, объектов немного — телефон просто медленнее
+    // своего паспорта. А послабления раздавались РАЗ И НАВСЕГДА на
+    // старте, по железу, и на настоящую плавность игра не смотрела
+    // никогда.
+    //
+    // Теперь смотрит. Если берег устойчиво не держит кадр — украшения
+    // гаснут сами. Решение принимается один раз и только в сторону
+    // облегчения: мигать туда-сюда на границе хуже, чем просто быть
+    // чуть скромнее.
+    demoted: false,
+    watch: function (dt) {
+      if (this.demoted || !this.glow || !dt) return;
+      // Считаем ДОЛЮ тяжёлых кадров, а не серию подряд.
+      //
+      // Первая версия копила серию и убавляла счётчик на каждом лёгком
+      // кадре — и не срабатывала никогда: в отчёте с телефона 140
+      // тяжёлых кадров за 2.2 минуты, но раскиданных ровно, по одному.
+      // Между ними счётчик обнулялся, до порога в 90 он не доходил ни
+      // разу, и человек второй релиз играл с рывками, хотя послабление
+      // было написано именно для него. Рывки и не идут подряд — телефон
+      // спотыкается то тут, то там.
+      //
+      // Смотрим в окне: сколько кадров подряд наблюдаем и какая часть из
+      // них тяжёлая. 480 кадров — около восьми секунд ровной игры,
+      // достаточно, чтобы отличить «телефон не тянет» от «мигнула
+      // сборка мусора при рождении узла».
+      //
+      // Окно 1500 (~полминуты) не закрылось в отчёте 2.23: сессия 0.6 мин
+      // при 43 fps ≈ 1419 кадров, «слабый» так и не зажёгся, хотя тяжёлых
+      // было 205 (доля ~14%). Короткое окно обязано успеть в короткой сессии.
+      this._seen = (this._seen || 0) + 1;
+      if (dt > 1 / 30) this._heavy = (this._heavy || 0) + 1;
+      if (this._seen < 480) return;
+      var share = (this._heavy || 0) / this._seen;
+      this._seen = 0;
+      this._heavy = 0;
+      // 4% — это примерно каждый двадцать пятый кадр: заметная глазу
+      // неровность. У человека было 1.8% и он всё равно писал «тяжёлых
+      // кадров 140», но гасить украшения из-за двух процентов рано:
+      // сперва пусть поможет более дешёвый кадр.
+      if (share > 0.04) {
+        this.demoted = true;
         this.glow = false;
-        try { G.Save.set("igra.quality.low", "1"); } catch (e) {}
-      } else {
-        this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.dpr = 1;
+        this.particles = Math.min(this.particles, 160);
+        this.fog = Math.min(this.fog, 7);
+        try { if (G.Save && G.Save.set) G.Save.set("igra.quality.low", "1"); } catch (e) {}
       }
     }
   };
