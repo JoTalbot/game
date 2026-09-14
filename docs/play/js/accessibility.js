@@ -2,21 +2,21 @@ var IGRA = IGRA || {};
 (function (G) {
   "use strict";
 
-  var IDS = {
+  var LABEL_KEYS = {
     "mute-btn": "mute",
     "lang-btn": "language",
     "sky-btn": "sky",
     "sigil-btn": "sigil",
-    "btn-continue": "continue",
+    "btn-continue": "cont",
     "btn-born": "born",
     "btn-release": "release",
     "btn-become": "become",
-    "sigil-close": "close sigil",
-    "btn-report": "report",
-    "btn-share": "share sigil",
+    "sigil-close": "back",
+    "btn-report": "tell",
+    "btn-share": "share",
     "btn-forget": "forget",
-    "report-copy": "copy report",
-    "report-close": "close report"
+    "report-copy": "copy",
+    "report-close": "back"
   };
 
   function canSet(el) {
@@ -43,9 +43,15 @@ var IGRA = IGRA || {};
   }
 
   function labelButtons() {
-    Object.keys(IDS).forEach(function (id) {
+    Object.keys(LABEL_KEYS).forEach(function (id) {
       var el = document.getElementById(id);
-      if (canSet(el)) el.setAttribute("aria-label", IDS[id]);
+      if (!canSet(el)) return;
+      var key = LABEL_KEYS[id];
+      var label = G.Lang && G.Lang.t ? G.Lang.t(key) : "";
+      if (!label || label === key) {
+        label = el.textContent || key;
+      }
+      el.setAttribute("aria-label", label);
     });
   }
 
@@ -68,9 +74,10 @@ var IGRA = IGRA || {};
   }
 
   G.Accessibility = {
-    version: 1,
+    version: 2,
     reducedMotion: reduced,
     applyMotion: applyMotion,
+    refreshLabels: labelButtons,
     init: init
   };
 
