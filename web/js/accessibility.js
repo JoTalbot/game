@@ -2,22 +2,11 @@ var IGRA = IGRA || {};
 (function (G) {
   "use strict";
 
-  var LABEL_KEYS = {
-    "mute-btn": "mute",
-    "lang-btn": "language",
-    "sky-btn": "sky",
-    "sigil-btn": "sigil",
-    "btn-continue": "cont",
-    "btn-born": "born",
-    "btn-release": "release",
-    "btn-become": "become",
-    "sigil-close": "back",
-    "btn-report": "tell",
-    "btn-share": "share",
-    "btn-forget": "forget",
-    "report-copy": "copy",
-    "report-close": "back"
-  };
+  var IDS = [
+    "mute-btn", "lang-btn", "sky-btn", "sigil-btn", "btn-continue", "btn-born",
+    "btn-release", "btn-become", "sigil-close", "btn-report", "btn-share",
+    "btn-forget", "report-copy", "report-close"
+  ];
 
   function canSet(el) {
     return !!(el && typeof el.setAttribute === "function");
@@ -43,15 +32,23 @@ var IGRA = IGRA || {};
   }
 
   function labelButtons() {
-    Object.keys(LABEL_KEYS).forEach(function (id) {
+    IDS.forEach(function (id) {
       var el = document.getElementById(id);
       if (!canSet(el)) return;
-      var key = LABEL_KEYS[id];
-      var label = G.Lang && G.Lang.t ? G.Lang.t(key) : "";
-      if (!label || label === key) {
-        label = el.textContent || key;
+      var label = el.textContent || "";
+      if (id === "lang-btn") {
+        label = G.Lang && G.Lang.id === "en" ? "change language" : "сменить язык";
       }
-      el.setAttribute("aria-label", label);
+      el.setAttribute("aria-label", label.trim());
+    });
+  }
+
+  function watchLanguageButton() {
+    var btn = document.getElementById("lang-btn");
+    if (!btn || btn.__igraA11yLangWatch) return;
+    btn.__igraA11yLangWatch = true;
+    btn.addEventListener("click", function () {
+      setTimeout(labelButtons, 0);
     });
   }
 
@@ -64,6 +61,7 @@ var IGRA = IGRA || {};
 
   function init() {
     labelButtons();
+    watchLanguageButton();
     liveRegions();
     applyMotion();
     if (window.matchMedia) {
