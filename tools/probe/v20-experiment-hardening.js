@@ -1,0 +1,18 @@
+"use strict";
+var assert=require("assert"),fs=require("fs"),vm=require("vm");
+var ctx={console:console,Math:Math};vm.createContext(ctx);
+["v18-experiments.js","v20-hardening.js"].forEach(function(f){vm.runInContext(fs.readFileSync("web/js/"+f,"utf8"),ctx,{filename:f});});
+var G=ctx.IGRA,w={};
+var raw=[];for(var i=0;i<40;i++)raw.push(i===3?null:{id:"id"+i,hypothesis:"h".repeat(140),action:"a".repeat(140),outcome:"o".repeat(140),extra:"preserve-not-required"});
+w.v9v25={schema:5,experimentsV18:raw};
+var result=G.V20Hardening.sanitizeSave(w);
+assert(result.ok,"save boundary accepts object");
+assert(Array.isArray(result.data.v9v25.experimentsV18),"V18 experiment stream remains an array");
+assert.strictEqual(result.data.v9v25.experimentsV18.length,32,"V18 experiment history is bounded");
+result.data.v9v25.experimentsV18.forEach(function(x){assert(x.id.length<=96&&x.hypothesis.length<=96&&x.action.length<=96&&x.outcome.length<=96,"experiment text is bounded");});
+var nested={v9v25:{world:{experiments:{records:raw}}}};
+var nestedResult=G.V20Hardening.sanitizeSave(nested);
+assert.strictEqual(nestedResult.data.v9v25.world.experiments.records.length,32,"nested experiment history is bounded");
+assert.deepStrictEqual(Object.keys(nestedResult.data.v9v25.world.experiments.records[0]).sort(),["action","hypothesis","id","outcome"],"experiment records have stable sanitized shape");
+assert.deepStrictEqual(G.V20Hardening.sanitizeExperiments("bad"),[],"malformed experiment collection is repaired");
+console.log("V20 experiment hardening probe: PASS");
