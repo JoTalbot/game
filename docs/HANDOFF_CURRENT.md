@@ -11,7 +11,7 @@
 - Node 24 migration для Actions завершена: checkout v5, setup-node v5, upload-artifact v6 там, где используется.
 - Последний development APK на текущем main: workflow **APK #1093**, SUCCESS.
 - Последний Sync play mirror: **#619**, SUCCESS.
-- Последний development artifact digest: `sha256:325b8fab4f9ad25030da4a2bd447928b73510732b7eed60261aa7cf274edefa3`.
+- Последний development artifact digest: `sha256:261b66134a2ff97e2362e32afc75b646d9d2b605ad3c962dfb93221503384fc4`.
 - Текущий development APK **не заменяет** immutable RC1.
 - Физический weak-device soak именно текущего development APK ещё **PENDING**. Предыдущий физический smoke относится к другому, уже зафиксированному артефакту и не переносится автоматически.
 - Production **не объявлен**.
