@@ -28,7 +28,7 @@ G.V19Simulation.restore(restoredWorld, snap);
 assert.strictEqual(JSON.stringify(G.V19Simulation.snapshot(restoredWorld)), JSON.stringify(snap), "deep simulation snapshot restores exactly");
 var ctx2 = { console: console, Math: Math };
 vm.createContext(ctx2);
-["v9-world.js","v10-myth.js","v19-simulation.js","v20-hardening.js"].forEach(function (f) { vm.runInContext(fs.readFileSync("web/js/" + f, "utf8"), ctx2, { filename: f }); });
+["v9-world.js","v10-myth.js","v18-experiments.js","v19-simulation.js","v20-hardening.js"].forEach(function (f) { vm.runInContext(fs.readFileSync("web/js/" + f, "utf8"), ctx2, { filename: f }); });
 ctx2.IGRA.V9V25Bridge = { ensure: function (game) { game.world.v9v25 = game.world.v9v25 || { seed: 777, world: ctx2.IGRA.V9World.create(777), replay: [] }; return game.world.v9v25; } };
 vm.runInContext(fs.readFileSync("web/js/v9-v25-persistence.js", "utf8"), ctx2, { filename: "v9-v25-persistence.js" });
 var P = ctx2.IGRA.V9V25Persistence;
@@ -38,13 +38,17 @@ ctx2.IGRA.V9V25Bridge.ensure(game);
 game.world.simulationV19 = ctx2.IGRA.V19Simulation.ensure(game.world);
 ctx2.IGRA.V19Simulation.tick(game.world, 0.25);
 ctx2.IGRA.V10Myth.absorb(game.world, "release", { dominant: "empathy" }, "r1");
+ctx2.IGRA.V18Experiments.record(game.world, "care reveals a bloom", "care", "bloom:r1");
 var packed = P.pack(game);
 assert(packed && packed.simulationV19 && packed.simulationV19.tick > 0, "deep simulation state is packed");
 assert(packed && packed.mythV10 && packed.mythV10.generation === 1, "V10 myth state is packed");
+assert(Array.isArray(packed.experimentsV18) && packed.experimentsV18.length === 1, "V18 experiment state is packed");
+assert.strictEqual(packed.experimentsV18[0].action, "care", "V18 experiment action is preserved");
 var legacy = { schema: 1, seed: 777, clock: 4, lastAction: actions[3], lastRegion: "r3", stepCount: 4, eventCount: w1.history.length, world: w1.snapshot() };
 var migrated = P.migrate(legacy);
 assert.strictEqual(migrated.schema, 5, "legacy integration state migrates to schema 5");
 assert(Array.isArray(migrated.replay), "migration creates replay array");
+assert(Array.isArray(migrated.experimentsV18) && migrated.experimentsV18.length === 0, "legacy saves get empty V18 experiment history");
 assert.strictEqual(migrated.mythV10, null, "pre-V10 saves migrate without invented generational history");
 var old = Object.assign({}, migrated, { schema: 2 });
 assert.strictEqual(P.migrate(old).schema, 5, "schema 2 migrates to schema 5");
@@ -54,11 +58,10 @@ assert(P.restore(restored, packed), "actual persistence restore succeeds");
 assert.strictEqual(JSON.stringify(restored.world.v9v25.world.snapshot()), JSON.stringify(game.world.v9v25.world.snapshot()), "world snapshot survives actual restore exactly");
 assert.strictEqual(JSON.stringify(ctx2.IGRA.V19Simulation.snapshot(restored.world)), JSON.stringify(packed.simulationV19), "V19 simulation snapshot survives actual restore exactly");
 assert.strictEqual(JSON.stringify(ctx2.IGRA.V10Myth.snapshot(restored.world)), JSON.stringify(packed.mythV10), "V10 myth snapshot survives actual restore exactly");
+assert(Array.isArray(restored.world.experiments.records) && restored.world.experiments.records.length === 1, "V18 experiment history survives actual restore");
+assert.strictEqual(restored.world.experiments.records[0].outcome, "bloom:r1", "V18 experiment outcome survives actual restore");
 assert.strictEqual(P.deterministic(777, actions).equal, true, "actual persistence deterministic helper passes");
 
-// Runtime bridge and persistence intentionally have separate ownership:
-// bridge.ensure creates bounded integration state, while persistence.record
-// creates/updates the replay stream. Test that contract explicitly.
 vm.runInContext(fs.readFileSync("web/js/v9-v25-bridge.js", "utf8"), ctx2, { filename: "v9-v25-bridge.js" });
 var live = { w: 427, state: "play", player: { x: 10, y: 20 },
   dna: { dominant: function () { return "empathy"; }, taps: 0, gazes: 0, pulses: 0 },
@@ -67,7 +70,6 @@ ctx2.IGRA.V9V25Bridge.step(live, 0.1);
 assert(live.world.v9v25, "bridge attaches bounded state to live world");
 assert.strictEqual(live.world.v9v25.lastAction.type, "idle", "idle runtime remains explicit idle state");
 assert(!Array.isArray(live.world.v9v25.replay), "bridge does not own the persistence replay array");
-
 live.__v9v25Action = { type: "care", amount: 0.1 };
 ctx2.IGRA.V9V25Bridge.step(live, 0.1);
 assert.strictEqual(live.world.v9v25.metrics.actions, 1, "real runtime action is counted once");
@@ -79,5 +81,6 @@ assert.strictEqual(live.world.v9v25.replay.length, 1, "idle frame does not dupli
 var livePacked = ctx2.IGRA.V9V25Persistence.pack(live);
 assert(livePacked && livePacked.replay.length === 1, "live replay survives actual pack");
 assert(livePacked && livePacked.mythV10, "live V10 myth survives actual pack");
+assert(Array.isArray(livePacked.experimentsV18), "live V18 experiment stream is packable");
 
 console.log("V9-V25 persistence/replay probe: PASS");
