@@ -1,8 +1,8 @@
-# Статус — 14 сентября 2026
+# Статус — 15 сентября 2026
 
 ## Текущий инженерный статус
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-052 закрыли визуальный/touch/performance/runtime hardening; физический weak-device acceptance подтверждён реальным Android-прогоном.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-052 закрыли визуальный/touch/performance/runtime hardening; физический weak-device acceptance ранее подтверждён реальным Android-прогоном. V9 → V25 runtime bridge, systems, persistence и production hardening подключены и покрыты автоматическими probes.
 
 ### Реализовано
 
@@ -78,28 +78,39 @@
 
 ### Актуальные V11 gate результаты
 
-- V11 first-session: Life Arc Gate #96 **SUCCESS**, APK #1062 **SUCCESS**, Sync #588 **SUCCESS**.
+- V11 first-session: ранее подтверждён.
 - V11 accessibility/localization: первоначальный gate обнаружил несовместимость старого probe с accessibility API; исправлено без изменения игрового API.
 - Текущий accessibility API сохраняет стабильный `version: 1`; локализация label обновляется после смены языка.
 - V11 release QA matrix: `tools/probe/v11-release-qa.js`, структурно покрывает 15 release-critical сценариев.
-- После добавления V11 release-QA probe запущен новый Life Arc gate; его итог должен быть подтверждён CI перед объявлением общего V11 green.
+- Исправлен stale QA expectation: probe ожидал `js/v10-myth.js`, тогда как актуальный shell загружает `js/v10-personality.js`.
+- Commit исправления: `f265f04b175321d1b6808b739c439b894b04c516`.
+- Life Arc Gate #114: **SUCCESS**.
+- APK #1080: **SUCCESS**; development artifact `igra-3.0.1`, SHA-256 `f60447124ad1db5184706bc089618099cd8e0e0404a2aefe7883a1f601159f1f`.
+- Sync play mirror #606: **SUCCESS**.
+- RC2 evidence artifact: создан успешно.
+- Все три актуальных push-gate workflow на `f265f04` завершились успешно.
 
 ### Текущие незакрытые release-operational задачи
 
-1. Финальная сверка Play listing/privacy материалов с фактическим APK.
-2. Ограниченное RC-тестирование после физического smoke.
-3. Отдельное production decision.
-4. Production rollout в Google Play и последующий production monitoring.
-5. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
+1. Повторный физический weak-device soak для актуального development APK после завершения V11.
+2. Финальная сверка Play listing/privacy материалов с фактическим APK.
+3. Ограниченное RC-тестирование после физического soak.
+4. Отдельное production decision.
+5. Production rollout в Google Play и последующий production monitoring.
+6. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
 ### Следующий milestone — V11 Final Polish
 
-V10 закрыт. V11-001, V11-004, V11-005 и V11-006 реализованы на инженерном уровне. Следующий development batch:
+V10 закрыт. V11-001, V11-004, V11-005 и V11-006 реализованы на инженерном уровне, автоматические gate на актуальном коммите зелёные.
+
+Следующий порядок:
 
 1. P1 balance.
 2. P1 visual/audio coherence.
-3. Повторный физический weak-device soak для актуального development APK после завершения V11.
-4. Limited RC testing и отдельное production decision.
+3. Повторный физический weak-device soak для актуального development APK.
+4. Limited RC testing.
+5. Финальная release-operational сверка.
+6. Отдельное production decision.
 
 Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
 
