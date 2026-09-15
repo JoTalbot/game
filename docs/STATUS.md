@@ -2,115 +2,63 @@
 
 ## Текущий инженерный статус
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к автоматическому pipeline. V3-032 → V3-052 закрыли визуальный/touch/performance/runtime hardening; физический weak-device acceptance ранее подтверждён реальным Android-прогоном. V9 → V25 runtime bridge, systems, persistence и production hardening подключены и покрыты автоматическими probes.
+`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к pipeline. V3-032 → V3-052 закрыли визуальный/touch/performance/runtime hardening. V9 → V25 runtime bridge, systems, persistence, experimentation, simulation и production-hardening подключены и покрыты автоматическими probes.
 
 ### Реализовано
 
 - V3-001 → V3-029 — реализовано.
-- V4 второй акт — persistent конфликт, маршруты, события и контрастные исходы.
-- V4 causal chain — provenance `parent → chain → event → physical trace`, bounded history.
-- V4 persistent places — накопленная история мест.
-- V4 recurring beings — encounter/memory/affinity и route-dependent state.
-- V4 migration + deterministic replay — schema normalization, bounded collections и фиксированная тестовая геометрия.
-- V4.3 adaptive depth — causal world beats, physical traces, player/world application, persistence и no-duplicate cadence.
+- V4 второй акт, causal chain, persistent places, recurring beings, migration/replay — реализованы.
+- V4.3 adaptive depth — causal world beats, physical traces, persistence и no-duplicate cadence.
 - V5 living world feedback loop — реализовано и покрыто probe/CI.
 - V6 body identity + visual presentation — реализовано и покрыто probe/CI.
 - V7 climax/finale — реализовано и покрыто probe/CI.
 - V8 lineage — release/become, наследование, deterministic fingerprint и migration.
-- RC1 accessibility — reduced-motion, semantic UI signals, stable accessible names и offline cache.
-- RC hardening — RU/EN parity, offline asset completeness, Android lifecycle/save/security checks, bounded persistence и real-engine long-session soak.
-- V3-030 visual text/floater silence — глобальное ограничение визуального текста и приоритет важных событий.
-- V3-031 playfield readability — bloom verse labels больше не flooding visual playfield.
-- V3-032 touch hysteresis — движение получает приоритет над случайным gaze; захват требует осознанного удержания.
-- V3-033 density visual cleanup — в плотных областях подавляются второстепенные обводки.
-- V3-034 being cap — bounded pruning для избытка существ.
-- V3-036 start density — начальная плотность снижена до трёх значимых узлов; первые 25 секунд автоматический scatter Director подавлен.
-- V3-037 spawn budget — автоматический scatter ограничивается при росте живых узлов, без interception `spawnNode`.
-- V3-038 render budget — при высокой плотности подавляются только слабые тонкие второстепенные связи; узлы, существа, gaze и интерактивные линии сохраняются.
-- V3-043 touch race hardening — live-node capture синхронизирован с touch-down.
-- V3-045 density guard — bounded caps для узлов, существ, bloom и ран.
-- V3-046 performance guard — weak-device quality demotion и persisted low-quality profile.
-- V3-047 touch target + return meaning — расширенный невидимый tap-target и дешёвый spatial return feedback.
-- V3-048 low-device presentation guard — более жёсткий профиль слабого устройства с сохранением V3-046 base guard.
-- V3-049 render budget — слабому устройству сокращены декоративные far-stars/blooms и тяжёлый tide-gradient без изменения world/save state.
-- V3-050 render budget hardening — убран per-frame GC churn: `slice()` и повторная `ctx.stroke` closure заменены allocation-free hot path с обязательным восстановлением массивов.
-- V3-052 malformed runtime collection hardening — `beings`, `blooms`, `wounds`, `cracks`, `stars`, `forgotten`, `active` санитизируются вокруг update/render lifecycle; добавлена regression-проверка против `undefined.age`.
-- V9 → V25 runtime bridge, systems, persistence и production hardening — подключены и покрыты автоматическими probes.
-- V9 World Depth — реализован и закрыт deterministic gate.
-- V10 Personal Myth / Replay — реализован и закрыт deterministic gate; bounded generational memory, finale-dependent starts, inherited dominant trait, generational rare beats и межжизненная continuity отношений.
-- V11-001 first-session UX — реализован: одноразовая контекстная подсказка birth → touch → gaze → first growth, RU/EN, без изменения save/game rules.
-- V11-002 balance — детерминированный регрессионный коридор закрыт: выращивание сохраняется, потери ограничены текущим безопасным диапазоном, забота сохраняет измеримое преимущество.
-- V11-003 visual/audio coherence — deterministic gate закрыт: presentation budgets bounded, adaptive audio меняет motif/intensity/silence по контексту и clamp патологических значений.
-- V11-004 long-session engine soak — реализован детерминированный 10 000-step bounded soak с repeatability и snapshot/restore checks.
-- V11-005 localization/accessibility final pass — реализован: RU/EN semantic labels, locale-aware document language, live regions, reduced-motion и offline cache coverage.
-- V11-006 release QA matrix — реализован структурный gate на 15 release-critical сценариев; физическое Android evidence намеренно остаётся отдельным и не подменяется автоматическим тестом.
-- V12 lineage 2.0 foundation — bounded ancestry (8), bounded lineage memory (8), trait inheritance с attenuation, deterministic generation и malformed-state sanitization; acceptance probe включён в Life Arc Gate.
-- V13 knowledge foundation — bounded discoveries (64), bounded laws/interactions, duplicate suppression, evidence clamping, key length bound и malformed-state sanitization; acceptance probe добавлен в Life Arc Gate.
-- V14 Director 2.0 foundation — deterministic context-aware event scoring, tension/setup/consequence/rarity, anti-repeat novelty bias, bounded director state и acceptance probe.
-- V15 finale foundation — deterministic route/evaluation layer для нескольких причинных финальных исходов; acceptance probe.
-- V16 presentation foundation — bounded detail/effects/floater budgets, low-end floor и malformed-state sanitization; acceptance probe включён в Life Arc Gate.
-- V17 adaptive audio hardening — bounded ambience/silence, bounded motif, deterministic context reaction и malformed-state sanitization; acceptance probe добавлен в Life Arc Gate.
-- Service Worker cache — offline shell содержит новые assets; cache version `v30`.
-- Release APK: debug signing запрещён для `v*` tags.
-- Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
-- APK получает SHA-256 и публикует его рядом с artifact.
+- V3-030 → V3-052 — visual, touch, density, spawn/render budgets, low-end performance и malformed runtime hardening.
+- V9 World Depth — deterministic gate закрыт.
+- V10 Personal Myth / Replay — bounded generational memory, finale-dependent starts, inherited trait, rare beats и inter-life continuity.
+- V11-001 → V11-006 — first-session UX, balance, visual/audio coherence, 10k-step soak, localization/accessibility и release QA matrix.
+- V12 lineage 2.0 — bounded ancestry/memory, trait inheritance, deterministic generation, sanitization.
+- V13 knowledge — bounded discoveries/laws/interactions, duplicate suppression, evidence clamp, sanitization.
+- V14 Director 2.0 — deterministic context scoring, tension/setup/consequence/rarity, anti-repeat novelty bias.
+- V15 finale — deterministic causal finale routes.
+- V16 presentation — bounded detail/effects/floater budgets и low-end floor.
+- V17 adaptive audio — bounded ambience/motif, deterministic context reaction и malformed-state sanitization.
+- V18 experimentation — bounded player experiment records, sanitization и persistence через save/restore; acceptance probe и APK gate.
+- V19 deep simulation — deterministic bounded simulation, snapshot/restore и malformed-state sanitization.
+- V20 hardening — bounded save/experiment/simulation sanitization; отдельный experiment-hardening acceptance probe.
+- V21 → V22 gates — release/regression hardening подключены в APK и Life Arc pipelines.
+- V23 RC2 gate — deterministic release-candidate evidence aggregation.
+- V24 limited release — bounded feedback/metrics, stability gate и disable path.
+- V25 production gate — 12 обязательных условий; физическое Android evidence является отдельным обязательным условием production-ready.
+- Web ↔ `docs/play` mirror остаётся обязательным перед APK.
+- Release tags требуют release keystore; APK получает SHA-256.
+- Google Play автоматически не публикуется.
 
-### Последний подтверждённый V3.0.1 RC1 build
+### Физическое Android-условие
 
-- Версия: `3.0.1`
-- RC tag: `v3.0.1-rc1`
-- release commit/tag target: `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`
-- release APK SHA-256: `160cec76dee27c903fab4956ea05c813b6430760c7021a03b85360f36c78f6bc`
-- APK workflow для RC tag: SUCCESS
-- release asset: `igra-3.0.1.apk`
-- physical RC1 smoke: `10 мин`, `427×948`, Android `15`
-- Clean install: PASS
-- Boot: PASS
-- Gameplay: PASS
-- Home → resume: PASS
-- Save: PASS
-- Force-stop → recovery: PASS
-- Old save upgrade: PASS
-- Offline: PASS
-- Release: PASS
-- Become/NG+: PASS
-- Vibration: PASS
-- Audio: PASS
-- Fullscreen: PASS
-- Crash: `0`
-- ANR: `0`
-- visual blocker: `0`
-- touch blocker: `0`
-- heavy frames: `0`
-- conclusion: физический RC1 smoke полностью пройден на целевом слабом устройстве.
+Последний подтверждённый физический smoke относится к immutable RC1 и не подтверждает V12 → V25 изменения. Поэтому текущий `main` **не считается production-ready** только на основании CI.
 
-### Актуальные gate результаты
+V25 теперь требует одновременно `android=true` и `physicalAndroid=true`; без физического теста production gate остаётся blocked. CI не подделывает physical evidence.
 
-- V12 lineage acceptance: PASS.
-- V13 knowledge acceptance: PASS.
-- V14 Director acceptance: PASS.
-- V15 finale acceptance: PASS.
-- V16 presentation acceptance: PASS.
-- V17 adaptive audio acceptance: исправлена обнаруженная ошибка malformed-state probe; runtime sanitization усилена, новый gate запущен.
-- Последний подтверждённый development APK candidate: **#1116 SUCCESS** до V17 hardening; V17 APK pipeline запущен.
-- Sync play mirror для V17: workflow запущен автоматически.
-- Life Arc Gate для V17: workflow запущен автоматически.
+### RC2 evidence pipeline
 
-### Текущие незакрытые release-operational задачи
+`tools/probe/rc2-evidence.js` разделяет deterministic readiness и physical Android evidence: обычный Life Arc может завершать автоматические deterministic проверки, но `productionReady` становится `true` только при явном `IGRA_PHYSICAL_ANDROID=1`. Это не является заменой реального тестирования устройства.
 
-1. Подтвердить V17 Life Arc Gate после исправления regression.
-2. Дождаться V17 APK и play mirror.
-3. Повторный физический weak-device soak для актуального development APK после V12 → V17 изменений.
-4. Финальная сверка Play listing/privacy материалов с фактическим APK.
-5. Ограниченное RC-тестирование после физического soak.
-6. Отдельное production decision.
-7. Production rollout в Google Play и последующий production monitoring.
-8. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
+Последние инженерные изменения:
 
-### Следующий milestone — V18 → V25
+- `9040202` — deterministic RC2 evidence отделена от physical Android evidence.
+- `04f8e5b` — V25 evidence aggregation требует explicit physical Android evidence.
+- `ad2ed5a` — release-gates probe проверяет 12 обязательных условий и блокировку без physical Android.
+- Life Arc pipeline синхронизирован с новым deterministic evidence поведением.
 
-V12 → V17 инженерные foundation-слои подключены. После закрытия текущего V17 regression следующий этап — V18 experimentation, V19 deep simulation и последующая интеграция V20 → V25 release/production gates без разрушения bounded persistence и offline-first архитектуры.
+### Текущие незакрытые задачи
 
-Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
+1. Получить новый APK после V18 → V25 изменений и выполнить физический weak-device soak на Android.
+2. Зафиксировать реальное physical Android evidence без подстановки/эмуляции результата.
+3. После физического soak повторно пройти полный RC2/release gate.
+4. Выполнить финальную сверку Play listing/privacy материалов с фактическим APK.
+5. Провести ограниченное RC-тестирование.
+6. Принять отдельное production decision.
+7. Только после этого выполнять production rollout и monitoring.
 
-Immutable tag `v3.0.1-rc1` не перемещается и не изменяется. Google Play автоматически не публикуется.
+Immutable `v3.0.1-rc1` не перемещается и не изменяется.
