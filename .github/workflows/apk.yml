@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Java 17
         uses: actions/setup-java@v5
@@ -121,7 +121,7 @@ jobs:
           sha256sum -c "dist/igra-${{ steps.ver.outputs.v }}.apk.sha256"
 
       - name: Забрать APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: igra-${{ steps.ver.outputs.v }}
           path: |
