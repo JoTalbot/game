@@ -78,10 +78,10 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 
 - version: `3.0.1`
 - versionCode: `601`
-- latest green APK workflow: **#1092**
-- commit: `444b934ea5e32e594e56116fe676ee2cc983f65a`
+- latest green APK workflow: **#1093**
+- commit: `16b14b058841d89b87124de3a4724fb3058de914`
 - Actions artifact: `igra-3.0.1`
-- artifact digest: `sha256:325b8fab4f9ad25030da4a2bd447928b73510732b7eed60261aa7cf274edefa3`
+- artifact digest: `sha256:261b66134a2ff97e2362e32afc75b646d9d2b605ad3c962dfb93221503384fc4`
 - automatic APK gate: SUCCESS
 - Sync play mirror for the same commit: SUCCESS
 
