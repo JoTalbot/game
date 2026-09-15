@@ -20,7 +20,7 @@ ok(/(^|\n)on:\s*\n(?:[ \t]+.*\n)*[ \t]+push:\s*\n[ \t]+branches:\s*\[main\]/m.te
 ok(/(^|\n)[ \t]+workflow_dispatch:\s*$/m.test(text), 'manual dispatch trigger is present');
 ok(/(^|\n)jobs:\s*\n[ \t]+life:\s*\n/m.test(text), 'life job is present');
 ok(/runs-on:\s*ubuntu-latest/.test(text), 'life job has a runner');
-ok(/actions\/checkout@v4/.test(text), 'checkout step is present');
+ok(/actions\/checkout@v5/.test(text), 'checkout step is present');
 ok(/actions\/setup-node@v5/.test(text), 'Node setup is present');
 ok(/node-version:\s*22/.test(text), 'Life Arc uses Node 22');
 ok(/node tools\/probe\/life-workflow\.js/.test(text), 'workflow guard is executed');
