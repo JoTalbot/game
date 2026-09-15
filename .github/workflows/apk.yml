@@ -56,6 +56,7 @@ jobs:
           node tools/probe/v15-finale.js
           node tools/probe/v16-presentation.js
           node tools/probe/v17-adaptive-audio.js
+          node tools/probe/v18-experiments.js
           node --expose-gc tools/probe/rc-hardening.js
           node tools/probe/balance.js
       - name: Живой запуск
