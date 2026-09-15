@@ -50,6 +50,7 @@ jobs:
           node tools/probe/spawn-budget.js
           node tools/probe/render-budget.js
           node --expose-gc tools/probe/rc-hardening.js
+          node tools/probe/balance.js
 
       - name: Живой запуск
         run: node tools/probe/boot.js
