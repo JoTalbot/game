@@ -88,6 +88,7 @@
 - V11 release QA matrix: `tools/probe/v11-release-qa.js`, структурно покрывает 15 release-critical сценариев.
 - Исправлен stale QA expectation: probe ожидал `js/v10-myth.js`, тогда как актуальный shell загружает `js/v10-personality.js`; compatibility слой `v10-myth.js` при этом сохраняется для persistence/probes.
 - Node 24 action migration: checkout/upload-artifact обновлены до Node 24 runtime actions (`checkout@v5`, `upload-artifact@v6`), setup-node уже использовал `@v5`.
+- Последний push после обновления статуса также прошёл APK gate: APK #1091 SUCCESS; артефакт `igra-3.0.1` имеет GitHub Actions artifact digest `sha256:325b8fab4f9ad25030da4a2bd447928b73510732b7eed60261aa7cf274edefa3`.
 - Все актуальные push-gate workflow для V11-002/V11-003 завершились успешно.
 
 ### Текущие незакрытые release-operational задачи
