@@ -116,7 +116,7 @@ V11-002 balance и V11-003 visual/audio coherence закрыты зелёным�
 
 Последний development APK на `main`: **APK #1093 — SUCCESS**.  
 Последний Sync play mirror для того же коммита: **#619 — SUCCESS**.  
-Development artifact digest: `sha256:325b8fab4f9ad25030da4a2bd447928b73510732b7eed60261aa7cf274edefa3`.
+Development artifact digest: `sha256:261b66134a2ff97e2362e32afc75b646d9d2b605ad3c962dfb93221503384fc4`.
 
 Эти результаты относятся к development artifact. Они **не заменяют** immutable RC1.
 
