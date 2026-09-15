@@ -5,7 +5,7 @@ vm.createContext(ctx);
 vm.runInContext(fs.readFileSync("web/js/v15-finale.js", "utf8"), ctx, { filename: "v15-finale.js" });
 var G = ctx.IGRA;
 assert(G && G.V15Finale, "V15 finale layer loads");
-var calm = { meta: 0, saved: 1, killed: 0, discovered: 1, lineageV12: { generation: 3 } };
+var calm = { meta: 1, saved: 1, killed: 0, discovered: 1, lineageV12: { generation: 3 } };
 var harsh = { meta: -1, saved: 0, killed: 1, discovered: 0, lineageV12: { generation: 0 } };
 var neutral = { meta: 0, saved: 0, killed: 0, discovered: 0, lineageV12: { generation: 0 } };
 assert(G.V15Finale.route(calm) === "garden", "constructive history reaches garden");
