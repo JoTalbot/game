@@ -45,6 +45,7 @@
 - V11-005 localization/accessibility final pass — реализован: RU/EN semantic labels, locale-aware document language, live regions, reduced-motion и offline cache coverage.
 - V11-006 release QA matrix — реализован структурный gate на 15 release-critical сценариев; физическое Android evidence намеренно остаётся отдельным и не подменяется автоматическим тестом.
 - V12 lineage 2.0 foundation — bounded ancestry (8), bounded lineage memory (8), trait inheritance с attenuation, deterministic generation и malformed-state sanitization; acceptance probe включён в Life Arc Gate.
+- V13 knowledge foundation — bounded discoveries (64), bounded laws/interactions, duplicate suppression, evidence clamping, key length bound и malformed-state sanitization; acceptance probe добавлен в Life Arc Gate.
 - Service Worker cache — offline shell содержит новые assets; cache version `v30`.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
@@ -93,6 +94,7 @@
 - Sync play mirror для того же кандидата: **#619 SUCCESS**.
 - Этот digest относится к development artifact и не заменяет immutable RC1 SHA-256.
 - V12 lineage acceptance: Life Arc Gate #140 SUCCESS; APK #1106 SUCCESS; play mirror #633 SUCCESS на commit `155d3caaf2da07334882cf3b98ef87ab65c7b23d`.
+- V13 knowledge acceptance: probe добавлен и синхронизирован в `docs/play`; Sync play mirror #637 SUCCESS для commit `31b2d64bc5d245b1fe5fa1f46379049e745b823d`.
 
 ### Текущие незакрытые release-operational задачи
 
@@ -105,7 +107,7 @@
 
 ### Следующий milestone — V12 → V15
 
-V11-001 → V11-006 реализованы на инженерном уровне, V12 foundation подключён и его deterministic acceptance закрыт. Следующий продуктовый этап — превратить V12 в полноценное наследие, затем последовательно развить V13 knowledge, V14 Director 2.0 и V15 финальную причинную дугу.
+V11-001 → V11-006 реализованы на инженерном уровне, V12 foundation и V13 knowledge foundation подключены с bounded/deterministic acceptance. Следующий продуктовый этап — углубить наследие V12, затем связать знание с наблюдаемыми открытиями и последовательно развить V14 Director 2.0 и V15 финальную причинную дугу.
 
 Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
 
