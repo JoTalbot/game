@@ -21,5 +21,6 @@ var novel = G.V14Director2.score(world, { id: "new-event", setup: 1, consequence
 assert(novel > repeat, "novel event outranks immediate repetition");
 var malformed = { directorV14: { phase: null, tension: "bad", lastEvent: null } };
 var normalized = G.V14Director2.ensure(malformed);
-assert.strictEqual(normalized.tension, "bad", "ensure preserves state and scoring remains defensive");
+assert.strictEqual(normalized.tension, 0, "malformed tension is sanitized");
+assert.strictEqual(normalized.phase, "silence", "malformed phase is sanitized");
 console.log("V14 Director probe: PASS");
