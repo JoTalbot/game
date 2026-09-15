@@ -1,0 +1,17 @@
+"use strict";
+var assert = require("assert"), fs = require("fs"), vm = require("vm");
+var ctx = { console: console, Math: Math };
+vm.createContext(ctx);
+vm.runInContext(fs.readFileSync("web/js/v15-finale.js", "utf8"), ctx, { filename: "v15-finale.js" });
+var G = ctx.IGRA;
+assert(G && G.V15Finale, "V15 finale layer loads");
+var calm = { meta: 0, saved: 1, killed: 0, discovered: 1, lineageV12: { generation: 3 } };
+var harsh = { meta: -1, saved: 0, killed: 1, discovered: 0, lineageV12: { generation: 0 } };
+var neutral = { meta: 0, saved: 0, killed: 0, discovered: 0, lineageV12: { generation: 0 } };
+assert(G.V15Finale.route(calm) === "garden", "constructive history reaches garden");
+assert(G.V15Finale.route(harsh) === "ash", "destructive history reaches ash");
+assert(G.V15Finale.route(neutral) === "shore", "mixed history reaches shore");
+var a = G.V15Finale.evaluate(calm), b = G.V15Finale.evaluate(JSON.parse(JSON.stringify(calm)));
+assert.strictEqual(a, b, "same final state is deterministic");
+assert(a <= 1 && a >= -1, "finale score is bounded");
+console.log("V15 finale probe: PASS");
