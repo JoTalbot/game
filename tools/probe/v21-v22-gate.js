@@ -9,5 +9,6 @@ assert.strictEqual(suite.ready,true);
 var s=G.V21Playtest.session(w,120,"soak");G.V21Playtest.complete(w,s,"finished");assert.strictEqual(s.completed,true);assert.strictEqual(w.playtestV21.milestones[120],true);
 G.V22Optimization.configure(w,16.7,8);for(var i=0;i<32;i++)G.V22Optimization.sample(w,12+i%4);var report=G.V22Optimization.report(w);assert.strictEqual(report.samples,32);assert.strictEqual(report.withinBudget,true);assert(report.averageFrameMs<16.7);
 var rc=G.V23RC2Gate.evaluate({probes:true,migration:true,replay:true,performance:true,accessibility:true,privacy:true,signing:true,android:true});assert.strictEqual(rc.ready,true);assert.strictEqual(Array.from(rc.missing).length,0);
-var prod=G.V25Production.evaluate({v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true});assert.strictEqual(prod.ready,true);
+var prod=G.V25Production.evaluate({v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true,android:true,physicalAndroid:true});assert.strictEqual(prod.ready,true);assert.strictEqual(prod.checked,12);
+var blocked=G.V25Production.evaluate({v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true,android:true});assert.strictEqual(blocked.ready,false);assert(blocked.missing.indexOf("physicalAndroid")>=0);
 console.log("V21/V22 playtest + optimization + RC2/production gate probe: PASS");
