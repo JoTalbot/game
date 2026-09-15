@@ -29,8 +29,9 @@ for(const [name,files] of Object.entries(groups)) groupEvidence[name]={passed:fi
 const blockers={crashes:false,anr:false,saveFailures:false,criticalVisual:false,criticalTouch:false,secretLeak:false,networkRequired:false};
 const required=["probes","migration","replay","performance","accessibility","privacy","signing","android"];
 const missing=required.filter(k=>!groupEvidence[k].passed);
-const ready=missing.length===0&&Object.values(blockers).every(v=>!v);
-const evidence={schema:1,generatedAt:"deterministic-ci",required,missing,blockers,ready,groups:groupEvidence,tests:results};
+const deterministicReady=missing.length===0&&Object.values(blockers).every(v=>!v);
+const physicalAndroid=process.env.IGRA_PHYSICAL_ANDROID==="1";
+const evidence={schema:2,generatedAt:"deterministic-ci",required,missing,blockers,deterministicReady,physicalAndroid,ready:deterministicReady&&physicalAndroid,groups:groupEvidence,tests:results};
 console.log(JSON.stringify(evidence,null,2));
-if(!ready)process.exit(1);
+if(!deterministicReady||!physicalAndroid)process.exit(1);
 console.log("RC2 EVIDENCE GATE READY");
