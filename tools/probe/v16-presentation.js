@@ -18,8 +18,7 @@ assert.strictEqual(world.presentationV16.effects, 0, "negative effects clamp to 
 assert.strictEqual(world.presentationV16.floats, 0, "negative floaters clamp to zero");
 var malformed = { presentationV16: { detail: "bad", effects: "bad", floats: "bad" } };
 var normalized = G.V16Presentation.ensure(malformed);
-assert.strictEqual(normalized.detail, "bad", "ensure preserves state for budget normalization");
-G.V16Presentation.budget(malformed, "bad", "bad", "bad");
-assert(Number.isFinite(normalized.effects), "malformed effects become finite");
-assert(Number.isFinite(normalized.floats), "malformed floaters become finite");
+assert.strictEqual(normalized.detail, 0.5, "malformed detail is sanitized");
+assert.strictEqual(normalized.effects, 0, "malformed effects are sanitized");
+assert.strictEqual(normalized.floats, 0, "malformed floaters are sanitized");
 console.log("V16 presentation probe: PASS");
