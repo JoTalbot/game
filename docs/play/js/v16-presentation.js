@@ -1,6 +1,6 @@
 var IGRA = IGRA || {};
 (function(G){"use strict";
-function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-function ensure(world){world.presentationV16=world.presentationV16||{detail:1,effects:0,floats:0,weather:"clear",season:"spring"};return world.presentationV16;}
-function budget(world,detail,effects,floats){var s=ensure(world);s.detail=clamp(Number(detail)||s.detail,0.5,1);s.effects=Math.max(0,Math.min(24,Math.floor(effects==null?s.effects:effects)));s.floats=Math.max(0,Math.min(8,Math.floor(floats==null?s.floats:floats)));return s;}
+function clamp(v,a,b){var n=Number(v);return Number.isFinite(n)?Math.max(a,Math.min(b,n)):a;}
+function ensure(world){if(!world||typeof world!=="object")return null;world.presentationV16=world.presentationV16&&typeof world.presentationV16==="object"&&!Array.isArray(world.presentationV16)?world.presentationV16:{detail:1,effects:0,floats:0,weather:"clear",season:"spring"};var s=world.presentationV16;s.detail=clamp(s.detail,0.5,1);s.effects=Math.max(0,Math.min(24,Math.floor(Number.isFinite(Number(s.effects))?Number(s.effects):0)));s.floats=Math.max(0,Math.min(8,Math.floor(Number.isFinite(Number(s.floats))?Number(s.floats):0)));s.weather=String(s.weather==null?"clear":s.weather).slice(0,24);s.season=String(s.season==null?"spring":s.season).slice(0,24);return s;}
+function budget(world,detail,effects,floats){var s=ensure(world);if(!s)return null;var d=Number(detail);s.detail=Number.isFinite(d)?clamp(d,0.5,1):s.detail;s.effects=Math.max(0,Math.min(24,Math.floor(Number.isFinite(Number(effects))?Number(effects):s.effects)));s.floats=Math.max(0,Math.min(8,Math.floor(Number.isFinite(Number(floats))?Number(floats):s.floats)));return s;}
 G.V16Presentation={ensure:ensure,budget:budget};})(IGRA);
