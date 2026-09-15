@@ -57,6 +57,16 @@ jobs:
           node tools/probe/v16-presentation.js
           node tools/probe/v17-adaptive-audio.js
           node tools/probe/v18-experiments.js
+          node tools/probe/v19-deep-simulation.js
+          node tools/probe/v20-v22-hardening.js
+          node tools/probe/v20-production-hardening.js
+          node tools/probe/v20-experiment-hardening.js
+          node tools/probe/v21-v22-gate.js
+          node tools/probe/v22-regression-gate.js
+          node tools/probe/v23-v25-release-gates.js
+          node tools/probe/v23-v25-evidence.js
+          node tools/probe/v23-v25-release-gates.js
+          node tools/probe/v9-v25-persistence.js
           node --expose-gc tools/probe/rc-hardening.js
           node tools/probe/balance.js
       - name: Живой запуск
