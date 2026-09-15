@@ -19,6 +19,22 @@ function rnd() {
   return rndSeed / 4294967296;
 }
 
+// Регрессионный коридор, а не точное число: исторический рабочий баланс
+// держал потерю около 12% у сеятеля и 9% у садовника. Коридор ±8 п.п.
+// оставляет место для безопасной настройки, но ловит возврат к старой
+// катастрофе (~87% потерь) и ситуацию, когда забота перестаёт окупаться.
+var LIMIT = {
+  minGrownPerSeed: 1,
+  maxLossPct: 20,
+  maxLossDeltaPct: 3,
+  maxCarriedPct: 100
+};
+
+function fail(message) {
+  console.error("BALANCE FAIL: " + message);
+  process.exitCode = 1;
+}
+
 function run(seed, tend) {
   var game = H.makeWorld(G, seed);
   var grown = 0;
@@ -49,13 +65,32 @@ function run(seed, tend) {
   };
 }
 
+var results = {};
 ["сеятель", "садовник"].forEach(function (name, ti) {
   var sg = 0, sl = 0, sc = 0;
+  results[name] = [];
   [11, 12, 13].forEach(function (s) {
     var r = run(s, ti === 1);
     var pct = r.grown ? Math.round((100 * r.lost) / r.grown) : 0;
     sg += r.grown; sl += r.lost; sc += r.carried;
+    results[name].push(r);
     console.log(name, "seed" + s, "выращено", r.grown, "| забыто приливом", r.lost, "(" + pct + "%) | стало созвездием", r.carried, "| живых", r.live);
+    if (r.grown < LIMIT.minGrownPerSeed) fail(name + " seed" + s + ": нет выращивания (grown=" + r.grown + ")");
+    if (!Number.isFinite(r.lost) || r.lost < 0) fail(name + " seed" + s + ": некорректный lost=" + r.lost);
+    if (!Number.isFinite(r.carried) || r.carried < 0) fail(name + " seed" + s + ": некорректный carried=" + r.carried);
   });
-  console.log("  → " + name + ": забвение съедает " + Math.round((100 * sl) / sg) + "% выращенного, в созвездие ушло " + Math.round((100 * sc) / sg) + "% (память, не потеря)\n");
+  var lossPct = sg ? (100 * sl) / sg : 100;
+  var carriedPct = sg ? (100 * sc) / sg : 100;
+  results[name].summary = { grown: sg, lost: sl, carried: sc, lossPct: lossPct, carriedPct: carriedPct };
+  console.log("  → " + name + ": забвение съедает " + Math.round(lossPct) + "% выращенного, в созвездие ушло " + Math.round(carriedPct) + "% (память, не потеря)\n");
+  if (lossPct > LIMIT.maxLossPct) fail(name + ": забвение " + Math.round(lossPct) + "% > " + LIMIT.maxLossPct + "%");
+  if (carriedPct > LIMIT.maxCarriedPct) fail(name + ": carried " + Math.round(carriedPct) + "% > " + LIMIT.maxCarriedPct + "%");
 });
+
+var seedLoss = results["сеятель"].summary.lossPct;
+var gardenerLoss = results["садовник"].summary.lossPct;
+if (gardenerLoss > seedLoss + LIMIT.maxLossDeltaPct) {
+  fail("забота перестала окупаться: садовник " + Math.round(gardenerLoss) + "% потерь против сеятеля " + Math.round(seedLoss) + "%");
+}
+
+if (!process.exitCode) console.log("BALANCE PASS: детерминированный регрессионный коридор соблюдён.");
