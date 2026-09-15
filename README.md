@@ -69,7 +69,7 @@ Android — нативный WebView (`world.igra.app`), оффлайн, пол�
 Сейчас ставь: [скачать APK](https://github.com/JoTalbot/game/releases/latest/download/igra.apk)
 Перед установкой удали старую ИГРУ.
 
-Агентам: `docs/STATUS.md` → `docs/HANDOFF.md`. Публикация в Play: `docs/PUBLISH.md`. Как играть: `docs/GUIDE.md`.
+Агентам: `docs/STATUS.md` → `docs/HANDOFF_CURRENT.md` → `docs/AGENTS.md`. Публикация в Play: `docs/PUBLISH.md`. Как играть: `docs/GUIDE.md`.
 
 Разреши установку из неизвестного источника → открой файл → родись.
 
@@ -106,46 +106,48 @@ docs/ROADMAP.md     куда растём
 
 ## Статус
 
-**v3.0.1 — Release Candidate.**
+**v3.0.1 — Release Candidate / RC operational hardening.**
 
-V3-001 → V3-029, V5 living world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты автоматическими probes/CI. Расширенный V9 → V25 runtime, persistence, replay и production-hardening слой также подключены и проходят соответствующие probes. RC-контракт: versionCode **601**, release signing для `v*` tags обязателен, APK получает SHA-256.
+V3-001 → V3-029, V5 living world, V6 body identity, V7 climax/finale и V8 lineage реализованы и покрыты автоматическими probes/CI. Расширенный V9 → V25 runtime, persistence, replay и production-hardening слой также подключены и проходят соответствующие probes.
 
-V3-052 устранил класс runtime-ошибок malformed collections, включая `undefined.age`, и добавил regression-проверку. Визуальный text/floater spam и bloom-verse flooding также устранены.
+V11-002 balance и V11-003 visual/audio coherence закрыты зелёными CI-гейтами. Node 24 action migration также закрыта: workflows используют актуальные action major versions.
 
-### RC gate — GREEN
+### Текущие CI-гейты — GREEN
 
-Автоматические проверки проходят: probes, live boot, Android WebView security, sync check, Android SDK 34 build, APK build и checksum. После исправления persistence/replay ownership contract `Life Arc Gate #65` на `main` также GREEN.
+Последний development APK на `main`: **APK #1093 — SUCCESS**.  
+Последний Sync play mirror для того же коммита: **#619 — SUCCESS**.  
+Development artifact digest: `sha256:325b8fab4f9ad25030da4a2bd447928b73510732b7eed60261aa7cf274edefa3`.
 
-Физическая проверка `3.0.1` на слабом устройстве `427×948 @1.0` GREEN:
-- 10 минут;
-- Android 15;
-- clean install / boot / gameplay — PASS;
-- 55 FPS;
-- 4 тяжёлых кадра в физическом smoke;
-- runtime render exceptions: **0**;
-- visual spam: **нет**;
-- native save: **жив**;
-- save → restart → recovery: **успешно**;
-- force-stop → recovery: **успешно**;
-- old save upgrade: **успешно**;
-- offline: **успешно**;
-- accidental drops: **0**.
+Эти результаты относятся к development artifact. Они **не заменяют** immutable RC1.
 
-Issue #7 закрыта после физической верификации. Issues #5 и #6 закрыты после физического подтверждения читаемости и отсутствия визуального спама. Issue #4 остаётся открытой как UX/playtest backlog, но текущих release-blocker'ов не содержит.
+### Immutable RC1
+
+`v3.0.1-rc1` уже опубликован и зафиксирован. Его SHA-256: `160cec76dee27c903fab4956ea05c813b6430760c7021a03b85360f36c78f6bc`.
+
+RC1 нельзя перемещать, переписывать или подменять новым development APK.
+
+### Физический gate текущего кандидата — PENDING
+
+Предыдущая физическая проверка слабого устройства была успешной, но относится к ранее зафиксированному артефакту. Она не является доказательством физической готовности **текущего** development APK.
+
+Для текущего кандидата обязательны повторные проверки: clean install, boot, gameplay, save/restart/recovery, force-stop recovery, old-save upgrade, offline, fullscreen, audio/vibration, weak-device performance, visual/touch regressions, crash/ANR.
+
+Физическая проверка требует реального Android-устройства и не может быть честно заменена CI-эмуляцией.
 
 ### Production пока НЕ объявлен
 
-Технический и физический RC1 gate закрыты. Перед production остаются операционные шаги:
+После физического gate остаются операционные шаги:
 - финальная сверка Play listing/privacy материалов с фактическим APK;
 - ограниченное RC-тестирование;
 - отдельное production decision;
 - затем, при положительном решении, Google Play production rollout и monitoring.
 
-Immutable RC artifact `v3.0.1-rc1` уже зафиксирован и не должен перемещаться. Новые продуктовые механики до завершения RC-operational cycle не добавляются.
+Новые продуктовые механики до завершения RC operational cycle не добавляются без отдельного решения.
 
 Подробный текущий статус: `docs/STATUS.md`.  
+Актуальная передача смены: `docs/HANDOFF_CURRENT.md`.  
+Историческая передача: `docs/HANDOFF.md`.  
 Физический RC-чеклист: `docs/RC1_SMOKE.md`.  
-Передача смены: `docs/HANDOFF.md`.  
 Витрина магазина: `docs/STORE.md`. Чек-лист публикации: `docs/PUBLISH.md`.
 
 После ограниченного RC-тестирования принимается отдельное решение о production Play release.
