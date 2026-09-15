@@ -13,6 +13,9 @@ result.data.v9v25.experimentsV18.forEach(function(x){assert(x.id.length<=96&&x.h
 var nested={v9v25:{world:{experiments:{records:raw}}}};
 var nestedResult=G.V20Hardening.sanitizeSave(nested);
 assert.strictEqual(nestedResult.data.v9v25.world.experiments.records.length,32,"nested experiment history is bounded");
-assert.deepStrictEqual(Object.keys(nestedResult.data.v9v25.world.experiments.records[0]).sort(),["action","hypothesis","id","outcome"],"experiment records have stable sanitized shape");
-assert.deepStrictEqual(G.V20Hardening.sanitizeExperiments("bad"),[],"malformed experiment collection is repaired");
+var keys=Object.keys(nestedResult.data.v9v25.world.experiments.records[0]).sort();
+assert.strictEqual(keys.join(","),"action,hypothesis,id,outcome","experiment records have stable sanitized shape");
+var repaired=G.V20Hardening.sanitizeExperiments("bad");
+assert(Array.isArray(repaired),"malformed experiment collection is repaired");
+assert.strictEqual(repaired.length,0,"malformed experiment collection is repaired");
 console.log("V20 experiment hardening probe: PASS");
