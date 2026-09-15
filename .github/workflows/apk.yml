@@ -50,6 +50,7 @@ jobs:
           node tools/probe/density-guard.js
           node tools/probe/spawn-budget.js
           node tools/probe/render-budget.js
+          node tools/probe/v3-015-laws.js
           node tools/probe/v12-lineage.js
           node tools/probe/v13-knowledge.js
           node tools/probe/v14-director2.js
