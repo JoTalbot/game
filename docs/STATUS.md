@@ -44,6 +44,7 @@
 - V11-004 long-session engine soak — реализован детерминированный 10 000-step bounded soak с repeatability и snapshot/restore checks.
 - V11-005 localization/accessibility final pass — реализован: RU/EN semantic labels, locale-aware document language, live regions, reduced-motion и offline cache coverage.
 - V11-006 release QA matrix — реализован структурный gate на 15 release-critical сценариев; физическое Android evidence намеренно остаётся отдельным и не подменяется автоматическим тестом.
+- V12 lineage 2.0 foundation — bounded ancestry (8), bounded lineage memory (8), trait inheritance с attenuation, deterministic generation и malformed-state sanitization; acceptance probe включён в Life Arc Gate.
 - Service Worker cache — offline shell содержит новые assets; cache version `v30`.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
@@ -91,6 +92,7 @@
 - Последний подтверждённый development APK candidate: **#1093 SUCCESS**; commit `16b14b058841d89b87124de3a4724fb3058de914`; GitHub Actions artifact `igra-3.0.1` digest `sha256:261b66134a2ff97e2362e32afc75b646d9d2b605ad3c962dfb93221503384fc4`.
 - Sync play mirror для того же кандидата: **#619 SUCCESS**.
 - Этот digest относится к development artifact и не заменяет immutable RC1 SHA-256.
+- V12 lineage acceptance: Life Arc Gate #140 SUCCESS; APK #1106 SUCCESS; play mirror #633 SUCCESS на commit `155d3caaf2da07334882cf3b98ef87ab65c7b23d`.
 
 ### Текущие незакрытые release-operational задачи
 
@@ -101,17 +103,9 @@
 5. Production rollout в Google Play и последующий production monitoring.
 6. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
-### Следующий milestone — V11 Final Polish
+### Следующий milestone — V12 → V15
 
-V10 закрыт. V11-001 → V11-006 реализованы на инженерном уровне, актуальные автоматические gate зелёные.
-
-Следующий порядок:
-
-1. Повторный физический weak-device soak для актуального development APK.
-2. Финальная release-operational сверка Play listing/privacy с APK.
-3. Limited RC testing.
-4. Отдельное production decision.
-5. Production rollout и monitoring.
+V11-001 → V11-006 реализованы на инженерном уровне, V12 foundation подключён и его deterministic acceptance закрыт. Следующий продуктовый этап — превратить V12 в полноценное наследие, затем последовательно развить V13 knowledge, V14 Director 2.0 и V15 финальную причинную дугу.
 
 Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
 
