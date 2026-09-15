@@ -39,6 +39,8 @@
 - V9 World Depth — реализован и закрыт deterministic gate.
 - V10 Personal Myth / Replay — реализован и закрыт deterministic gate; bounded generational memory, finale-dependent starts, inherited dominant trait, generational rare beats и межжизненная continuity отношений.
 - V11-001 first-session UX — реализован: одноразовая контекстная подсказка birth → touch → gaze → first growth, RU/EN, без изменения save/game rules.
+- V11-002 balance — детерминированный регрессионный коридор закрыт: выращивание сохраняется, потери ограничены текущим безопасным диапазоном, забота сохраняет измеримое преимущество.
+- V11-003 visual/audio coherence — deterministic gate закрыт: presentation budgets bounded, adaptive audio меняет motif/intensity/silence по контексту и clamp патологических значений.
 - V11-004 long-session engine soak — реализован детерминированный 10 000-step bounded soak с repeatability и snapshot/restore checks.
 - V11-005 localization/accessibility final pass — реализован: RU/EN semantic labels, locale-aware document language, live regions, reduced-motion и offline cache coverage.
 - V11-006 release QA matrix — реализован структурный gate на 15 release-critical сценариев; физическое Android evidence намеренно остаётся отдельным и не подменяется автоматическим тестом.
@@ -79,16 +81,14 @@
 ### Актуальные V11 gate результаты
 
 - V11 first-session: ранее подтверждён.
+- V11-002 balance: commit `6cbb8952d52012e53bd305da015e83cefffbf16c`, APK #1089 и Life Arc #123 завершились SUCCESS.
+- V11-003 visual/audio: commit `9e5639c3e1b82cf81611986957b98a8ca36ce577`, APK #1090, Life Arc #124 и Sync play mirror #616 завершились SUCCESS.
 - V11 accessibility/localization: первоначальный gate обнаружил несовместимость старого probe с accessibility API; исправлено без изменения игрового API.
 - Текущий accessibility API сохраняет стабильный `version: 1`; локализация label обновляется после смены языка.
 - V11 release QA matrix: `tools/probe/v11-release-qa.js`, структурно покрывает 15 release-critical сценариев.
-- Исправлен stale QA expectation: probe ожидал `js/v10-myth.js`, тогда как актуальный shell загружает `js/v10-personality.js`.
-- Commit исправления: `f265f04b175321d1b6808b739c439b894b04c516`.
-- Life Arc Gate #114: **SUCCESS**.
-- APK #1080: **SUCCESS**; development artifact `igra-3.0.1`, SHA-256 `f60447124ad1db5184706bc089618099cd8e0e0404a2aefe7883a1f601159f1f`.
-- Sync play mirror #606: **SUCCESS**.
-- RC2 evidence artifact: создан успешно.
-- Все три актуальных push-gate workflow на `f265f04` завершились успешно.
+- Исправлен stale QA expectation: probe ожидал `js/v10-myth.js`, тогда как актуальный shell загружает `js/v10-personality.js`; compatibility слой `v10-myth.js` при этом сохраняется для persistence/probes.
+- Node 24 action migration: checkout/upload-artifact обновлены до Node 24 runtime actions (`checkout@v5`, `upload-artifact@v6`), setup-node уже использовал `@v5`.
+- Все актуальные push-gate workflow для V11-002/V11-003 завершились успешно.
 
 ### Текущие незакрытые release-operational задачи
 
@@ -101,16 +101,15 @@
 
 ### Следующий milestone — V11 Final Polish
 
-V10 закрыт. V11-001, V11-004, V11-005 и V11-006 реализованы на инженерном уровне, автоматические gate на актуальном коммите зелёные.
+V10 закрыт. V11-001 → V11-006 реализованы на инженерном уровне, актуальные автоматические gate зелёные.
 
 Следующий порядок:
 
-1. P1 balance.
-2. P1 visual/audio coherence.
-3. Повторный физический weak-device soak для актуального development APK.
-4. Limited RC testing.
-5. Финальная release-operational сверка.
-6. Отдельное production decision.
+1. Повторный физический weak-device soak для актуального development APK.
+2. Финальная release-operational сверка Play listing/privacy с APK.
+3. Limited RC testing.
+4. Отдельное production decision.
+5. Production rollout и monitoring.
 
 Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
 
