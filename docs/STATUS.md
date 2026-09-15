@@ -46,6 +46,9 @@
 - V11-006 release QA matrix — реализован структурный gate на 15 release-critical сценариев; физическое Android evidence намеренно остаётся отдельным и не подменяется автоматическим тестом.
 - V12 lineage 2.0 foundation — bounded ancestry (8), bounded lineage memory (8), trait inheritance с attenuation, deterministic generation и malformed-state sanitization; acceptance probe включён в Life Arc Gate.
 - V13 knowledge foundation — bounded discoveries (64), bounded laws/interactions, duplicate suppression, evidence clamping, key length bound и malformed-state sanitization; acceptance probe добавлен в Life Arc Gate.
+- V14 Director 2.0 foundation — deterministic context-aware event scoring, tension/setup/consequence/rarity, anti-repeat novelty bias, bounded director state и acceptance probe.
+- V15 finale foundation — deterministic route/evaluation layer для нескольких причинных финальных исходов; acceptance probe.
+- V16 presentation foundation — bounded detail/effects/floater budgets, low-end floor и malformed-state sanitization; acceptance probe включён в Life Arc Gate.
 - Service Worker cache — offline shell содержит новые assets; cache version `v30`.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
@@ -80,7 +83,7 @@
 - heavy frames: `0`
 - conclusion: физический RC1 smoke полностью пройден на целевом слабом устройстве.
 
-### Актуальные V11 gate результаты
+### Актуальные gate результаты
 
 - V11 first-session: ранее подтверждён.
 - V11-002 balance: commit `6cbb8952d52012e53bd305da015e83cefffbf16c`, APK #1089 и Life Arc #123 завершились SUCCESS.
@@ -90,24 +93,27 @@
 - V11 release QA matrix: `tools/probe/v11-release-qa.js`, структурно покрывает 15 release-critical сценариев.
 - Исправлен stale QA expectation: probe ожидал `js/v10-myth.js`, тогда как актуальный shell загружает `js/v10-personality.js`; compatibility слой `v10-myth.js` при этом сохраняется для persistence/probes.
 - Node 24 action migration: checkout/upload-artifact обновлены до Node 24 runtime actions (`checkout@v5`, `upload-artifact@v6`), setup-node уже использовал `@v5`.
-- Последний подтверждённый development APK candidate: **#1093 SUCCESS**; commit `16b14b058841d89b87124de3a4724fb3058de914`; GitHub Actions artifact `igra-3.0.1` digest `sha256:261b66134a2ff97e2362e32afc75b646d9d2b605ad3c962dfb93221503384fc4`.
-- Sync play mirror для того же кандидата: **#619 SUCCESS**.
-- Этот digest относится к development artifact и не заменяет immutable RC1 SHA-256.
+- Последний подтверждённый development APK candidate: **#1116 SUCCESS**; commit `1d43f14b9b45333c8ad317c395bd354968a6137f`.
+- Sync play mirror для актуального V16 кандидата: **#652 SUCCESS**.
+- Life Arc Gate для актуального V16 кандидата: **#154 SUCCESS**.
 - V12 lineage acceptance: Life Arc Gate #140 SUCCESS; APK #1106 SUCCESS; play mirror #633 SUCCESS на commit `155d3caaf2da07334882cf3b98ef87ab65c7b23d`.
-- V13 knowledge acceptance: probe добавлен и синхронизирован в `docs/play`; Sync play mirror #637 SUCCESS для commit `31b2d64bc5d245b1fe5fa1f46379049e745b823d`.
+- V13 knowledge acceptance: probe добавлен и синхронизирован в `docs/play`; Sync play mirror #637 SUCCESS.
+- V14 Director acceptance: probe добавлен; актуальный Life Arc Gate #150 SUCCESS.
+- V15 finale acceptance: probe добавлен; актуальный APK #1116 и Life Arc #150 SUCCESS.
+- V16 presentation acceptance: probe добавлен и включён в Life Arc Gate; после исправления malformed-state expectation Life Arc #154 SUCCESS.
 
 ### Текущие незакрытые release-operational задачи
 
-1. Повторный физический weak-device soak для актуального development APK после завершения V11.
+1. Повторный физический weak-device soak для актуального development APK после V12 → V16 изменений.
 2. Финальная сверка Play listing/privacy материалов с фактическим APK.
 3. Ограниченное RC-тестирование после физического soak.
 4. Отдельное production decision.
 5. Production rollout в Google Play и последующий production monitoring.
 6. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
-### Следующий milestone — V12 → V15
+### Следующий milestone — V17 → V25
 
-V11-001 → V11-006 реализованы на инженерном уровне, V12 foundation и V13 knowledge foundation подключены с bounded/deterministic acceptance. Следующий продуктовый этап — углубить наследие V12, затем связать знание с наблюдаемыми открытиями и последовательно развить V14 Director 2.0 и V15 финальную причинную дугу.
+V12 → V16 инженерные foundation-слои подключены и проходят deterministic acceptance. Следующий этап — V17 adaptive audio, V18 experiments, V19 deep simulation и последующая интеграция V20 → V25 release/production gates без разрушения bounded persistence и offline-first архитектуры.
 
 Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
 
