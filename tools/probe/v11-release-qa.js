@@ -12,7 +12,7 @@ ok(/<html lang="ru">/.test(html),'base locale');
 ok(/manifest\.json/.test(html),'install manifest');
 ok(/["']serviceWorker["']\s+in\s+navigator/.test(main)&&/navigator\.serviceWorker\.register\(["']sw\.js["']\)/.test(main),'offline registration');
 ok(/igra-shell-v30/.test(sw),'current offline cache');
-['js/lang.js','js/accessibility.js','js/v9-world.js','js/v10-myth.js','js/v9-v25-persistence.js','js/v9-v25-bridge.js'].forEach(s=>ok(html.includes('src="'+s+'"'),'shell loads '+s));
+['js/lang.js','js/accessibility.js','js/v9-world.js','js/v10-personality.js','js/v9-v25-persistence.js','js/v9-v25-bridge.js'].forEach(s=>ok(html.includes('src="'+s+'"'),'shell loads '+s));
 ok(/schema\s*[:=].*5|SCHEMA\s*=\s*5/.test(persistence),'save schema 5');
 ok(/migration|migrat/i.test(persistence),'legacy migration');
 ok(/snapshot|restore|fromSnapshot/i.test(persistence),'restore primitives');
