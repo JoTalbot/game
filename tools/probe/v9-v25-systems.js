@@ -12,5 +12,10 @@ G.V10Personality.ensure({}); G.V11Social.ensure(w); G.V12Lineage.ensure(w); G.V1
 G.V16Presentation.budget(w,1,24,8); G.V17AdaptiveAudio.react(w,{intensity:.7,motif:"memory",silence:.3}); G.V18Experiments.record(w,"care changes trust","care","trust increased"); G.V19Simulation.tick(w,1); G.V20Hardening.check(w,"save",true); G.V20Hardening.migrate(w,1,2); G.V21Playtest.session(w,30,"repeat-life"); G.V21Playtest.metric(w,"events",3); G.V22Optimization.configure(w,16.7,8);
 assert.strictEqual(G.V23RC2Gate.evaluate({probes:true,migration:true,replay:true,performance:true,accessibility:true,privacy:true,signing:true,android:true}).ready,true);
 var lr=G.V24LimitedRelease.ensure(w); lr.enabled=true; assert.strictEqual(G.V24LimitedRelease.gate(w),true);
-assert.strictEqual(G.V25Production.evaluate({v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true}).ready,true);
-console.log("V9-V25 systems probe: PASS");
+var deterministic={v23:true,v24:true,save:true,migration:true,offline:true,performance:true,accessibility:true,privacy:true,signing:true,store:true,android:true};
+var blocked=G.V25Production.evaluate(deterministic);
+assert.strictEqual(blocked.ready,false);
+assert(blocked.missing.indexOf("physicalAndroid")>=0);
+var complete=G.V25Production.evaluate(Object.assign({},deterministic,{physicalAndroid:true}));
+assert.strictEqual(complete.ready,true);
+console.log("V9-V25 systems probe: PASS (physical Android remains an explicit external gate)");
