@@ -49,6 +49,7 @@
 - V14 Director 2.0 foundation — deterministic context-aware event scoring, tension/setup/consequence/rarity, anti-repeat novelty bias, bounded director state и acceptance probe.
 - V15 finale foundation — deterministic route/evaluation layer для нескольких причинных финальных исходов; acceptance probe.
 - V16 presentation foundation — bounded detail/effects/floater budgets, low-end floor и malformed-state sanitization; acceptance probe включён в Life Arc Gate.
+- V17 adaptive audio hardening — bounded ambience/silence, bounded motif, deterministic context reaction и malformed-state sanitization; acceptance probe добавлен в Life Arc Gate.
 - Service Worker cache — offline shell содержит новые assets; cache version `v30`.
 - Release APK: debug signing запрещён для `v*` tags.
 - Release tag требует `IGRA_KEYSTORE_B64` и `IGRA_KEYSTORE_PASSWORD`.
@@ -85,35 +86,30 @@
 
 ### Актуальные gate результаты
 
-- V11 first-session: ранее подтверждён.
-- V11-002 balance: commit `6cbb8952d52012e53bd305da015e83cefffbf16c`, APK #1089 и Life Arc #123 завершились SUCCESS.
-- V11-003 visual/audio: commit `9e5639c3e1b82cf81611986957b98a8ca36ce577`, APK #1090, Life Arc #124 и Sync play mirror #616 завершились SUCCESS.
-- V11 accessibility/localization: первоначальный gate обнаружил несовместимость старого probe с accessibility API; исправлено без изменения игрового API.
-- Текущий accessibility API сохраняет стабильный `version: 1`; локализация label обновляется после смены языка.
-- V11 release QA matrix: `tools/probe/v11-release-qa.js`, структурно покрывает 15 release-critical сценариев.
-- Исправлен stale QA expectation: probe ожидал `js/v10-myth.js`, тогда как актуальный shell загружает `js/v10-personality.js`; compatibility слой `v10-myth.js` при этом сохраняется для persistence/probes.
-- Node 24 action migration: checkout/upload-artifact обновлены до Node 24 runtime actions (`checkout@v5`, `upload-artifact@v6`), setup-node уже использовал `@v5`.
-- Последний подтверждённый development APK candidate: **#1116 SUCCESS**; commit `1d43f14b9b45333c8ad317c395bd354968a6137f`.
-- Sync play mirror для актуального V16 кандидата: **#652 SUCCESS**.
-- Life Arc Gate для актуального V16 кандидата: **#154 SUCCESS**.
-- V12 lineage acceptance: Life Arc Gate #140 SUCCESS; APK #1106 SUCCESS; play mirror #633 SUCCESS на commit `155d3caaf2da07334882cf3b98ef87ab65c7b23d`.
-- V13 knowledge acceptance: probe добавлен и синхронизирован в `docs/play`; Sync play mirror #637 SUCCESS.
-- V14 Director acceptance: probe добавлен; актуальный Life Arc Gate #150 SUCCESS.
-- V15 finale acceptance: probe добавлен; актуальный APK #1116 и Life Arc #150 SUCCESS.
-- V16 presentation acceptance: probe добавлен и включён в Life Arc Gate; после исправления malformed-state expectation Life Arc #154 SUCCESS.
+- V12 lineage acceptance: PASS.
+- V13 knowledge acceptance: PASS.
+- V14 Director acceptance: PASS.
+- V15 finale acceptance: PASS.
+- V16 presentation acceptance: PASS.
+- V17 adaptive audio acceptance: исправлена обнаруженная ошибка malformed-state probe; runtime sanitization усилена, новый gate запущен.
+- Последний подтверждённый development APK candidate: **#1116 SUCCESS** до V17 hardening; V17 APK pipeline запущен.
+- Sync play mirror для V17: workflow запущен автоматически.
+- Life Arc Gate для V17: workflow запущен автоматически.
 
 ### Текущие незакрытые release-operational задачи
 
-1. Повторный физический weak-device soak для актуального development APK после V12 → V16 изменений.
-2. Финальная сверка Play listing/privacy материалов с фактическим APK.
-3. Ограниченное RC-тестирование после физического soak.
-4. Отдельное production decision.
-5. Production rollout в Google Play и последующий production monitoring.
-6. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
+1. Подтвердить V17 Life Arc Gate после исправления regression.
+2. Дождаться V17 APK и play mirror.
+3. Повторный физический weak-device soak для актуального development APK после V12 → V17 изменений.
+4. Финальная сверка Play listing/privacy материалов с фактическим APK.
+5. Ограниченное RC-тестирование после физического soak.
+6. Отдельное production decision.
+7. Production rollout в Google Play и последующий production monitoring.
+8. Issue #4 остаётся открытой как UX/playtest backlog и не считается текущим release blocker.
 
-### Следующий milestone — V17 → V25
+### Следующий milestone — V18 → V25
 
-V12 → V16 инженерные foundation-слои подключены и проходят deterministic acceptance. Следующий этап — V17 adaptive audio, V18 experiments, V19 deep simulation и последующая интеграция V20 → V25 release/production gates без разрушения bounded persistence и offline-first архитектуры.
+V12 → V17 инженерные foundation-слои подключены. После закрытия текущего V17 regression следующий этап — V18 experimentation, V19 deep simulation и последующая интеграция V20 → V25 release/production gates без разрушения bounded persistence и offline-first архитектуры.
 
 Новые изменения идут через `IMP-*`, bounded persistence, deterministic probes и CI. Физическая проверка обязательна для Android UX/performance изменений.
 
