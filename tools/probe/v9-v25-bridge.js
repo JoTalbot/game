@@ -42,6 +42,27 @@ assert(game.world.optimizationV22 && game.world.optimizationV22.frameSamples.len
 assert(game.world.optimizationV22.simSamples.length === 1, "optimization simulation sample is attached");
 assert(game.world.optimizationV22.frameBudget === 20, "weak-device frame budget is configured");
 
+// V11-003: presentation and ambience must react to world context without
+// exceeding the bounded weak-device budget or collapsing every context into
+// the same mechanical motif.
+assert(G.V16Presentation && G.V16Presentation.ensure && G.V16Presentation.budget, "V16 presentation layer loads");
+var presentation = G.V16Presentation.ensure(game.world);
+G.V16Presentation.budget(game.world, 1, 24, 8);
+assert(presentation.detail === 1, "presentation detail remains bounded");
+assert(presentation.effects === 24 && presentation.floats === 8, "presentation upper budgets are explicit");
+G.V16Presentation.budget(game.world, 9, 99, 99);
+assert(presentation.detail === 1 && presentation.effects === 24 && presentation.floats === 8, "presentation budget clamps pathological input");
+
+assert(G.V17AdaptiveAudio && G.V17AdaptiveAudio.ensure && G.V17AdaptiveAudio.react, "V17 adaptive audio layer loads");
+var audio = G.V17AdaptiveAudio.ensure(game.world);
+G.V17AdaptiveAudio.react(game.world, { intensity: 0.15, motif: "silence", silence: 0.9 });
+var quietMotif = audio.motif;
+G.V17AdaptiveAudio.react(game.world, { intensity: 0.85, motif: "garden", silence: 0.1 });
+assert(audio.motif !== quietMotif, "audio motif changes with context");
+assert(audio.ambience === 0.85 && audio.silence === 0.1, "audio context is applied deterministically");
+G.V17AdaptiveAudio.react(game.world, { intensity: 9, motif: "storm", silence: -9 });
+assert(audio.ambience === 1 && audio.silence === 0, "audio levels clamp pathological input");
+
 // A quiet frame must remain quiet: no synthetic player action or causal event.
 var eventsBeforeIdle = game.world.v9v25.world.history.length;
 var actionsBeforeIdle = game.world.v9v25.metrics.actions;
@@ -50,4 +71,4 @@ assert(game.world.v9v25.metrics.actions === actionsBeforeIdle, "idle frame does 
 assert(game.world.v9v25.metrics.idleSteps === 1, "quiet frame is classified as idle");
 assert(game.world.v9v25.world.history.length === eventsBeforeIdle, "idle frame does not create causal player history");
 assert(game.world.v9v25.lastAction.type === "idle", "last action becomes explicit idle state");
-console.log("V9-V25 live bridge probe: PASS");
+console.log("V9-V25 live bridge + V11 presentation/audio probe: PASS");
