@@ -5,6 +5,12 @@ vm.createContext(ctx);
 vm.runInContext(fs.readFileSync("web/js/v12-lineage.js", "utf8"), ctx, { filename: "v12-lineage.js" });
 var G = ctx.IGRA;
 assert(G && G.V12Lineage, "V12 lineage layer loads");
+function sequence(includeBase) {
+  var w = {};
+  if (includeBase) G.V12Lineage.inherit(w, { id: "ancestor-1", kind: "empathy", personality: { empathy: 0.8, curiosity: 0.4 }, memory: { id: "shore-1" } });
+  for (var i = 2; i <= 12; i++) G.V12Lineage.inherit(w, { id: "ancestor-" + i, kind: "kind-" + i, traits: { harmony: 1 }, memory: { type: "shore" } });
+  return w;
+}
 var world = {};
 var first = G.V12Lineage.ensure(world);
 assert.strictEqual(first.generation, 0, "fresh lineage starts at generation zero");
@@ -22,8 +28,7 @@ assert.strictEqual(world.lineageV12.generation, 12, "generation remains determin
 assert(world.lineageV12.ancestors.length <= 8, "ancestry is bounded");
 assert(world.lineageV12.memories.length <= 8, "lineage memory is bounded");
 assert(world.lineageV12.traits.harmony <= 0.85, "trait inheritance remains bounded");
-var world2 = {};
-for (var j = 1; j <= 12; j++) G.V12Lineage.inherit(world2, { id: "ancestor-" + j, kind: "kind-" + j, traits: { harmony: 1 }, memory: { type: "shore" } });
+var world2 = sequence(true);
 assert.strictEqual(JSON.stringify(world.lineageV12), JSON.stringify(world2.lineageV12), "same inheritance sequence is deterministic");
 var malformed = { lineageV12: { generation: "bad", ancestors: [null, { id: "ok" }], traits: [], memories: "bad" } };
 var normalized = G.V12Lineage.ensure(malformed);
