@@ -41,6 +41,11 @@ assert.strictEqual(w.nodes[0].care,1,"reveal exposes a nearby node");
 assert.strictEqual(w.nodes[1].care,0,"reveal does not expose distant nodes");
 apply(game,law("stillHold","тишина держит","silence holds",23));
 assert.strictEqual(w.active.some(function(x){return x.id==="stillHold"&&x.left===23;}),true,"stillHold exposes active duration");
-assert.strictEqual(w.laws.length,9,"all nine expressive laws are recorded");
+// World law history is intentionally bounded to eight entries by organs.js.
+// All nine laws above are exercised; the retained history must be bounded
+// and keep the most recent expressive laws with stable bilingual metadata.
+assert.strictEqual(w.laws.length,8,"law history stays within its bounded cap");
+assert.strictEqual(w.laws[0].id,"woundsSing","bounded history drops the oldest law");
+assert.strictEqual(w.laws[7].id,"stillHold","bounded history keeps the newest law");
 assert(w.laws.every(function(x){return x.id&&x.ru&&x.en&&x.t!=null;}),"law history keeps stable ids and bilingual labels");
 console.log("V3-015 expressive world laws probe: PASS");
