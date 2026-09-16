@@ -40,19 +40,19 @@
 
 ### Текущий HEAD и последние инженерные изменения
 
-Текущий `main` содержит последовательность docs-only исправлений после инженерного HEAD `65d2de15d57a41d2ea401bf6a945230e57364733`. APK-кандидат v3.0.1/versionCode 601 был собран непосредственно с `65d2de15...`; последующие коммиты изменяют только release documentation/evidence и не изменяют APK.
+Текущий инженерный APK был пересобран после hardening-изменения `android:allowBackup="false"`. Исходный кандидат до этого изменения больше не является актуальным binary provenance. Текущий APK собран с commit `909203f203fc1e695e4d481aeaf34c81b135aff0`.
 
-Текущий APK-кандидат имеет provenance `igra-3.0.1`, versionCode `601`, source commit `65d2de15...` и **APK SHA-256 `37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92`**. GitHub Actions artifact ZIP для этого APK имеет отдельный digest `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`. SHA APK подтверждён непосредственно содержимым `igra-3.0.1.apk.sha256` из скачанного Actions artifact.
+Текущий APK-кандидат: `igra-3.0.1`, versionCode `601`, source commit `909203f203fc1e695e4d481aeaf34c81b135aff0`, workflow run `35108604277`, Actions artifact ID `10451117735`. Фактический **APK SHA-256 `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`**. Digest ZIP-контейнера Actions artifact отдельно: `aa1a719ea9a4e9f43e8b8c6ed2a2ad2a6b15afaf79ee0420e628acf344f942a0`.
 
-Это исправляет прежнюю неоднозначность, где digest ZIP-архива был ошибочно обозначен как SHA самого APK. Физическая проверка по-прежнему должна ссылаться именно на SHA APK.
+APK SHA подтверждён непосредственно файлом `igra-3.0.1.apk.sha256` внутри скачанного Actions artifact. ZIP digest не является SHA самого APK.
 
-Последние изменения V9-V25 persistence/replay также проверяют полный путь от live runtime event до persistence: idle frame не создаёт replay entry, реальное действие записывается ровно один раз и сохраняется через `pack()`.
+Новый APK прошёл полный автоматический APK workflow: source provenance, probes, live launch, WebView guard, mirror sync, drift guard, Android SDK, signing, APK build и checksum artifact. Это не заменяет физическую Android-приёмку.
 
 ### Физическое Android-условие
 
 Последний подтверждённый физический smoke относится к immutable RC1 и не подтверждает V12 → V25 изменения. Поэтому текущий `main` **не считается production-ready** только на основании CI.
 
-Для текущего APK-кандидата создан и слит отдельный физический acceptance journal. В нём все обязательные проверки остаются `PENDING`, physical evidence отсутствует, а `IGRA_PHYSICAL_ANDROID=1` не установлен. V25 требует одновременно `android=true` и `physicalAndroid=true`; без физического теста production gate остаётся blocked. CI не подделывает physical evidence.
+Для текущего APK создан и слит отдельный физический acceptance journal. Все обязательные проверки остаются `PENDING`, physical evidence отсутствует, а `IGRA_PHYSICAL_ANDROID=1` не установлен. V25 требует одновременно `android=true` и `physicalAndroid=true`; без физического теста production gate остаётся blocked. CI не подделывает physical evidence.
 
 ### RC2 evidence pipeline
 
@@ -60,7 +60,7 @@
 
 ### Текущие незакрытые задачи
 
-1. Выполнить физический weak-device soak на текущем APK-кандидате `igra-3.0.1` / versionCode 601 / APK SHA `37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92`.
+1. Выполнить физический weak-device soak на текущем APK-кандидате `igra-3.0.1` / versionCode 601 / APK SHA `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`.
 2. Зафиксировать реальное physical Android evidence без подстановки/эмуляции результата.
 3. После физического soak повторно пройти полный RC2/release gate.
 4. Выполнить финальную сверку Play listing/privacy материалов с фактическим APK.
