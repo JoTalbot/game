@@ -1,13 +1,21 @@
 # IGRA 3.0.1 — release evidence
 
-## Candidate
+## Current release candidate
 
 - Version: `3.0.1`
-- Candidate commit before this evidence record: `1f7dcf824e7efe193a06f01bdc3795e13283bb2b`
-- Previous production `v3.0.0` remains immutable.
-- This document records the final V3-048 device pass and the automated RC evidence.
+- versionCode: `601`
+- Source commit: `1ddc7e90780679c802470943aae3b953d40fe817`
+- APK workflow: `35141797041` — SUCCESS
+- Actions artifact: `igra-3.0.1` (artifact ID `10465244020`)
+- APK SHA-256: `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`
+- Artifact ZIP SHA-256: `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`
+- Signing: debug, ordinary main-branch CI
 
-## Real weak-device acceptance
+The current deterministic artifact passed the automated APK gate, but it is not the release-signed binary for physical acceptance.
+
+## Historical V3-048 weak-device evidence
+
+The following measurements are retained as historical engineering evidence and do not substitute for acceptance of the current release-signed candidate.
 
 Device: `427×948 @1.0 (слабый)`.
 
@@ -36,33 +44,20 @@ Comparison with the pre-V3-048 weak-device baseline:
 - Heavy-frame rate: approximately `553/min → 398/min` (`~28%` lower)
 - The device remained stable for a 2.9-minute real session.
 
-The 49 FPS result is accepted as RC evidence because the product is materially smoother, the heavy-frame rate is substantially lower, touch/growth behavior remains functional, and no dropped gestures were observed. No further performance reduction is justified solely to chase one additional average FPS on this device.
+These measurements remain useful as historical performance evidence, but they are not evidence for the current release-signed APK.
 
-## Automated RC evidence
+## Automated evidence retained
 
-The V3-048 APK pipeline passed all automated stages on the candidate before this evidence commit:
+The earlier V3-048 APK pipeline passed the automated stages recorded at the time, including RC hardening, lifecycle, soak, touch policy, low-device quality guard, density/spawn/render budgets, boot, WebView security, web mirror divergence, APK alignment/signing/checksum, and bounded-world checks.
 
-- Release candidate/content gate: PASS
-- RC hardening/localization/lifecycle/soak: PASS
-- Touch policy and hysteresis: PASS
-- V3-047 touch-target/return-meaning: PASS
-- V3-048 low-device quality guard: PASS
-- Start-density, density guard, spawn budget, render budget: PASS
-- Boot probe: PASS
-- WebView security checks: PASS
-- Web mirror divergence check: PASS
-- APK build, alignment, signing verification and checksum: PASS
+## Current release gate interpretation
 
-The hardening suite exercised a 120-second real-engine soak without update exceptions and verified bounded world/transient collections and available heap measurements.
+The code-level and deterministic gates are complete for the current engineering candidate. The remaining release operation is deliberately separate from source changes:
 
-## Release gate interpretation
+1. run the APK workflow manually with `release_candidate=true` on the current source;
+2. obtain the resulting release-signed APK and exact SHA-256;
+3. perform the full 16-scenario physical Android acceptance against that exact binary;
+4. validate the resulting evidence against the exact commit and APK SHA;
+5. only then authorize a production `v*` release.
 
-The code-level RC gate is ready. The real weak-device session confirms the V3-048 performance direction and native persistence path.
-
-Remaining release operation is deliberately separate from source changes:
-
-1. final release-tag build must use the configured release keystore, never the debug key;
-2. the resulting release APK checksum must be recorded with the release asset;
-3. clean-install / upgrade / process-death / offline smoke should be performed on the release-signed APK, because a debug artifact is not an adequate substitute for the Play release artifact.
-
-No new gameplay mechanics are introduced by this evidence commit. V3.0.1 remains frozen except for blocker/critical fixes discovered by the release-signed smoke test.
+No historical debug artifact or historical device session may be substituted for the current release-signed candidate.
