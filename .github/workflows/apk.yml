@@ -67,6 +67,7 @@ jobs:
           node tools/probe/v23-v25-release-gates.js
           node tools/probe/v23-v25-evidence.js
           node tools/probe/v9-v25-persistence.js
+          node tools/probe/v9-v25-game-integration.js
           node --expose-gc tools/probe/rc-hardening.js
           node tools/probe/balance.js
       - name: Живой запуск
