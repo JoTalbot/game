@@ -78,22 +78,22 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 
 - version: `3.0.1`
 - versionCode: `601`
-- source commit: `c24a79b3de8248620b4c2b6c0c8d48c78f00aff0`
-- latest APK workflow run: `35114704164`
-- Actions artifact: `igra-3.0.1` (artifact ID `10455805062`)
-- APK SHA-256: `629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453`
-- GitHub Actions artifact ZIP SHA-256: `3a5fe478b581898995bdc693004cf403a5e7debb98c85fabeddf780907cdcbaf`
+- source commit: `7a79b730a7224a3cd58b3e70bac020108cdd5118`
+- latest APK workflow run: `35131645470` — SUCCESS
+- Actions artifact: `igra-3.0.1` (artifact ID `10461323111`)
+- APK SHA-256: `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`
+- GitHub Actions artifact ZIP SHA-256: `4f83fe690c110c082a013dcc7e4b3116c6a700a217daa376174aa064cc9e74d4`
 - automatic APK gate: SUCCESS
 
-`3a5fe4...` — digest ZIP-архива Actions artifact, а не SHA самого APK. Для физической установки и evidence использовать именно APK SHA `629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453`.
+`4f83fe...` — digest ZIP-архива Actions artifact, а не SHA самого APK. Для физической установки и evidence использовать именно APK SHA `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`.
 
-Этот APK candidate **не заменяет immutable RC1** и не должен быть назван production release без физического weak-device acceptance.
+Этот APK candidate **не заменяет immutable RC1** и не должен быть назван production release без физического Android acceptance.
 
-Provenance физического acceptance больше не зашивается в исходники validator/collector. Перед фактической проверкой ожидаемые значения передаются через окружение:
+Provenance физического acceptance передаётся через окружение и должна точно соответствовать текущему кандидату:
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=c24a79b3de8248620b4c2b6c0c8d48c78f00aff0
-export IGRA_EXPECTED_APK_SHA256=629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453
+export IGRA_EXPECTED_APK_COMMIT=7a79b730a7224a3cd58b3e70bac020108cdd5118
+export IGRA_EXPECTED_APK_SHA256=b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755
 ```
 
 Единая версия проверяется в:
@@ -105,24 +105,31 @@ export IGRA_EXPECTED_APK_SHA256=629ba40569803742f728a67cda6646a3091bcf82855ed2af
 
 ## 4. Физический gate актуального кандидата
 
-Старый физический RC1 smoke уже был успешно пройден на Android 15, 427×948.
-Он относится к immutable RC1 и не заменяет повторный физический soak текущего
-кандидата `3.0.1 / 601`.
+Старый физический RC1 smoke относится к immutable RC1 и не заменяет повторный
+физический acceptance текущего кандидата `3.0.1 / 601`.
 
-Для актуального кандидата требуется повторить минимум:
+Для актуального кандидата требуется полный обязательный набор из 16 сценариев,
+описанный в canonical evidence validator:
 
-- clean install / boot / gameplay;
-- home → resume;
-- save / restart / recovery;
-- force-stop → recovery;
-- old save upgrade;
-- offline;
-- release / become / NG+;
-- vibration / audio / fullscreen;
-- crash / ANR;
-- heavy frames / visual blocker / touch blocker.
+1. clean install;
+2. boot / birth / gameplay;
+3. home → resume;
+4. save → restart → recovery;
+5. force-stop → recovery;
+6. old save → upgrade;
+7. offline;
+8. release / become / NG+;
+9. vibration;
+10. audio;
+11. fullscreen;
+12. crash;
+13. ANR;
+14. heavy-frame / performance blocker;
+15. critical visual blocker;
+16. critical touch blocker.
 
-До появления этого evidence физический gate считается **PENDING**.
+До появления валидного evidence на физическом Android-устройстве физический gate
+считается **PENDING**, а production — заблокированным.
 
 ## 5. После физического gate
 
