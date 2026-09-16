@@ -25,6 +25,26 @@ jobs:
           set -euo pipefail
           echo "APK source commit: $(git rev-parse HEAD)"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Проверка production release authorization
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          PHYSICAL_ANDROID_APPROVED: ${{ secrets.IGRA_PHYSICAL_ANDROID_RELEASE_APPROVED }}
+          APPROVED_COMMIT: ${{ secrets.IGRA_RELEASE_APPROVED_COMMIT }}
+          APPROVED_APK_SHA256: ${{ secrets.IGRA_RELEASE_APPROVED_APK_SHA256 }}
+        run: |
+          set -euo pipefail
+          test "${PHYSICAL_ANDROID_APPROVED:-}" = "1" || {
+            echo "ERROR: tagged release requires physical Android approval secret IGRA_PHYSICAL_ANDROID_RELEASE_APPROVED=1" >&2
+            exit 1
+          }
+          test "${APPROVED_COMMIT:-}" = "$GITHUB_SHA" || {
+            echo "ERROR: release approval is not bound to this exact source commit" >&2
+            exit 1
+          }
+          printf '%s' "${APPROVED_APK_SHA256:-}" | grep -Eq '^[0-9a-fA-F]{64}$' || {
+            echo "ERROR: IGRA_RELEASE_APPROVED_APK_SHA256 must be a 64-hex APK SHA-256" >&2
+            exit 1
+          }
       - name: Java 17
         uses: actions/setup-java@v5
         with:
@@ -127,11 +147,21 @@ jobs:
           V=$(sed -n 's/^VNAME="\(.*\)"$/\1/p' tools/build-apk.sh | head -1)
           echo "v=$V" >> "$GITHUB_OUTPUT"
       - name: Проверить checksum artifact
+        env:
+          APPROVED_APK_SHA256: ${{ secrets.IGRA_RELEASE_APPROVED_APK_SHA256 }}
         run: |
           set -euo pipefail
-          test -s "dist/igra-${{ steps.ver.outputs.v }}.apk"
-          test -s "dist/igra-${{ steps.ver.outputs.v }}.apk.sha256"
-          sha256sum -c "dist/igra-${{ steps.ver.outputs.v }}.apk.sha256"
+          APK="dist/igra-${{ steps.ver.outputs.v }}.apk"
+          test -s "$APK"
+          test -s "${APK}.sha256"
+          sha256sum -c "${APK}.sha256"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            ACTUAL_SHA=$(sha256sum "$APK" | awk '{print $1}')
+            test "$ACTUAL_SHA" = "${APPROVED_APK_SHA256,,}" || {
+              echo "ERROR: built APK SHA-256 does not match physically approved artifact" >&2
+              exit 1
+            }
+          fi
       - name: Забрать APK
         uses: actions/upload-artifact@v6
         with:
