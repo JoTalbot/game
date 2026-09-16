@@ -78,14 +78,14 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 
 - version: `3.0.1`
 - versionCode: `601`
-- source commit: `909203f203fc1e695e4d481aeaf34c81b135aff0`
-- latest APK workflow run: `35108604277`
-- Actions artifact: `igra-3.0.1` (artifact ID `10451117735`)
-- APK SHA-256: `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`
-- GitHub Actions artifact ZIP SHA-256: `aa1a719ea9a4e9f43e8b8c6ed2a2ad2a6b15afaf79ee0420e628acf344f942a0`
+- source commit: `58cb7c61a9f5fc7d29e5d5677cb605944e4ba7b9`
+- latest APK workflow run: `35111841387`
+- Actions artifact: `igra-3.0.1` (artifact ID `10452602977`)
+- APK SHA-256: `c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c`
+- GitHub Actions artifact ZIP SHA-256: `6c207c0226ff128b33dd7746f4958959d0e5a2dfb4d82fcaf76a46b0ace1d3b6`
 - automatic APK gate: SUCCESS
 
-`aa1a719e...` — digest ZIP-архива Actions artifact, а не SHA самого APK. Для физической установки и evidence использовать именно APK SHA `b1785e9e...`.
+`6c207c...` — digest ZIP-архива Actions artifact, а не SHA самого APK. Для физической установки и evidence использовать именно APK SHA `c977a111...`.
 
 Этот APK candidate **не заменяет immutable RC1** и не должен быть назван production release без физического weak-device acceptance.
 
