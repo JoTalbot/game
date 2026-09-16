@@ -24,6 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           node tools/probe/life-workflow.js
+          node tools/probe/release-workflow-contract-test.js
           find web/js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
           probes=(
             life.js consequences.js relationships.js world-memory.js trajectory.js act.js
