@@ -48,13 +48,14 @@ chmod +x "$FAKE_ADB"
 APK="$TMP/igra-3.0.1.apk"
 printf 'fixture-apk\n' > "$APK"
 EXPECTED_SHA="$(sha256sum "$APK" | awk '{print $1}')"
+EXPECTED_COMMIT="1111111111111111111111111111111111111111"
 
-# Make the collector accept this fixture only inside the test, without weakening production provenance.
-COLLECTOR_TEST="$TMP/collector.sh"
-sed "s/c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c/$EXPECTED_SHA/" "$COLLECTOR" > "$COLLECTOR_TEST"
-chmod +x "$COLLECTOR_TEST"
+PROVENANCE=(
+  "IGRA_EXPECTED_APK_SHA256=$EXPECTED_SHA"
+  "IGRA_EXPECTED_APK_COMMIT=$EXPECTED_COMMIT"
+)
 
-if PATH="$TMP:$PATH" FAKE_ADB_MODE=emulator "$COLLECTOR_TEST" "$APK" "$TMP/emulator.json" >"$TMP/emulator.out" 2>&1; then
+if PATH="$TMP:$PATH" FAKE_ADB_MODE=emulator "${PROVENANCE[@]/#/}" "$COLLECTOR" "$APK" "$TMP/emulator.json" >"$TMP/emulator.out" 2>&1; then
   echo "collector accepted emulator fixture unexpectedly"
   cat "$TMP/emulator.out"
   exit 1
@@ -62,15 +63,26 @@ fi
 
 echo "emulator rejection: PASS"
 
-PATH="$TMP:$PATH" FAKE_ADB_MODE=physical "$COLLECTOR_TEST" "$APK" "$TMP/physical.json"
+PATH="$TMP:$PATH" FAKE_ADB_MODE=physical \
+  IGRA_EXPECTED_APK_SHA256="$EXPECTED_SHA" \
+  IGRA_EXPECTED_APK_COMMIT="$EXPECTED_COMMIT" \
+  "$COLLECTOR" "$APK" "$TMP/physical.json"
 node -e '
 const fs=require("fs");
 const p=process.argv[1];
 const x=JSON.parse(fs.readFileSync(p,"utf8"));
 if(x.physicalAndroid!==false || x.IGRA_PHYSICAL_ANDROID!==false) throw new Error("collector must emit non-proof flags");
 if(x.device.model!=="TestPhone X1" || x.device.androidVersion!=="14") throw new Error("device metadata mismatch");
+if(x.artifact.commit!==process.argv[2] || x.artifact.apkSha256!==process.argv[3]) throw new Error("artifact provenance mismatch");
 if(!Array.isArray(x.results) || x.results.some(r=>r.status!=="PENDING")) throw new Error("collector output must remain pending");
 console.log("physical template: PASS");
-' "$TMP/physical.json"
+' "$TMP/physical.json" "$EXPECTED_COMMIT" "$EXPECTED_SHA"
 
+if PATH="$TMP:$PATH" FAKE_ADB_MODE=physical "$COLLECTOR" "$APK" "$TMP/missing-provenance.json" >"$TMP/missing.out" 2>&1; then
+  echo "collector accepted missing provenance unexpectedly"
+  cat "$TMP/missing.out"
+  exit 1
+fi
+
+echo "missing provenance rejection: PASS"
 echo "physical Android collector self-test: PASS"
