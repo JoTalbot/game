@@ -15,8 +15,8 @@ const base = {
   artifact: {
     version: "3.0.1",
     versionCode: 601,
-    commit: "58cb7c61a9f5fc7d29e5d5677cb605944e4ba7b9",
-    apkSha256: "c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c"
+    commit: "1111111111111111111111111111111111111111",
+    apkSha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   device: {
     manufacturer: "Test",
@@ -54,14 +54,20 @@ const base = {
   IGRA_PHYSICAL_ANDROID: true
 };
 
-function run(name, mutate, expected) {
+const provenance = {
+  IGRA_EXPECTED_APK_COMMIT: base.artifact.commit,
+  IGRA_EXPECTED_APK_SHA256: base.artifact.apkSha256
+};
+
+function run(name, mutate, expected, envOverrides = {}) {
   const file = path.join(tmp, `${name}.json`);
   const data = JSON.parse(JSON.stringify(base));
   mutate(data);
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
   const result = spawnSync(process.execPath, [validator, file], {
     cwd: ROOT,
-    encoding: "utf8"
+    encoding: "utf8",
+    env: { ...process.env, ...provenance, ...envOverrides }
   });
   const passed = result.status === 0;
   if (passed !== expected) {
@@ -80,6 +86,9 @@ try {
   run("wrong-apk-sha", data => {
     data.artifact.apkSha256 = "0000000000000000000000000000000000000000000000000000000000000000";
   }, false);
+  run("wrong-commit", data => {
+    data.artifact.commit = "2222222222222222222222222222222222222222";
+  }, false);
   run("emulator-model", data => {
     data.device.model = "Android Emulator";
   }, false);
@@ -89,6 +98,10 @@ try {
   run("missing-na-reason", data => {
     data.results[5].status = "N/A";
   }, false);
+  run("missing-provenance", () => {}, false, {
+    IGRA_EXPECTED_APK_COMMIT: "",
+    IGRA_EXPECTED_APK_SHA256: ""
+  });
 } finally {
   fs.rmSync(tmp, { recursive: true, force: true });
 }
