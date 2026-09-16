@@ -176,6 +176,7 @@ jobs:
         env:
           IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON: ${{ secrets.IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON }}
           IGRA_RELEASE_APPROVED_APK_SHA256: ${{ secrets.IGRA_RELEASE_APPROVED_APK_SHA256 }}
+          IGRA_PHYSICAL_ANDROID: "1"
         run: |
           set -euo pipefail
           node tools/probe/validate-release-authorization.js
