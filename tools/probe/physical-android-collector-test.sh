@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 COLLECTOR="$ROOT/tools/probe/collect-physical-android-evidence.sh"
+COLLECTOR_CMD=(bash "$COLLECTOR")
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
@@ -53,7 +54,7 @@ EXPECTED_COMMIT="1111111111111111111111111111111111111111"
 if PATH="$TMP:$PATH" FAKE_ADB_MODE=emulator \
   IGRA_EXPECTED_APK_SHA256="$EXPECTED_SHA" \
   IGRA_EXPECTED_APK_COMMIT="$EXPECTED_COMMIT" \
-  "$COLLECTOR" "$APK" "$TMP/emulator.json" >"$TMP/emulator.out" 2>&1; then
+  "${COLLECTOR_CMD[@]}" "$APK" "$TMP/emulator.json" >"$TMP/emulator.out" 2>&1; then
   echo "collector accepted emulator fixture unexpectedly"
   cat "$TMP/emulator.out"
   exit 1
@@ -64,7 +65,7 @@ echo "emulator rejection: PASS"
 PATH="$TMP:$PATH" FAKE_ADB_MODE=physical \
   IGRA_EXPECTED_APK_SHA256="$EXPECTED_SHA" \
   IGRA_EXPECTED_APK_COMMIT="$EXPECTED_COMMIT" \
-  "$COLLECTOR" "$APK" "$TMP/physical.json"
+  "${COLLECTOR_CMD[@]}" "$APK" "$TMP/physical.json"
 node -e '
 const fs=require("fs");
 const p=process.argv[1];
@@ -76,7 +77,7 @@ if(!Array.isArray(x.results) || x.results.some(r=>r.status!=="PENDING")) throw n
 console.log("physical template: PASS");
 ' "$TMP/physical.json" "$EXPECTED_COMMIT" "$EXPECTED_SHA"
 
-if PATH="$TMP:$PATH" FAKE_ADB_MODE=physical "$COLLECTOR" "$APK" "$TMP/missing-provenance.json" >"$TMP/missing.out" 2>&1; then
+if PATH="$TMP:$PATH" FAKE_ADB_MODE=physical "${COLLECTOR_CMD[@]}" "$APK" "$TMP/missing-provenance.json" >"$TMP/missing.out" 2>&1; then
   echo "collector accepted missing provenance unexpectedly"
   cat "$TMP/missing.out"
   exit 1
