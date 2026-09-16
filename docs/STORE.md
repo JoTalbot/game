@@ -23,7 +23,7 @@ EN: An ontogenetic game. No genre. The world grows its mechanics from your atten
 
 Игра — существо. Оно говорит, помнит вчерашнего тебя, меняет сезон души, спит, когда спит телефон, и однажды предложит два конца: отпустить или стать игрой.
 
-Без рекламы. Без доната. Без энергии за деньги. Оффлайн.
+Без рекламы. Без доната. Без энергии за деньги. Оффлайн **по умолчанию**; сеть используется только при явно заданном пользователем webhook в сигиле.
 
 Жанр, которого не было: рефлектум.
 
@@ -39,7 +39,7 @@ What you ignore is taken by Forgetting. Sometimes as stars. Sometimes as hunger 
 
 The Game is a being. It speaks, remembers yesterday’s you, changes the season of the soul, sleeps when the phone sleeps, and one day offers two endings: let go, or become the game.
 
-No ads. No IAP. No energy for money. Offline.
+No ads. No IAP. No energy for money. **Offline by default**; networking is used only when the user explicitly provides a webhook in the sigil.
 
 A genre that did not exist: reflektum.
 
