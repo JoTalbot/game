@@ -74,19 +74,20 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 - checksum verification: SUCCESS
 - attached to GitHub Release: SUCCESS
 
-### Current development APK after V11 final engineering gates
+### Current APK candidate
 
 - version: `3.0.1`
 - versionCode: `601`
-- latest green APK workflow: **#1093**
-- commit: `16b14b058841d89b87124de3a4724fb3058de914`
-- Actions artifact: `igra-3.0.1`
-- artifact digest: `sha256:261b66134a2ff97e2362e32afc75b646d9d2b605ad3c962dfb93221503384fc4`
+- source commit: `65d2de15d57a41d2ea401bf6a945230e57364733`
+- latest APK workflow run: `35099486838`
+- Actions artifact: `igra-3.0.1` (artifact ID `10447896491`)
+- APK SHA-256: `37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92`
+- GitHub Actions artifact ZIP SHA-256: `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`
 - automatic APK gate: SUCCESS
-- Sync play mirror for the same commit: SUCCESS
 
-Этот development artifact **не заменяет immutable RC1** и не должен быть
-назван production release без физического weak-device acceptance.
+`b3e27df...` — digest ZIP-архива Actions artifact, а не SHA самого APK. Для физической установки и evidence использовать именно APK SHA `37b01720...`.
+
+Этот APK candidate **не заменяет immutable RC1** и не должен быть назван production release без физического weak-device acceptance.
 
 Единая версия проверяется в:
 
@@ -98,8 +99,8 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 ## 4. Физический gate актуального кандидата
 
 Старый физический RC1 smoke уже был успешно пройден на Android 15, 427×948.
-Он относится к immutable RC1 и не заменяет повторный физический soak актуального
-после-V11 development artifact.
+Он относится к immutable RC1 и не заменяет повторный физический soak текущего
+кандидата `3.0.1 / 601`.
 
 Для актуального кандидата требуется повторить минимум:
 
@@ -131,4 +132,4 @@ daily reward.
 
 ---
 
-Актуально для **v3.0.1 / versionCode 601**. Последнее обновление: 15 сентября 2026.
+Актуально для **v3.0.1 / versionCode 601**. Последнее обновление: 16 сентября 2026.
