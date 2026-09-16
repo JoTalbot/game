@@ -6,12 +6,17 @@ set -euo pipefail
 
 APK="${1:-igra-3.0.1.apk}"
 OUT="${2:-physical-android-evidence.json}"
-EXPECTED_SHA="c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c"
+EXPECTED_SHA="${IGRA_EXPECTED_APK_SHA256:-}"
+EXPECTED_COMMIT="${IGRA_EXPECTED_APK_COMMIT:-}"
 
 command -v adb >/dev/null || { echo "adb is required" >&2; exit 1; }
 command -v sha256sum >/dev/null || { echo "sha256sum is required" >&2; exit 1; }
 command -v node >/dev/null || { echo "node is required" >&2; exit 1; }
 [[ -f "$APK" ]] || { echo "APK not found: $APK" >&2; exit 1; }
+[[ "$EXPECTED_SHA" =~ ^[0-9a-fA-F]{64}$ ]] || { echo "IGRA_EXPECTED_APK_SHA256 must be a 64-character SHA-256 digest" >&2; exit 1; }
+[[ "$EXPECTED_COMMIT" =~ ^[0-9a-fA-F]{40}$ ]] || { echo "IGRA_EXPECTED_APK_COMMIT must be a 40-character Git commit SHA" >&2; exit 1; }
+EXPECTED_SHA="$(printf '%s' "$EXPECTED_SHA" | tr '[:upper:]' '[:lower:]')"
+EXPECTED_COMMIT="$(printf '%s' "$EXPECTED_COMMIT" | tr '[:upper:]' '[:lower:]')"
 
 adb wait-for-device
 STATE="$(adb get-state 2>/dev/null)"
@@ -41,7 +46,7 @@ fi
 
 started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-export OUT manufacturer model android_version resolution density ram profile started ACTUAL_SHA
+export OUT manufacturer model android_version resolution density ram profile started ACTUAL_SHA EXPECTED_COMMIT
 node <<'NODE'
 const fs = require('fs');
 const out = process.env.OUT;
@@ -69,7 +74,7 @@ const evidence = {
   artifact: {
     version: '3.0.1',
     versionCode: 601,
-    commit: '58cb7c61a9f5fc7d29e5d5677cb605944e4ba7b9',
+    commit: process.env.EXPECTED_COMMIT,
     apkSha256: process.env.ACTUAL_SHA
   },
   device: {
@@ -92,4 +97,5 @@ NODE
 
 echo "Created $OUT from physical Android device metadata."
 echo "APK SHA verified: $ACTUAL_SHA"
+echo "Source commit recorded: $EXPECTED_COMMIT"
 echo "All acceptance results are intentionally PENDING; complete the physical run before validation."
