@@ -6,7 +6,7 @@ set -euo pipefail
 
 APK="${1:-igra-3.0.1.apk}"
 OUT="${2:-physical-android-evidence.json}"
-EXPECTED_SHA="b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f"
+EXPECTED_SHA="c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c"
 
 command -v adb >/dev/null || { echo "adb is required" >&2; exit 1; }
 command -v sha256sum >/dev/null || { echo "sha256sum is required" >&2; exit 1; }
@@ -69,7 +69,7 @@ const evidence = {
   artifact: {
     version: '3.0.1',
     versionCode: 601,
-    commit: '909203f203fc1e695e4d481aeaf34c81b135aff0',
+    commit: '58cb7c61a9f5fc7d29e5d5677cb605944e4ba7b9',
     apkSha256: process.env.ACTUAL_SHA
   },
   device: {
