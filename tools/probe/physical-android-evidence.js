@@ -7,8 +7,8 @@ const path = require("path");
 const EXPECTED = Object.freeze({
   version: "3.0.1",
   versionCode: 601,
-  commit: "909203f203fc1e695e4d481aeaf34c81b135aff0",
-  apkSha256: "b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f"
+  commit: "58cb7c61a9f5fc7d29e5d5677cb605944e4ba7b9",
+  apkSha256: "c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c"
 });
 
 const REQUIRED = [
