@@ -6,12 +6,15 @@
 
 - Версия: `3.0.1`
 - versionCode: `601`
-- Commit: `65d2de15d57a41d2ea401bf6a945230e57364733`
-- APK artifact: `igra-3.0.1`
-- APK SHA-256: `37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92`
-- GitHub Actions artifact ZIP SHA-256: `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`
+- Commit: `909203f203fc1e695e4d481aeaf34c81b135aff0`
+- APK workflow run: `35108604277`
+- APK artifact: `igra-3.0.1` (artifact ID `10451117735`)
+- APK SHA-256: `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`
+- GitHub Actions artifact ZIP SHA-256: `aa1a719ea9a4e9f43e8b8c6ed2a2ad2a6b15afaf79ee0420e628acf344f942a0`
 
-Важно: `b3e27df...` является digest ZIP-архива GitHub Actions artifact, а не SHA самого APK. SHA самого APK подтверждён файлом `igra-3.0.1.apk.sha256` внутри скачанного artifact.
+Важно: `aa1a719e...` является digest ZIP-архива GitHub Actions artifact, а не SHA самого APK. SHA самого APK подтверждён файлом `igra-3.0.1.apk.sha256` внутри скачанного artifact.
+
+Этот кандидат включает production-hardening изменение `android:allowBackup="false"`. Физическая проверка должна выполняться именно для указанного binary SHA.
 
 ## 2. Подготовка физического устройства
 
@@ -38,7 +41,7 @@ sha256sum igra-3.0.1.apk
 Ожидаемое значение:
 
 ```text
-37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92  igra-3.0.1.apk
+b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f  igra-3.0.1.apk
 ```
 
 Дополнительно:
@@ -159,7 +162,7 @@ adb shell am force-stop world.igra.app
 adb logcat -d -t 2000 > igra-physical-logcat.txt
 ```
 
-Evidence должно однозначно связывать результат с APK SHA `37b01720...`. Evidence от старого RC или другого APK не переносится.
+Evidence должно однозначно связывать результат с APK SHA `b1785e9e...`. Evidence от старого RC или другого APK не переносится.
 
 ## 6. Acceptance rules
 
