@@ -134,4 +134,4 @@ console.log(JSON.stringify({
   results: REQUIRED.length,
   evidenceItems: evidence.evidence.length
 }, null, 2));
-console.log("PHYSICAL ANDROID EVIDENCE VALID");
+console.error("PHYSICAL ANDROID EVIDENCE VALID");
