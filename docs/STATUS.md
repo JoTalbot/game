@@ -1,71 +1,41 @@
-# Статус — 16 сентября 2026
+# ИГРА — статус проекта
 
-## Текущий инженерный статус
+## Текущий инженерный APK
 
-`main` прошёл V3-001 → V3-029, V4 second act, V5 living-world, V6 body identity, V7 climax/finale и V8 lineage. RC1 accessibility и expanded RC hardening gate подключены к pipeline. V3-032 → V3-052 закрыли визуальный/touch/performance/runtime hardening. V9 → V25 runtime bridge, systems, persistence, experimentation, simulation и production-hardening подключены и покрыты автоматическими probes.
+- Версия: `3.0.1`
+- versionCode: `601`
+- APK source commit: `909203f203fc1e695e4d481aeaf34c81b135aff0`
+- APK workflow run: `35108604277`
+- APK artifact: `igra-3.0.1` (`10451117735`)
+- APK SHA-256: `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`
+- Actions ZIP SHA-256: `aa1a719ea9a4e9f43e8b8c6ed2a2ad2a6b15afaf79ee0420e628acf344f942a0`
+- APK automatic gate: SUCCESS
+- Source provenance check: SUCCESS
+- Android backup policy: `android:allowBackup="false"`
 
-### Реализовано
+## Последний CI-контроль физического evidence
 
-- V3-001 → V3-029 — реализовано.
-- V4 второй акт, causal chain, persistent places, recurring beings, migration/replay — реализованы.
-- V4.3 adaptive depth — causal world beats, physical traces, persistence и no-duplicate cadence.
-- V5 living world feedback loop — реализовано и покрыто probe/CI.
-- V6 body identity + visual presentation — реализовано и покрыто probe/CI.
-- V7 climax/finale — реализовано и покрыто probe/CI.
-- V8 lineage — release/become, наследование, deterministic fingerprint и migration.
-- V3-030 → V3-052 — visual, touch, density, spawn/render budgets, low-end performance и malformed runtime hardening.
-- V9 World Depth — deterministic gate закрыт.
-- V10 Personal Myth / Replay — bounded generational memory, finale-dependent starts, inherited trait, rare beats и inter-life continuity.
-- V11-001 → V11-006 — first-session UX, balance, visual/audio coherence, 10k-step soak, localization/accessibility и release QA matrix.
-- V12 lineage 2.0 — bounded ancestry/memory, trait inheritance, deterministic generation, sanitization.
-- V13 knowledge — bounded discoveries/laws/interactions, duplicate suppression, evidence clamp, sanitization.
-- V14 Director 2.0 — deterministic context scoring, tension/setup/consequence/rarity, anti-repeat novelty bias.
-- V15 finale — deterministic causal finale routes.
-- V16 presentation — bounded detail/effects/floater budgets и low-end floor.
-- V17 adaptive audio — bounded ambience/motif, deterministic context reaction и malformed-state sanitization.
-- V18 experimentation — bounded player experiment records, sanitization и persistence через save/restore; acceptance probe и APK gate.
-- V19 deep simulation — deterministic bounded simulation, snapshot/restore и malformed-state sanitization.
-- V20 hardening — bounded save/experiment/simulation sanitization; отдельный experiment-hardening acceptance probe.
-- V21 → V22 gates — release/regression hardening подключены в APK и Life Arc pipelines.
-- V23 RC2 gate — deterministic release-candidate evidence aggregation.
-- V24 limited release — bounded feedback/metrics, stability gate и disable path.
-- V25 production gate — 12 обязательных условий; физическое Android evidence является отдельным обязательным условием production-ready.
-- V9-V25 live bridge — реальные runtime action events попадают в replay и проходят фактический persistence pack без создания записей на idle frame.
-- V20 experiment probe — realm-neutral hardening.
-- V3 expressive world laws — bounded history и acceptance gate подключены к Life Arc/APK pipeline.
-- V21/V22 gate probe — синхронизирован с обязательным V25 physical Android условием.
-- Web ↔ `docs/play` mirror остаётся обязательным перед APK.
-- Release tags требуют release keystore; APK получает SHA-256.
-- Google Play автоматически не публикуется.
+- Commit: `f15eb720f3c5b038f2650259577ec53d9e68e5b7`
+- Life Arc Gate run: `35110305074` (#196) — SUCCESS
+- APK run: `35110304889` (#1163) — SUCCESS
+- Anti-spoof self-test физического Android evidence: SUCCESS
+- RC2 evidence artifact upload: SUCCESS
 
-### Текущий HEAD и последние инженерные изменения
+CI подтверждает только корректность протокола и автоматических проверок. Он не считается физическим Android acceptance.
 
-Текущий инженерный APK был пересобран после hardening-изменения `android:allowBackup="false"`. Исходный кандидат до этого изменения больше не является актуальным binary provenance. Текущий APK собран с commit `909203f203fc1e695e4d481aeaf34c81b135aff0`.
+## Production gate
 
-Текущий APK-кандидат: `igra-3.0.1`, versionCode `601`, source commit `909203f203fc1e695e4d481aeaf34c81b135aff0`, workflow run `35108604277`, Actions artifact ID `10451117735`. Фактический **APK SHA-256 `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`**. Digest ZIP-контейнера Actions artifact отдельно: `aa1a719ea9a4e9f43e8b8c6ed2a2ad2a6b15afaf79ee0420e628acf344f942a0`.
+`productionReady = deterministicReady && physicalAndroid`
 
-APK SHA подтверждён непосредственно файлом `igra-3.0.1.apk.sha256` внутри скачанного Actions artifact. ZIP digest не является SHA самого APK.
+Текущий статус: **BLOCKED**.
 
-Новый APK прошёл полный автоматический APK workflow: source provenance, probes, live launch, WebView guard, mirror sync, drift guard, Android SDK, signing, APK build и checksum artifact. Это не заменяет физическую Android-приёмку.
+Причина: физическое Android acceptance ещё не выполнено на реальном устройстве. `IGRA_PHYSICAL_ANDROID=1` не установлен и не должен устанавливаться искусственно.
 
-### Физическое Android-условие
+## Что осталось
 
-Последний подтверждённый физический smoke относится к immutable RC1 и не подтверждает V12 → V25 изменения. Поэтому текущий `main` **не считается production-ready** только на основании CI.
-
-Для текущего APK создан и слит отдельный физический acceptance journal. Все обязательные проверки остаются `PENDING`, physical evidence отсутствует, а `IGRA_PHYSICAL_ANDROID=1` не установлен. V25 требует одновременно `android=true` и `physicalAndroid=true`; без физического теста production gate остаётся blocked. CI не подделывает physical evidence.
-
-### RC2 evidence pipeline
-
-`tools/probe/rc2-evidence.js` разделяет deterministic readiness и physical Android evidence: обычный Life Arc может завершать автоматические deterministic проверки, но `productionReady` становится `true` только при явном `IGRA_PHYSICAL_ANDROID=1`. Это не является заменой реального тестирования устройства.
-
-### Текущие незакрытые задачи
-
-1. Выполнить физический weak-device soak на текущем APK-кандидате `igra-3.0.1` / versionCode 601 / APK SHA `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`.
-2. Зафиксировать реальное physical Android evidence без подстановки/эмуляции результата.
-3. После физического soak повторно пройти полный RC2/release gate.
-4. Выполнить финальную сверку Play listing/privacy материалов с фактическим APK.
-5. Провести ограниченное RC-тестирование.
-6. Принять отдельное production decision.
-7. Только после этого выполнять production rollout и monitoring.
-
-Immutable `v3.0.1-rc1` не перемещается и не изменяется.
+1. Выполнить полный физический acceptance на реальном Android-устройстве для APK `3.0.1 / 601`.
+2. Сформировать evidence по всем обязательным сценариям с точной provenance APK.
+3. Прогнать `tools/probe/physical-android-evidence.js` на фактическом evidence.
+4. После PASS физического контура повторить RC2/release gate.
+5. Синхронизировать финальные store/privacy материалы.
+6. Принять production release decision и только затем переходить к публикации/rollout.
