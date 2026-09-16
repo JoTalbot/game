@@ -92,11 +92,18 @@ for (const name of required) {
 }
 
 if (!Array.isArray(evidence.evidence) || evidence.evidence.length === 0) fail('at least one physical evidence item is required');
+let concreteEvidenceCount = 0;
 for (const item of evidence.evidence) {
   if (!item || typeof item !== 'object') fail('every evidence item must be an object');
   if (typeof item.type !== 'string' || !item.type.trim()) fail('evidence.type is required');
   if (typeof item.path !== 'string' || !item.path.trim()) fail('evidence.path is required');
+  if (item.type.trim().toLowerCase() === 'collection') continue;
+  if (/^(?:[A-Za-z]:[\\/]|[\\/])/.test(item.path) || item.path.split(/[\\/]+/).includes('..')) {
+    fail(`evidence.path must be a relative path without parent traversal: ${item.path}`);
+  }
+  concreteEvidenceCount += 1;
 }
+if (concreteEvidenceCount === 0) fail('at least one concrete physical evidence item is required; collector metadata alone is insufficient');
 
 console.log('PASS: canonical physical Android evidence is bound to this commit and APK SHA-256');
 console.log(`commit=${artifactCommit}`);
