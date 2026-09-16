@@ -131,13 +131,12 @@ game.cam.h = 600;
 
 // Сначала настоящий кадр создаёт baseline bridge. Затем используем тот же
 // путь движения, что и движок: клавиша проходит через Game._move внутри
-// Game.update. Это устойчивее, чем вручную менять player.x между кадрами,
-// и всё ещё проверяет производственный update -> bridge шов.
+// Game.update. В реальном кадре скорость может быть меньше порога visit,
+// поэтому один тестовый кадр получает реалистичный, но более крупный dt.
 game.update(1 / 60);
 var baselineX = game.player.x;
 game.input.keys.ArrowRight = true;
-game.update(1 / 60);
-game.update(1 / 60);
+game.update(0.1);
 game.input.keys.ArrowRight = false;
 
 var state = game.world.v9v25;
