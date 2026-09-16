@@ -40,7 +40,9 @@
 
 ### Текущий HEAD и последние инженерные изменения
 
-Текущий `main` подтверждён на коммите `85b5de8176fc7433621041b631d7d8c58ac81c67` (`test: align V21-V22 gate probe with V25 physical Android requirement`). Последовательность последних изменений 15 сентября усилила именно release evidence: V25 теперь явно требует physical Android evidence, deterministic CI readiness отделена от физического доказательства, V20 probe сделан realm-neutral, а V3 expressive world laws включены в обязательный gate.
+Текущий `main` подтверждён на коммите `f54af136541c6875a76b625838038cb54cfb3842` (`docs: add physical Android acceptance record`). APK-кандидат v3.0.1/versionCode 601 был собран непосредственно с предыдущего инженерного HEAD `65d2de15d57a41d2ea401bf6a945230e57364733`; затем в `f54af136...` был добавлен и слит воспроизводимый журнал физического Android acceptance. Последовательность последних изменений усилила именно release evidence: V25 явно требует physical Android evidence, deterministic CI readiness отделена от физического доказательства, V20 probe сделан realm-neutral, а V3 expressive world laws включены в обязательный gate.
+
+Текущий APK-кандидат имеет provenance `igra-3.0.1`, versionCode `601`, source commit `65d2de15...` и SHA-256 `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`. Этот provenance подтверждён до merge acceptance-документа и не заменяет физическую проверку.
 
 Последние изменения V9-V25 persistence/replay также проверяют полный путь от live runtime event до persistence: idle frame не создаёт replay entry, реальное действие записывается ровно один раз и сохраняется через `pack()`.
 
@@ -48,7 +50,7 @@
 
 Последний подтверждённый физический smoke относится к immutable RC1 и не подтверждает V12 → V25 изменения. Поэтому текущий `main` **не считается production-ready** только на основании CI.
 
-V25 требует одновременно `android=true` и `physicalAndroid=true`; без физического теста production gate остаётся blocked. CI не подделывает physical evidence.
+Для текущего APK-кандидата создан и слит отдельный физический acceptance journal. В нём все обязательные проверки остаются `PENDING`, physical evidence отсутствует, а `IGRA_PHYSICAL_ANDROID=1` не установлен. V25 требует одновременно `android=true` и `physicalAndroid=true`; без физического теста production gate остаётся blocked. CI не подделывает physical evidence.
 
 ### RC2 evidence pipeline
 
@@ -56,7 +58,7 @@ V25 требует одновременно `android=true` и `physicalAndroid=t
 
 ### Текущие незакрытые задачи
 
-1. Получить новый APK после актуальных V12 → V25 изменений и выполнить физический weak-device soak на Android.
+1. Выполнить физический weak-device soak на текущем APK-кандидате `igra-3.0.1` / versionCode 601.
 2. Зафиксировать реальное physical Android evidence без подстановки/эмуляции результата.
 3. После физического soak повторно пройти полный RC2/release gate.
 4. Выполнить финальную сверку Play listing/privacy материалов с фактическим APK.
