@@ -8,7 +8,10 @@
 - versionCode: `601`
 - Commit: `65d2de15d57a41d2ea401bf6a945230e57364733`
 - APK artifact: `igra-3.0.1`
-- SHA-256: `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`
+- APK SHA-256: `37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92`
+- GitHub Actions artifact ZIP SHA-256: `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`
+
+Важно: `b3e27df...` является digest ZIP-архива GitHub Actions artifact, а не SHA самого APK. SHA самого APK подтверждён файлом `igra-3.0.1.apk.sha256` внутри скачанного artifact.
 
 ## 2. Устройство
 
