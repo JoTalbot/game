@@ -31,7 +31,7 @@ function baseEvidence() {
   };
 }
 
-function run(name, mutate, expected) {
+function run(name, mutate, expected, envOverrides = {}) {
   const evidence = baseEvidence();
   mutate(evidence);
   const result = spawnSync(process.execPath, [validator], {
@@ -41,7 +41,8 @@ function run(name, mutate, expected) {
       ...process.env,
       GITHUB_SHA: commit,
       IGRA_RELEASE_APPROVED_APK_SHA256: sha,
-      IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON: JSON.stringify(evidence)
+      IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON: JSON.stringify(evidence),
+      ...envOverrides
     }
   });
   const passed = result.status === 0;
@@ -62,17 +63,6 @@ run('wrong-apk-sha', data => { data.apkSha256 = '0000000000000000000000000000000
 run('emulator', data => { data.device.model = 'Android Emulator'; }, false);
 run('not-physical', data => { data.physicalAndroid = false; }, false);
 run('not-production-ready', data => { data.productionReady = false; }, false);
-run('missing-secret', () => {}, false);
-
-const missingSecret = baseEvidence();
-const result = spawnSync(process.execPath, [validator], {
-  cwd: ROOT,
-  encoding: 'utf8',
-  env: { ...process.env, GITHUB_SHA: commit, IGRA_RELEASE_APPROVED_APK_SHA256: '', IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON: JSON.stringify(missingSecret) }
-});
-if (result.status === 0) {
-  console.error('VALIDATE RELEASE AUTH SELF-TEST FAIL: missing-secret accepted');
-  process.exit(1);
-}
+run('missing-secret', () => {}, false, { IGRA_RELEASE_APPROVED_APK_SHA256: '' });
 
 console.log('VALIDATE RELEASE AUTH SELF-TEST VALID');
