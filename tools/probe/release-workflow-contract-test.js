@@ -21,7 +21,6 @@ requireText('release build env includes workflow_dispatch candidate', "github.ev
 requireText('release signing is enabled for candidate', '"${IGRA_RELEASE_BUILD:-false}" == "true"');
 requireText('release candidate requires release keystore', 'release candidate/release requires IGRA_KEYSTORE_B64 and IGRA_KEYSTORE_PASSWORD');
 requireText('physical evidence validator exists in workflow', 'node tools/probe/validate-release-authorization.js');
-requireText('physical evidence validator is tag-only', 'if: startsWith(github.ref, \'refs/tags/v\')');
 requireText('release publication remains tag-only', 'uses: softprops/action-gh-release@v2');
 
 const signingIndex = workflow.indexOf('name: Ключ подписи');
@@ -32,6 +31,14 @@ if (signingIndex < 0 || evidenceIndex < 0 || releaseIndex < 0 || signingIndex >=
   process.exit(1);
 }
 console.log('PASS signing → physical evidence → publication order');
+
+const evidenceBlockEnd = workflow.indexOf('\n      - name:', evidenceIndex + 1);
+const evidenceBlock = workflow.slice(evidenceIndex, evidenceBlockEnd < 0 ? workflow.length : evidenceBlockEnd);
+if (!evidenceBlock.includes("if: startsWith(github.ref, 'refs/tags/v')") || !evidenceBlock.includes('node tools/probe/validate-release-authorization.js')) {
+  console.error('RELEASE WORKFLOW CONTRACT FAIL: physical evidence validation must be tag-only');
+  process.exit(1);
+}
+console.log('PASS physical evidence validation is tag-only');
 
 const releaseBlockEnd = workflow.indexOf('\n      - name:', releaseIndex + 1);
 const releaseBlock = workflow.slice(releaseIndex, releaseBlockEnd < 0 ? workflow.length : releaseBlockEnd);
