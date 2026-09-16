@@ -8,22 +8,24 @@ Current APK provenance:
 
 - Version: `3.0.1`
 - versionCode: `601`
-- Commit: `c24a79b3de8248620b4c2b6c0c8d48c78f00aff0`
-- APK workflow run: `35114704164`
-- APK artifact: `igra-3.0.1` (artifact ID `10455805062`)
-- APK SHA-256: `629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453`
-- GitHub Actions artifact ZIP SHA-256: `3a5fe478b581898995bdc693004cf403a5e7debb98c85fabeddf780907cdcbaf`
+- Commit: `7a79b730a7224a3cd58b3e70bac020108cdd5118`
+- APK workflow run: `35131645470`
+- APK artifact: `igra-3.0.1` (artifact ID `10461323111`)
+- APK SHA-256: `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`
+- GitHub Actions artifact ZIP SHA-256: `4f83fe690c110c082a013dcc7e4b3116c6a700a217daa376174aa064cc9e74d4`
 
-Required validator provenance:
+The Actions ZIP digest is not the APK digest. Physical installation and evidence provenance must use the APK SHA-256 above.
+
+Required provenance environment:
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=c24a79b3de8248620b4c2b6c0c8d48c78f00aff0
-export IGRA_EXPECTED_APK_SHA256=629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453
+export IGRA_EXPECTED_APK_COMMIT=7a79b730a7224a3cd58b3e70bac020108cdd5118
+export IGRA_EXPECTED_APK_SHA256=b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755
 ```
 
 ## Acceptance rules
 
-Evidence must come from a real physical Android device. Emulator/simulator evidence is rejected. The evidence file must identify the exact APK provenance above, contain UTC timestamps, set `physicalAndroid=true`, and be validated with `IGRA_PHYSICAL_ANDROID=1`.
+Evidence must come from a real physical Android device. Emulator/simulator evidence is rejected. The evidence file must identify the exact APK provenance above, contain UTC timestamps, set `physicalAndroid=true`, set `IGRA_PHYSICAL_ANDROID=true` inside the evidence object, and be validated with the runtime environment variable `IGRA_PHYSICAL_ANDROID=1` when running the canonical validator.
 
 The acceptance matrix contains these 16 mandatory scenarios:
 
@@ -60,14 +62,24 @@ The collector requires `adb`, `sha256sum`, `node`, the APK file, and the provena
 
 ## Validator
 
-After completing all 16 scenarios on the physical device:
+After completing all 16 scenarios on the physical device, export the exact candidate provenance and physical flag, then run:
 
 ```bash
+export IGRA_EXPECTED_APK_COMMIT=7a79b730a7224a3cd58b3e70bac020108cdd5118
+export IGRA_EXPECTED_APK_SHA256=b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755
 export IGRA_PHYSICAL_ANDROID=1
 node tools/probe/physical-android-evidence.js physical-android-evidence.json
 ```
 
-The validator rejects missing or incorrect APK provenance, incomplete scenarios, missing `N/A` reasons, missing evidence, non-UTC timestamps, emulator/simulator evidence, or missing physical-device flags.
+For the release authorization gate, the same evidence is supplied as `IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON` and must be bound to the release `GITHUB_SHA` plus `IGRA_RELEASE_APPROVED_APK_SHA256`. The release workflow performs this canonical validation only for `v*` tags, after building and checksum-verifying the APK and before publishing the GitHub Release.
+
+The validator rejects missing or incorrect APK provenance, incomplete scenarios, duplicate or unknown scenarios, missing `N/A` reasons, `FAIL` statuses, missing evidence, non-UTC timestamps, emulator/simulator evidence, or missing physical-device flags.
+
+## Evidence requirements
+
+Evidence should be sufficient to identify the physical device and the observed result for each scenario. Suitable items include screenshots/photos, recorded observations, log excerpts, or other concrete artifacts with stable paths. Do not fabricate evidence and do not mark CI/emulator observations as physical acceptance.
+
+The collector is a metadata/provenance helper only. It intentionally emits `PENDING` results and cannot authorize production.
 
 ## Production rule
 
