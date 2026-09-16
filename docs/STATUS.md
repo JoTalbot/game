@@ -40,9 +40,11 @@
 
 ### Текущий HEAD и последние инженерные изменения
 
-Текущий `main` подтверждён на коммите `f54af136541c6875a76b625838038cb54cfb3842` (`docs: add physical Android acceptance record`). APK-кандидат v3.0.1/versionCode 601 был собран непосредственно с предыдущего инженерного HEAD `65d2de15d57a41d2ea401bf6a945230e57364733`; затем в `f54af136...` был добавлен и слит воспроизводимый журнал физического Android acceptance. Последовательность последних изменений усилила именно release evidence: V25 явно требует physical Android evidence, deterministic CI readiness отделена от физического доказательства, V20 probe сделан realm-neutral, а V3 expressive world laws включены в обязательный gate.
+Текущий `main` содержит последовательность docs-only исправлений после инженерного HEAD `65d2de15d57a41d2ea401bf6a945230e57364733`. APK-кандидат v3.0.1/versionCode 601 был собран непосредственно с `65d2de15...`; последующие коммиты изменяют только release documentation/evidence и не изменяют APK.
 
-Текущий APK-кандидат имеет provenance `igra-3.0.1`, versionCode `601`, source commit `65d2de15...` и SHA-256 `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`. Этот provenance подтверждён до merge acceptance-документа и не заменяет физическую проверку.
+Текущий APK-кандидат имеет provenance `igra-3.0.1`, versionCode `601`, source commit `65d2de15...` и **APK SHA-256 `37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92`**. GitHub Actions artifact ZIP для этого APK имеет отдельный digest `b3e27df157ca7cbc15c836e9d39d2c2d7ec40d216843158fbbb0eb11604cd8f`. SHA APK подтверждён непосредственно содержимым `igra-3.0.1.apk.sha256` из скачанного Actions artifact.
+
+Это исправляет прежнюю неоднозначность, где digest ZIP-архива был ошибочно обозначен как SHA самого APK. Физическая проверка по-прежнему должна ссылаться именно на SHA APK.
 
 Последние изменения V9-V25 persistence/replay также проверяют полный путь от live runtime event до persistence: idle frame не создаёт replay entry, реальное действие записывается ровно один раз и сохраняется через `pack()`.
 
@@ -58,7 +60,7 @@
 
 ### Текущие незакрытые задачи
 
-1. Выполнить физический weak-device soak на текущем APK-кандидате `igra-3.0.1` / versionCode 601.
+1. Выполнить физический weak-device soak на текущем APK-кандидате `igra-3.0.1` / versionCode 601 / APK SHA `37b0172020ed30efe91ee3355f059ad8788b27d002340a5c8ed163aed5e02f92`.
 2. Зафиксировать реальное physical Android evidence без подстановки/эмуляции результата.
 3. После физического soak повторно пройти полный RC2/release gate.
 4. Выполнить финальную сверку Play listing/privacy материалов с фактическим APK.
