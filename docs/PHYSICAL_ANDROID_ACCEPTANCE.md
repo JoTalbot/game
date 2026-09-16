@@ -142,7 +142,7 @@ adb shell am force-stop world.igra.app
 - потерю сохранения;
 - критические визуальные или touch blockers.
 
-При crash/ANR/save failure/critical visual blocker/critical touch blocker acceptance блокируется.
+При crash/ANR/save failure/critical visual/touch blocker acceptance блокируется.
 
 ## 5. Evidence protocol
 
@@ -162,7 +162,17 @@ adb shell am force-stop world.igra.app
 adb logcat -d -t 2000 > igra-physical-logcat.txt
 ```
 
-Evidence должно однозначно связывать результат с APK SHA `b1785e9e...`. Evidence от старого RC или другого APK не переносится.
+Evidence должно однозначно связывать результат с APK SHA `b1785e9...`. Evidence от старого RC или другого APK не переносится.
+
+### 5.1 Машинная проверка evidence
+
+После физического прогона evidence следует оформить в JSON по схеме `tools/probe/physical-android-evidence.js` и проверить локально:
+
+```bash
+node tools/probe/physical-android-evidence.js physical-android-evidence.json
+```
+
+Валидатор проверяет binary provenance, обязательные поля физического устройства, UTC timestamps, полный acceptance matrix, запрет `FAIL`/необоснованного `N/A`, наличие evidence и явную фиксацию `physicalAndroid=true` и `IGRA_PHYSICAL_ANDROID=true`. Он не превращает CI, эмулятор или один JSON-файл в доказательство физического устройства: происхождение самого physical evidence остаётся фактической ответственностью исполнителя теста.
 
 ## 6. Acceptance rules
 
