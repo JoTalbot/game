@@ -8,19 +8,19 @@ Current APK provenance:
 
 - Version: `3.0.1`
 - versionCode: `601`
-- Commit: `7a79b730a7224a3cd58b3e70bac020108cdd5118`
-- APK workflow run: `35131645470`
-- APK artifact: `igra-3.0.1` (artifact ID `10461323111`)
-- APK SHA-256: `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`
-- GitHub Actions artifact ZIP SHA-256: `4f83fe690c110c082a013dcc7e4b3116c6a700a217daa376174aa064cc9e74d4`
+- Commit: `1ddc7e90780679c802470943aae3b953d40fe817`
+- APK workflow run: `35141797041`
+- APK artifact: `igra-3.0.1` (artifact ID `10465244020`)
+- APK SHA-256: `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`
+- GitHub Actions artifact ZIP SHA-256: `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`
 
 The Actions ZIP digest is not the APK digest. Physical installation and evidence provenance must use the APK SHA-256 above.
 
 Required provenance environment:
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=7a79b730a7224a3cd58b3e70bac020108cdd5118
-export IGRA_EXPECTED_APK_SHA256=b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755
+export IGRA_EXPECTED_APK_COMMIT=1ddc7e90780679c802470943aae3b953d40fe817
+export IGRA_EXPECTED_APK_SHA256=7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729
 ```
 
 ## Acceptance rules
@@ -65,8 +65,8 @@ The collector requires `adb`, `sha256sum`, `node`, the APK file, and the provena
 After completing all 16 scenarios on the physical device, export the exact candidate provenance and physical flag, then run:
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=7a79b730a7224a3cd58b3e70bac020108cdd5118
-export IGRA_EXPECTED_APK_SHA256=b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755
+export IGRA_EXPECTED_APK_COMMIT=1ddc7e90780679c802470943aae3b953d40fe817
+export IGRA_EXPECTED_APK_SHA256=7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729
 export IGRA_PHYSICAL_ANDROID=1
 node tools/probe/physical-android-evidence.js physical-android-evidence.json
 ```
