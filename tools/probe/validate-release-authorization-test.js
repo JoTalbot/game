@@ -82,6 +82,9 @@ function run(name, mutate, expected, envOverrides = {}) {
 
 run('valid', () => {}, true);
 run('missing-evidence', data => { data.evidence = []; }, false);
+run('collector-only-evidence', data => { data.evidence = [{ type: 'collection', path: 'physical-android-evidence.json' }]; }, false);
+run('absolute-evidence-path', data => { data.evidence = [{ type: 'screenshot', path: '/tmp/device.png' }]; }, false);
+run('parent-traversal-evidence-path', data => { data.evidence = [{ type: 'screenshot', path: 'evidence/../device.png' }]; }, false);
 run('fail-scenario', data => { data.results.find(r => r.name === 'ANR').status = 'FAIL'; }, false);
 run('pending-scenario', data => { data.results.find(r => r.name === 'ANR').status = 'PENDING'; }, false);
 run('wrong-commit', data => { data.artifact.commit = '2222222222222222222222222222222222222222'; }, false);
