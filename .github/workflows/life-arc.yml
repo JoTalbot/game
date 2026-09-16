@@ -40,6 +40,7 @@ jobs:
           node --expose-gc tools/probe/rc-hardening.js
           node tools/probe/rc2-evidence.js | tee rc2-evidence.json
           node tools/probe/physical-android-evidence-test.js
+          node tools/probe/validate-release-authorization-test.js
           bash tools/probe/physical-android-collector-test.sh
       - name: Upload RC2 evidence
         if: always()
