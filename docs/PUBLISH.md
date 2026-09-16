@@ -30,7 +30,8 @@ CI использует два режима:
 - обычные push/PR: debug signing разрешён для быстрых проверок;
 - `v*` release tag: debug signing запрещён, обязательны два GitHub Secrets:
   - `IGRA_KEYSTORE_B64` — base64 release/upload keystore;
-  - `IGRA_KEYSTORE_PASSWORD` — пароль keystore.
+  - `IGRA_KEYSTORE_PASSWORD` — пароль keystore;
+- ручной `workflow_dispatch` с `release_candidate=true`: CI собирает **release-signed candidate без публикации релиза**. Этот режим предназначен для физического Android acceptance того же бинарника, который впоследствии должен пройти production release gate.
 
 CI декодирует keystore во временный `dist/release.keystore`, передаёт его в
 `tools/build-apk.sh`, проверяет подпись и публикует SHA-256 рядом с APK.
@@ -74,7 +75,7 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 - checksum verification: SUCCESS
 - attached to GitHub Release: SUCCESS
 
-### Current APK candidate
+### Current deterministic CI artifact
 
 - version: `3.0.1`
 - versionCode: `601`
@@ -83,25 +84,36 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 - Actions artifact: `igra-3.0.1` (artifact ID `10461323111`)
 - APK SHA-256: `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`
 - GitHub Actions artifact ZIP SHA-256: `4f83fe690c110c082a013dcc7e4b3116c6a700a217daa376174aa064cc9e74d4`
+- signing: debug (ordinary main-branch CI)
 - automatic APK gate: SUCCESS
 
-`4f83fe...` — digest ZIP-архива Actions artifact, а не SHA самого APK. Для физической установки и evidence использовать именно APK SHA `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`.
+`4f83fe...` — digest ZIP-архива Actions artifact, а не SHA самого APK.
+`b20cf38c...` — SHA debug-signed APK и **не** тот бинарник, который следует
+использовать для финального release approval.
 
-Этот APK candidate **не заменяет immutable RC1** и не должен быть назван production release без физического Android acceptance.
+### Release-signed candidate для физического acceptance
 
-Provenance физического acceptance передаётся через окружение и должна точно соответствовать текущему кандидату:
+Для физического acceptance нельзя подменять release artifact debug-сборкой:
+подпись изменяет APK и, следовательно, его SHA-256. Поэтому перед тестированием
+актуального кандидата нужно вручную запустить APK workflow на том же source
+commit с `release_candidate=true`.
 
-```bash
-export IGRA_EXPECTED_APK_COMMIT=7a79b730a7224a3cd58b3e70bac020108cdd5118
-export IGRA_EXPECTED_APK_SHA256=b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755
-```
+Порядок:
 
-Единая версия проверяется в:
+1. Открыть GitHub Actions → workflow **APK**.
+2. Запустить `Run workflow` для `main`.
+3. Установить `release_candidate=true`.
+4. Дождаться успешной сборки.
+5. Скачать Actions artifact `igra-3.0.1` именно из этого запуска.
+6. Проверить SHA APK и использовать **этот SHA**, а также commit запуска, для физического acceptance.
+7. Только после полного acceptance формировать release approval secrets, привязанные к exact commit и exact release-signed APK SHA.
 
-- `tools/build-apk.sh`
-- `android/app/build.gradle.kts`
-- `web/js/math.js`
-- `docs/PUBLISH.md`
+Ручной `release_candidate=true` **не публикует GitHub Release** и не создаёт
+production release. Публикация по-прежнему возможна только через `v*` tag после
+прохождения всех release gates.
+
+Provenance для физического acceptance всегда берётся из фактически созданного
+release-signed candidate, а не из старого debug artifact.
 
 ## 4. Физический gate актуального кандидата
 
