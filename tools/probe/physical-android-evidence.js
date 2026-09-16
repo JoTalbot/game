@@ -4,11 +4,27 @@
 const fs = require("fs");
 const path = require("path");
 
+function expectedEnv(name) {
+  const value = process.env[name];
+  if (typeof value !== "string" || !value.trim()) fail(`${name} is required`);
+  return value.trim();
+}
+
+function fail(message) {
+  console.error(`PHYSICAL ANDROID EVIDENCE FAIL: ${message}`);
+  process.exit(1);
+}
+
+const expectedCommit = expectedEnv("IGRA_EXPECTED_APK_COMMIT");
+const expectedApkSha256 = expectedEnv("IGRA_EXPECTED_APK_SHA256").toLowerCase();
+if (!/^[0-9a-f]{40}$/.test(expectedCommit)) fail("IGRA_EXPECTED_APK_COMMIT must be a 40-character Git commit SHA");
+if (!/^[0-9a-f]{64}$/.test(expectedApkSha256)) fail("IGRA_EXPECTED_APK_SHA256 must be a 64-character SHA-256 digest");
+
 const EXPECTED = Object.freeze({
   version: "3.0.1",
   versionCode: 601,
-  commit: "58cb7c61a9f5fc7d29e5d5677cb605944e4ba7b9",
-  apkSha256: "c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c"
+  commit: expectedCommit,
+  apkSha256: expectedApkSha256
 });
 
 const REQUIRED = [
@@ -29,11 +45,6 @@ const REQUIRED = [
   "Critical visual blocker",
   "Critical touch blocker"
 ];
-
-function fail(message) {
-  console.error(`PHYSICAL ANDROID EVIDENCE FAIL: ${message}`);
-  process.exit(1);
-}
 
 function requireString(value, label) {
   if (typeof value !== "string" || !value.trim()) fail(`${label} is missing`);
@@ -66,7 +77,7 @@ if (!artifact || typeof artifact !== "object") fail("artifact section is missing
 if (artifact.version !== EXPECTED.version) fail(`artifact.version mismatch: ${artifact.version}`);
 if (artifact.versionCode !== EXPECTED.versionCode) fail(`artifact.versionCode mismatch: ${artifact.versionCode}`);
 if (artifact.commit !== EXPECTED.commit) fail("artifact.commit does not match the accepted source commit");
-if (artifact.apkSha256 !== EXPECTED.apkSha256) fail("artifact.apkSha256 does not match the accepted APK");
+if (typeof artifact.apkSha256 !== "string" || artifact.apkSha256.toLowerCase() !== EXPECTED.apkSha256) fail("artifact.apkSha256 does not match the accepted APK");
 
 const device = evidence.device;
 if (!device || typeof device !== "object") fail("device section is missing");
