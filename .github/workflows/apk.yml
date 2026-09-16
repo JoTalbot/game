@@ -135,9 +135,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          if [[ "$IGRA_RELEASE_BUILD" == "true" ]]; then
+          if [[ "$GITHUB_REF" == refs/tags/v* || "${IGRA_RELEASE_BUILD:-false}" == "true" ]]; then
             if [[ -z "${KEYSTORE_B64:-}" || -z "${KEYSTORE_PASSWORD:-}" ]]; then
-              echo "ERROR: release-signed candidate requires IGRA_KEYSTORE_B64 and IGRA_KEYSTORE_PASSWORD" >&2
+              echo "ERROR: release candidate/release requires IGRA_KEYSTORE_B64 and IGRA_KEYSTORE_PASSWORD" >&2
               exit 1
             fi
             echo "$KEYSTORE_B64" | base64 -d > dist/release.keystore
