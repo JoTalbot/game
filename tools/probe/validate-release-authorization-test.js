@@ -89,6 +89,7 @@ run('wrong-apk-sha', data => { data.artifact.apkSha256 = '0000000000000000000000
 run('emulator', data => { data.device.model = 'Android Emulator'; }, false);
 run('not-physical', data => { data.physicalAndroid = false; }, false);
 run('missing-physical-evidence-flag', data => { data.IGRA_PHYSICAL_ANDROID = false; }, false);
+run('missing-runtime-physical-flag', () => {}, false, { IGRA_PHYSICAL_ANDROID: '' });
 run('missing-secret', () => {}, false, { IGRA_RELEASE_APPROVED_APK_SHA256: '' });
 
 console.log('VALIDATE RELEASE AUTH SELF-TEST VALID');
