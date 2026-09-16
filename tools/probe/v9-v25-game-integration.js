@@ -129,17 +129,20 @@ game.h = 600;
 game.cam.w = 800;
 game.cam.h = 600;
 
-// Два реальных кадра движения: первый только инициализирует baseline,
-// второй должен пройти через Game._move и быть замечен bridge как visit.
-game.input.down = true;
-game.input.wx = game.player.x + 1000;
-game.input.wy = game.player.y;
+// Сначала настоящий кадр создаёт baseline bridge. Затем используем тот же
+// путь движения, что и движок: клавиша проходит через Game._move внутри
+// Game.update. Это устойчивее, чем вручную менять player.x между кадрами,
+// и всё ещё проверяет производственный update -> bridge шов.
+game.update(1 / 60);
+var baselineX = game.player.x;
+game.input.keys.ArrowRight = true;
 game.update(1 / 60);
 game.update(1 / 60);
-game.input.down = false;
+game.input.keys.ArrowRight = false;
 
 var state = game.world.v9v25;
 ok(!!state, "V9-V25 состояние создано настоящим update");
+ok(game.player.x !== baselineX, "реальный Game._move изменил позицию", "x=" + game.player.x);
 ok(state.metrics.actions >= 1, "реальное движение стало V9-V25 action", "actions=" + state.metrics.actions);
 ok(state.lastAction && state.lastAction.type === "visit", "реальный action имеет тип visit");
 ok(Array.isArray(state.replay) && state.replay.length === 1, "реальный action попал в replay", "replay=" + state.replay.length);
