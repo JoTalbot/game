@@ -1,26 +1,30 @@
 # ИГРА — статус проекта
 
-## Текущий инженерный APK
+## Текущий инженерный APK-кандидат
 
 - Версия: `3.0.1`
 - versionCode: `601`
-- APK source commit: `c24a79b3de8248620b4c2b6c0c8d48c78f00aff0`
-- APK workflow run: `35114704164`
-- APK artifact: `igra-3.0.1` (`10455805062`)
-- APK SHA-256: `629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453`
-- Actions ZIP SHA-256: `3a5fe478b581898995bdc693004cf403a5e7debb98c85fabeddf780907cdcbaf`
+- APK source commit: `7a79b730a7224a3cd58b3e70bac020108cdd5118`
+- APK workflow run: `35131645470` — SUCCESS
+- APK artifact: `igra-3.0.1` (`10461323111`)
+- APK SHA-256: `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`
+- Actions ZIP SHA-256: `4f83fe690c110c082a013dcc7e4b3116c6a700a217daa376174aa064cc9e74d4`
 - APK automatic gate: SUCCESS
 - Source provenance check: SUCCESS
 - Android backup policy: `android:allowBackup="false"`
 
-## Последний CI-контроль физического evidence
+## Последний CI-контроль
 
-- Provenance redesign commit: `c24a79b3de8248620b4c2b6c0c8d48c78f00aff0`
-- APK workflow run: `35114704164` — SUCCESS
-- Anti-spoof self-test физического Android evidence: SUCCESS
-- Physical Android collector self-test: SUCCESS
+Для текущего commit `7a79b730a7224a3cd58b3e70bac020108cdd5118` успешно завершились:
 
-CI подтверждает только корректность протокола и автоматических проверок. Он не считается физическим Android acceptance.
+- APK workflow `35131645470`
+- Life Arc Gate `35131645507`
+- Sync play mirror `35131645575`
+- GitHub Pages build/deployment `35131644170`
+
+Физический Android evidence в обычном `main`-build не подставляется: соответствующий gate выполняется только для release tag.
+
+CI подтверждает корректность автоматических проверок и протокола. Он не считается физическим Android acceptance.
 
 ## Production gate
 
@@ -28,13 +32,13 @@ CI подтверждает только корректность протоко
 
 Текущий статус: **BLOCKED**.
 
-Причина: физическое Android acceptance ещё не выполнено на реальном устройстве. `IGRA_PHYSICAL_ANDROID=1` не установлен и не должен устанавливаться искусственно.
+Причина: физическое Android acceptance ещё не выполнено на реальном устройстве для текущего APK-кандидата. `IGRA_PHYSICAL_ANDROID=1` не должен устанавливаться искусственно.
 
 ## Что осталось
 
-1. Выполнить полный физический acceptance на реальном Android-устройстве для APK `3.0.1 / 601` с SHA `629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453`.
-2. Сформировать evidence по всем обязательным сценариям с точной provenance APK.
-3. Передать в validator `IGRA_EXPECTED_APK_COMMIT=c24a79b3de8248620b4c2b6c0c8d48c78f00aff0` и `IGRA_EXPECTED_APK_SHA256=629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453` и прогнать `tools/probe/physical-android-evidence.js` на фактическом evidence.
+1. Выполнить полный физический acceptance на реальном Android-устройстве для APK `3.0.1 / 601` с SHA `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`.
+2. Сформировать структурированное evidence по всем обязательным сценариям с точной provenance APK.
+3. Валидировать evidence через `tools/probe/validate-release-authorization.js`, привязав его к commit `7a79b730a7224a3cd58b3e70bac020108cdd5118` и указанному APK SHA-256.
 4. После PASS физического контура повторить RC2/release gate.
 5. Синхронизировать финальные store/privacy материалы.
 6. Принять production release decision и только затем переходить к публикации/rollout.
