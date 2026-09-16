@@ -11,6 +11,7 @@ function fail(message) {
 }
 
 if (!raw.trim()) fail('IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON is required for a tagged release');
+if (process.env.IGRA_PHYSICAL_ANDROID !== '1') fail('IGRA_PHYSICAL_ANDROID=1 is required for release evidence validation');
 if (!/^[0-9a-f]{40}$/.test(expectedCommit)) fail('GITHUB_SHA must be a 40-hex Git commit');
 if (!/^[0-9a-f]{64}$/.test(expectedSha)) fail('IGRA_RELEASE_APPROVED_APK_SHA256 must be a 64-hex SHA-256');
 
