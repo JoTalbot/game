@@ -30,6 +30,15 @@ resolution="$(adb shell wm size | awk -F': ' '/Physical size:/ {print $2; exit}'
 density="$(adb shell wm density | awk -F': ' '/Physical density:/ {print $2; exit}' | tr -d '\r')"
 ram="$(adb shell cat /proc/meminfo | awk '/MemTotal:/ {printf "%.0f MB", $2/1024; exit}' | tr -d '\r')"
 profile="other"
+
+# Reject common emulator/simulator identities before creating evidence.
+qemu="$(adb shell getprop ro.kernel.qemu | tr -d '\r')"
+hardware="$(adb shell getprop ro.hardware | tr -d '\r')"
+if [[ "$qemu" == "1" ]] || printf '%s\n' "$manufacturer $model $hardware" | grep -Eiq 'emulator|simulator|goldfish|ranchu|sdk_gphone|generic'; then
+  echo "Physical Android collector rejected emulator/simulator identity: manufacturer=$manufacturer model=$model hardware=$hardware qemu=$qemu" >&2
+  exit 1
+fi
+
 started="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 export OUT manufacturer model android_version resolution density ram profile started ACTUAL_SHA
