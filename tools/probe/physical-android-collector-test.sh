@@ -51,7 +51,7 @@ EXPECTED_SHA="$(sha256sum "$APK" | awk '{print $1}')"
 
 # Make the collector accept this fixture only inside the test, without weakening production provenance.
 COLLECTOR_TEST="$TMP/collector.sh"
-sed "s/b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f/$EXPECTED_SHA/" "$COLLECTOR" > "$COLLECTOR_TEST"
+sed "s/c977a111b14495be7071742e416b09050a9bc341e48a1ab3f153420426ab743c/$EXPECTED_SHA/" "$COLLECTOR" > "$COLLECTOR_TEST"
 chmod +x "$COLLECTOR_TEST"
 
 if PATH="$TMP:$PATH" FAKE_ADB_MODE=emulator "$COLLECTOR_TEST" "$APK" "$TMP/emulator.json" >"$TMP/emulator.out" 2>&1; then
