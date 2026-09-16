@@ -75,20 +75,22 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 - checksum verification: SUCCESS
 - attached to GitHub Release: SUCCESS
 
+Исторические RC1-данные выше приведены только как immutable provenance и не являются текущим production candidate.
+
 ### Current deterministic CI artifact
 
 - version: `3.0.1`
 - versionCode: `601`
-- source commit: `7a79b730a7224a3cd58b3e70bac020108cdd5118`
-- latest APK workflow run: `35131645470` — SUCCESS
-- Actions artifact: `igra-3.0.1` (artifact ID `10461323111`)
-- APK SHA-256: `b20cf38c0de302717c69141bbd44ac73333a3d6e493cbd4967a19eda37f37755`
-- GitHub Actions artifact ZIP SHA-256: `4f83fe690c110c082a013dcc7e4b3116c6a700a217daa376174aa064cc9e74d4`
+- source commit: `1ddc7e90780679c802470943aae3b953d40fe817`
+- latest APK workflow run: `35141797041` — SUCCESS
+- Actions artifact: `igra-3.0.1` (artifact ID `10465244020`)
+- APK SHA-256: `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`
+- GitHub Actions artifact ZIP SHA-256: `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`
 - signing: debug (ordinary main-branch CI)
 - automatic APK gate: SUCCESS
 
-`4f83fe...` — digest ZIP-архива Actions artifact, а не SHA самого APK.
-`b20cf38c...` — SHA debug-signed APK и **не** тот бинарник, который следует
+`0b6b82...` — digest ZIP-архива Actions artifact, а не SHA самого APK.
+`7412b523...` — SHA debug-signed APK и **не** тот бинарник, который следует
 использовать для финального release approval.
 
 ### Release-signed candidate для физического acceptance
