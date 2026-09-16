@@ -1,195 +1,76 @@
-# Physical Android Acceptance — v3.0.1 / versionCode 601
+# Physical Android Acceptance
 
-Документ предназначен только для **реального физического устройства**. CI, emulator и browser automation не являются подтверждением physical Android gate.
+## Current release candidate
 
-## 1. Тестируемый artifact
+Physical Android acceptance is required for the production gate. CI, Android emulators/simulators, and browser runs do not count as physical-device evidence.
 
-- Версия: `3.0.1`
+Current APK provenance:
+
+- Version: `3.0.1`
 - versionCode: `601`
-- Commit: `909203f203fc1e695e4d481aeaf34c81b135aff0`
-- APK workflow run: `35108604277`
-- APK artifact: `igra-3.0.1` (artifact ID `10451117735`)
-- APK SHA-256: `b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f`
-- GitHub Actions artifact ZIP SHA-256: `aa1a719ea9a4e9f43e8b8c6ed2a2ad2a6b15afaf79ee0420e628acf344f942a0`
+- Commit: `c24a79b3de8248620b4c2b6c0c8d48c78f00aff0`
+- APK workflow run: `35114704164`
+- APK artifact: `igra-3.0.1` (artifact ID `10455805062`)
+- APK SHA-256: `629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453`
+- GitHub Actions artifact ZIP SHA-256: `3a5fe478b581898995bdc693004cf403a5e7debb98c85fabeddf780907cdcbaf`
 
-Важно: `aa1a719e...` является digest ZIP-архива GitHub Actions artifact, а не SHA самого APK. SHA самого APK подтверждён файлом `igra-3.0.1.apk.sha256` внутри скачанного artifact.
-
-Этот кандидат включает production-hardening изменение `android:allowBackup="false"`. Физическая проверка должна выполняться именно для указанного binary SHA.
-
-## 2. Подготовка физического устройства
-
-Перед тестом зафиксировать:
-
-- Manufacturer / model:
-- Android version:
-- Screen resolution:
-- Density:
-- RAM:
-- Device profile: `weak-device` / other:
-- Date/time (UTC):
-
-Устройство должно быть физическим Android-девайсом. Эмулятор не засчитывается.
-
-### 2.1 Проверка APK до установки
-
-После скачивания artifact распаковать APK и проверить **именно APK**, а не ZIP-контейнер:
+Required validator provenance:
 
 ```bash
-sha256sum igra-3.0.1.apk
+export IGRA_EXPECTED_APK_COMMIT=c24a79b3de8248620b4c2b6c0c8d48c78f00aff0
+export IGRA_EXPECTED_APK_SHA256=629ba40569803742f728a67cda6646a3091bcf82855ed2afe88e750131e0b453
 ```
 
-Ожидаемое значение:
+## Acceptance rules
 
-```text
-b1785e9e69f806464e4d446507bfc2ab6e528de2298ee048072901274a0ef03f  igra-3.0.1.apk
-```
+Evidence must come from a real physical Android device. Emulator/simulator evidence is rejected. The evidence file must identify the exact APK provenance above, contain UTC timestamps, set `physicalAndroid=true`, and be validated with `IGRA_PHYSICAL_ANDROID=1`.
 
-Дополнительно:
+The acceptance matrix contains these 16 mandatory scenarios:
+
+1. Clean install
+2. Boot / birth / gameplay
+3. Home → resume
+4. Save → restart → recovery
+5. Force-stop → recovery
+6. Old save → upgrade
+7. Offline
+8. Release / Become / NG+
+9. Vibration
+10. Audio
+11. Fullscreen
+12. Crash
+13. ANR
+14. Heavy-frame / performance blocker
+15. Critical visual blocker
+16. Critical touch blocker
+
+Each scenario must be `PASS` or `N/A`. Every `N/A` requires a reason. `FAIL` is not accepted. At least one evidence item is required.
+
+## Collector
+
+The collector verifies the APK SHA-256 and records physical-device metadata. It intentionally creates a `PENDING` evidence template and does **not** prove physical acceptance by itself.
 
 ```bash
-adb devices
-adb shell getprop ro.product.manufacturer
-adb shell getprop ro.product.model
-adb shell getprop ro.build.version.release
-adb shell wm size
-adb shell wm density
+bash tools/probe/collect-physical-android-evidence.sh \
+  igra-3.0.1.apk \
+  physical-android-evidence.json
 ```
 
-Если SHA APK не совпадает, установка прекращается: это другой binary provenance.
+The collector requires `adb`, `sha256sum`, `node`, the APK file, and the provenance environment variables above. It rejects emulator/simulator identity signals.
 
-### 2.2 Установка
+## Validator
 
-Для clean install удалить предыдущую установку приложения и установить проверенный APK:
-
-```bash
-adb uninstall world.igra.app || true
-adb install -r igra-3.0.1.apk
-```
-
-Для сценария upgrade сначала установить предыдущую разрешённую версию, создать сохранение, затем поверх неё установить текущий APK. Результат отдельно отметить как `PASS`, `FAIL` или `N/A` с причиной.
-
-## 3. Acceptance matrix
-
-| Проверка | Результат | Evidence / заметка |
-|---|---|---|
-| Clean install | PENDING | |
-| Boot / birth / gameplay | PENDING | |
-| Home → resume | PENDING | |
-| Save → restart → recovery | PENDING | |
-| Force-stop → recovery | PENDING | |
-| Old save → upgrade | PENDING / N/A | |
-| Offline | PENDING | |
-| Release / Become / NG+ | PENDING | |
-| Vibration | PENDING | |
-| Audio | PENDING | |
-| Fullscreen | PENDING | |
-| Crash | PENDING | |
-| ANR | PENDING | |
-| Heavy-frame / performance blocker | PENDING | |
-| Critical visual blocker | PENDING | |
-| Critical touch blocker | PENDING | |
-
-## 4. Порядок физического прогона
-
-### A. Clean install / boot
-
-1. Установить APK с подтверждённым SHA.
-2. Запустить приложение с чистым состоянием.
-3. Проверить стартовый экран, birth flow и вход в gameplay.
-4. Зафиксировать screenshot/video и время UTC.
-
-### B. Gameplay / touch / presentation
-
-1. Выполнить основные действия игрока.
-2. Проверить touch targets и отсутствие критических touch blockers.
-3. Проверить fullscreen и отсутствие критического визуального дефекта.
-4. Проверить vibration.
-5. Проверить audio.
-
-### C. Persistence / recovery
-
-1. Создать состояние игры и выполнить Save.
-2. Полностью перезапустить приложение.
-3. Проверить recovery сохранённого состояния.
-4. Выполнить force-stop:
+After completing all 16 scenarios on the physical device:
 
 ```bash
-adb shell am force-stop world.igra.app
-```
-
-5. Запустить приложение снова и проверить recovery.
-6. Зафиксировать результат и evidence.
-
-### D. Offline
-
-1. До запуска отключить сетевое соединение на устройстве.
-2. Запустить и пройти доступный gameplay flow.
-3. Проверить отсутствие обязательной зависимости от сети.
-4. Включить сеть обратно после теста.
-
-### E. Release / Become / NG+
-
-Проверить доступные переходы соответствующего текущего игрового состояния. Любой невозможный из-за отсутствия необходимого предыдущего прогресса пункт фиксировать с конкретной причиной, а не превращать человеческое «не проверял» в магический `PASS`.
-
-### F. Performance / stability
-
-Во время полного прогона отслеживать:
-
-- crash;
-- ANR;
-- зависания;
-- критические frame/performance spikes;
-- потерю сохранения;
-- критические визуальные или touch blockers.
-
-При crash/ANR/save failure/critical visual/touch blocker acceptance блокируется.
-
-## 5. Evidence protocol
-
-Для каждого обязательного результата сохранить минимум:
-
-- точный APK SHA-256;
-- модель физического устройства;
-- Android version;
-- дату/время UTC;
-- результат `PASS`/`FAIL`/`N/A`;
-- краткое описание сценария;
-- screenshot/video или logcat там, где это materially подтверждает результат.
-
-Для проблем сохранить диагностический logcat, например:
-
-```bash
-adb logcat -d -t 2000 > igra-physical-logcat.txt
-```
-
-Evidence должно однозначно связывать результат с APK SHA `b1785e9...`. Evidence от старого RC или другого APK не переносится.
-
-### 5.1 Машинная проверка evidence
-
-После физического прогона evidence следует оформить в JSON по схеме `tools/probe/physical-android-evidence.js` и проверить локально:
-
-```bash
+export IGRA_PHYSICAL_ANDROID=1
 node tools/probe/physical-android-evidence.js physical-android-evidence.json
 ```
 
-Валидатор проверяет binary provenance, обязательные поля физического устройства, UTC timestamps, полный acceptance matrix, запрет `FAIL`/необоснованного `N/A`, наличие evidence и явную фиксацию `physicalAndroid=true` и `IGRA_PHYSICAL_ANDROID=true`. Он не превращает CI, эмулятор или один JSON-файл в доказательство физического устройства: происхождение самого physical evidence остаётся фактической ответственностью исполнителя теста.
+The validator rejects missing or incorrect APK provenance, incomplete scenarios, missing `N/A` reasons, missing evidence, non-UTC timestamps, emulator/simulator evidence, or missing physical-device flags.
 
-## 6. Acceptance rules
+## Production rule
 
-1. Каждый результат относится именно к указанному APK SHA-256.
-2. Старое evidence для RC1 или другого APK не переносится на этот кандидат.
-3. `PENDING`, `N/A` или неполное прохождение не являются physical acceptance.
-4. `N/A` допускается только с конкретно указанной причиной, почему сценарий объективно неприменим.
-5. При crash, ANR, critical visual/touch blocker или save failure acceptance не считается пройденным.
-6. После завершения приложить доступное фактическое evidence: видео/скриншоты, логи, описание воспроизведения и время теста.
-7. Только после фактического прохождения всех обязательных пунктов можно фиксировать `physicalAndroid=true` в release evidence.
-8. Нельзя выставлять `IGRA_PHYSICAL_ANDROID=1` только для получения зелёного CI: переменная должна отражать уже полученное фактическое physical evidence.
+Physical Android acceptance is a separate gate from deterministic CI validation. Production remains blocked until the current APK `3.0.1` / versionCode `601` passes the complete physical-device acceptance matrix with exact provenance, and the resulting evidence is validated successfully.
 
-## 7. Final result
-
-- Physical Android acceptance: `PENDING`
-- Physical evidence attached: `NO`
-- `IGRA_PHYSICAL_ANDROID=1`: `NOT SET`
-- Production gate: `BLOCKED`
-
-Этот файл не является доказательством прохождения. Он является воспроизводимым журналом и протоколом для его фиксации.
+A previous physical-device smoke test for an older build must not be reused as evidence for the current candidate.
