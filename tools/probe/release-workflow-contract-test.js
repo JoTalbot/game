@@ -26,15 +26,16 @@ requireText('release publication remains tag-only', 'uses: softprops/action-gh-r
 
 const signingIndex = workflow.indexOf('name: Ключ подписи');
 const evidenceIndex = workflow.indexOf('name: Проверить физическое Android evidence');
-const releaseIndex = workflow.indexOf('uses: softprops/action-gh-release@v2');
+const releaseIndex = workflow.indexOf('name: Прицепить к релизу');
 if (signingIndex < 0 || evidenceIndex < 0 || releaseIndex < 0 || signingIndex >= evidenceIndex || evidenceIndex >= releaseIndex) {
   console.error('RELEASE WORKFLOW CONTRACT FAIL: signing/evidence/publication order is invalid');
   process.exit(1);
 }
 console.log('PASS signing → physical evidence → publication order');
 
-const releaseBlock = workflow.slice(releaseIndex, workflow.indexOf('\n', releaseIndex) + 1 + 400);
-if (!releaseBlock.includes('if: startsWith(github.ref, \'refs/tags/v\')')) {
+const releaseBlockEnd = workflow.indexOf('\n      - name:', releaseIndex + 1);
+const releaseBlock = workflow.slice(releaseIndex, releaseBlockEnd < 0 ? workflow.length : releaseBlockEnd);
+if (!releaseBlock.includes("if: startsWith(github.ref, 'refs/tags/v')") || !releaseBlock.includes('uses: softprops/action-gh-release@v2')) {
   console.error('RELEASE WORKFLOW CONTRACT FAIL: publication must remain tag-only');
   process.exit(1);
 }
