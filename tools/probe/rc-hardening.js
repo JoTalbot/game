@@ -3,7 +3,7 @@
 const fs=require("fs"),path=require("path"),vm=require("vm");
 const ROOT=path.resolve(__dirname,"../..");
 const read=p=>fs.readFileSync(path.join(ROOT,p),"utf8");
-const ok=(v,s,d)=>{if(!v)throw new Error(s+(d?": "+d:""));console.log("✓ "+s+(d?" ("+d+")":""));};
+const ok=(v,s,d)=>{if(!v)throw new Error(s+(d?": "+d:"));console.log("✓ "+s+(d?" ("+d+")":""));};
 const html=read("web/index.html"), sw=read("web/sw.js"), lang=read("web/js/lang.js"), a11y=read("web/js/accessibility.js");
 const scripts=[...html.matchAll(/<script[^>]+src=["']([^"']+)["']/g)].map(m=>m[1]);
 const cached=[...sw.matchAll(/"\.\/([^"\\]+)"/g)].map(m=>m[1]);
@@ -43,6 +43,7 @@ ok(android.includes("onPause")&&android.includes("onResume"),"Android lifecycle 
 ok(android.includes("onBackPressed"),"Android back handling is present");
 ok(android.includes("setAllowFileAccess(false)")&&android.includes("setAllowUniversalAccessFromFileURLs(false)"),"WebView file-origin access is disabled");
 ok(manifest.includes('android:usesCleartextTraffic="false"'),"Android cleartext traffic is disabled");
+ok(manifest.includes('android:allowBackup="false"'),"Android app backup is explicitly disabled");
 ok(save.includes("AndroidSave")&&save.includes("localStorage"),"save layer has native backend with browser fallback");
 
 const renderer=read("web/js/renderer.js"),engine=read("web/js/engine.js");
