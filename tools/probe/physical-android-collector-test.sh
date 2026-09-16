@@ -50,12 +50,10 @@ printf 'fixture-apk\n' > "$APK"
 EXPECTED_SHA="$(sha256sum "$APK" | awk '{print $1}')"
 EXPECTED_COMMIT="1111111111111111111111111111111111111111"
 
-PROVENANCE=(
-  "IGRA_EXPECTED_APK_SHA256=$EXPECTED_SHA"
-  "IGRA_EXPECTED_APK_COMMIT=$EXPECTED_COMMIT"
-)
-
-if PATH="$TMP:$PATH" FAKE_ADB_MODE=emulator "${PROVENANCE[@]/#/}" "$COLLECTOR" "$APK" "$TMP/emulator.json" >"$TMP/emulator.out" 2>&1; then
+if PATH="$TMP:$PATH" FAKE_ADB_MODE=emulator \
+  IGRA_EXPECTED_APK_SHA256="$EXPECTED_SHA" \
+  IGRA_EXPECTED_APK_COMMIT="$EXPECTED_COMMIT" \
+  "$COLLECTOR" "$APK" "$TMP/emulator.json" >"$TMP/emulator.out" 2>&1; then
   echo "collector accepted emulator fixture unexpectedly"
   cat "$TMP/emulator.out"
   exit 1
