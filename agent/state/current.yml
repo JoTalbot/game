@@ -1,13 +1,11 @@
 # Единая точка resume для автономной смены ИГРЫ.
+# Не хранит собственный HEAD: этот файл сам создаёт новый docs-коммит.
 schema: 1
-updated_utc: "2026-09-17T14:03:00Z"
 updated_by: "arena-agent"
 
 candidate:
   version: "3.0.1"
   version_code: 601
-  main_head_commit: "50a66bfd59e6a8bf9014e3374ca1cd6dfe29e872"
-  main_head_note: "docs-only status synchronization after candidate creation"
   release_candidate_source_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
   release_signed_candidate:
     status: CREATED
@@ -82,5 +80,4 @@ agent_status:
 resume_hint: >
   Test only release-signed APK 3898a940... from source commit 0643a33.
   Do not move or rewrite v3.0.1-rc1. Do not fabricate physical evidence.
-  main currently contains only a docs synchronization commit after the candidate was built;
-  production authorization must remain bound to the exact candidate source commit and APK SHA.
+  Production authorization must remain bound to the exact candidate source commit and APK SHA.
