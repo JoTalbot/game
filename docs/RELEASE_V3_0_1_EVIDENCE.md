@@ -10,6 +10,20 @@
 
 The debug binary is deterministic and CI-verified, but it is not the release-signed production candidate and must not be used for physical acceptance or release approval.
 
+## Release-signed candidate (created 2026-09-17)
+
+- Source commit: `0643a336657e571ee7aed786fbb362b0da3fed98`
+- APK workflow: `35229481075` (APK #1205, `workflow_dispatch`, `release_candidate=true`) — SUCCESS
+- Actions artifact: `igra-3.0.1` (artifact ID `10500832061`)
+- APK file: `igra-3.0.1.apk`
+- APK SHA-256: `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`
+- Signing: release (`IGRA_SIGNING_MODE=release`, apksigner v2 `true`, v3 `true`, 1 signer)
+- Signing certificate SHA-256 fingerprint: `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42`
+- Download page: https://github.com/JoTalbot/game/actions/runs/35229481075
+- No GitHub Release was published (publication stays tag-only); `v3.0.1-rc1` untouched.
+
+This is the binary that physical Android acceptance must be performed against.
+
 ## Historical V3-048 weak-device evidence
 
 The following measurements are retained as historical engineering evidence and do not substitute for acceptance of the current release-signed candidate.

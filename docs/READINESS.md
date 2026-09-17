@@ -5,13 +5,14 @@
 
 ## Параметры расчёта
 
-- **Дата расчёта:** 2026-09-17T13:41Z (UTC)
-- **Commit расчёта:** `06032bd32aa01e9ecc3a6ea36cc36b9930783543` (`main`)
+- **Дата расчёта:** 2026-09-17T13:55Z (UTC), пересчёт №2
+- **Commit расчёта:** `0643a336657e571ee7aed786fbb362b0da3fed98` (`main`)
 - **База CI:** Life Arc Gate #236 (run `35157731498`) SUCCESS, APK #1203 (run `35157731486`) SUCCESS, Sync play mirror #773 (run `35157731495`) SUCCESS, Pages `35157730577` SUCCESS — все на `06032bd`.
 - **Локальный прогон смены (Node 20, песочница агента):** `tools/probe/run.js` → 363/363 PASS; полный набор Life Arc Gate (54 probes + life-workflow + release-workflow-contract + rc-hardening + 3 evidence-теста) → 60/60 PASS; `node --check` по 78 файлам `web/js` → 0 ошибок; `tools/check-sync.sh` → PASS; `tools/check-android-security.sh` → PASS; `tools/probe/render-budget.js` → PASS (V3-052); `tools/probe/balance.js` → PASS.
 - **Immutable RC:** `v3.0.1-rc1` → commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK `igra-3.0.1.apk`, SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc` (сверено фактическим скачиванием артефакта 2026-09-17).
 - **Текущий инженерный артефакт `main`:** APK run `35157731486`, artifact `10471054268`, `igra-3.0.1.apk`, SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d`, подпись **debug** (обычный push-build). Для физического acceptance не годится.
-- **Release-signed кандидат актуального `main`: НЕ СОЗДАН** (нужен `workflow_dispatch` APK с `release_candidate=true`).
+- **Release-signed кандидат актуального `main`: СОЗДАН 2026-09-17** — run `35229481075` (APK #1205, `workflow_dispatch`, `release_candidate=true`) SUCCESS, artifact `10500832061`, `igra-3.0.1.apk`, **APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`**, подпись release (apksigner v2/v3 `true`, fingerprint сертификата `31:80:D0:AE:…:D2:42`). Скачивание: https://github.com/JoTalbot/game/actions/runs/35229481075
+- **CI на `0643a33`:** APK #1204 (`35229457058`) SUCCESS, Life Arc Gate #237 (`35229457159`) SUCCESS, Sync play mirror #774 (`35229457088`) SUCCESS, Pages (`35229455404`) SUCCESS.
 
 ## Таблица гейтов
 
@@ -24,18 +25,18 @@
 | 5 | Контент: скелет не виден за 1–2 сессии | 8 | 3/3 | 100 | 8.00 | GREEN |
 | 6 | UX: игра объясняет себя миром/звуком/жестами | 8 | 4/4 | 100 | 8.00 | GREEN |
 | 7 | Persistence: сейв переживает перезапуск/обновление/историю | 8 | 3/4 | 75 | 6.00 | YELLOW |
-| 8 | Android: APK, WebView, touch, lifecycle, слабые устройства | 8 | 2/5 | 40 | 3.20 | **BLOCKED** |
+| 8 | Android: APK, WebView, touch, lifecycle, слабые устройства | 8 | 3/5 | 60 | 4.80 | **BLOCKED** |
 | 9 | Offline: полный цикл без сети | 3 | 3/3 | 100 | 3.00 | GREEN |
 | 10 | Performance: устойчивый FPS, нет роста памяти | 7 | 4/5 | 80 | 5.60 | YELLOW |
 | 11 | Accessibility: читаемость, haptic/audio fallback | 5 | 4/4 | 100 | 5.00 | GREEN |
 | 12 | Localization: ru/en полностью, layout не ломается | 4 | 3/3 | 100 | 4.00 | GREEN |
-| 13 | Release: versioning, stable signing, privacy/store, материалы | 5 | 3/5 | 60 | 3.00 | YELLOW |
+| 13 | Release: versioning, stable signing, privacy/store, материалы | 5 | 4/5 | 80 | 4.00 | YELLOW |
 | 14 | QA: probes + длинные ручные прогоны + чистая установка/обновление | 6 | 3/5 | 60 | 3.60 | YELLOW |
 | 15 | Monetization: базовая версия не зависит | 4 | 3/3 | 100 | 4.00 | GREEN |
-| | **Сумма весов** | **100** | | | **93.27** | |
+| | **Сумма весов** | **100** | | | **94.22** | |
 
-**Готовность проекта (до cap):** 93.27 → округление вниз = **93%**
-**Cap:** физический Android acceptance текущего кандидата не пройден → **не выше 90%**
+**Готовность проекта (до cap):** 94.22 → округление вниз = **94%**
+**Cap:** физический Android acceptance текущего кандидата (`RC-PHYS-002`, APK `3898a940…`) не пройден → **не выше 90%**
 **ИТОГО: [ГОТОВНОСТЬ] 90%**
 
 Неизвестных знаменателей нет: все 15 гейтов считаются, нормализация весов не требуется.
@@ -85,10 +86,10 @@
 3. Bounded save budget + migration envelope (IMP-RC-003) — PASS.
 4. **ОТКРЫТО:** физический сценарий «старый сейв → обновление APK» для актуального кандидата (для rc1 был PASS, для текущего кандидата факта нет).
 
-### Гейт 8 — Android (8) — 2/5 — BLOCKED
+### Гейт 8 — Android (8) — 3/5 — BLOCKED
 1. APK собирается в CI без Gradle (`tools/build-apk.sh`, JDK 17, build-tools 34) — PASS (run `35157731486`).
 2. WebView security guard — `tools/check-android-security.sh` PASS (локально и в CI).
-3. **ОТКРЫТО:** release-signed кандидат актуального `main` (нужен `workflow_dispatch` с `release_candidate=true`).
+3. Release-signed кандидат актуального `main` — **ЗАКРЫТО 2026-09-17**: run `35229481075`, APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`, подпись release подтверждена логом run и извлечением сертификата из APK.
 4. **ОТКРЫТО:** физический acceptance 16/16 сценариев на реальном устройстве для exact кандидата — human blocker.
 5. **ОТКРЫТО:** слабое устройство / ротация / back-resume на текущем кандидате (для rc1 было PASS, evidence не переносится).
 
@@ -115,11 +116,11 @@
 2. `v11-accessibility.js` (включая overflow/layout) — PASS.
 3. `run.js`: наименования вех/берегов на двух языках — PASS.
 
-### Гейт 13 — Release (5) — 3/5
+### Гейт 13 — Release (5) — 4/5
 1. R10-001 RC contract freeze — PASS (автоматические инварианты + физический acceptance rc1).
 2. R10-002 release artifact + checksum — PASS (`v3.0.1-rc1` опубликован, SHA-256 сверен фактическим скачиванием).
 3. R10-003 stable signing инфраструктура — PASS (`IGRA_SIGNING_MODE=release`, запрет debug для `v*`, release authorization gate в `apk.yml`).
-4. **ОТКРЫТО:** release-signed кандидат текущего `main` не создан (см. гейт 8.3).
+4. Release-signed кандидат текущего `main` — **ЗАКРЫТО 2026-09-17** (run `35229481075`).
 5. **ОТКРЫТО:** финальная ручная сверка Play listing / `docs/PRIVACY.md` / `docs/STORE.md` с фактическим APK, который поедет в production.
 
 ### Гейт 14 — QA (6) — 3/5
@@ -147,3 +148,4 @@
 | Дата (UTC) | Commit | Было | Стало | Дельта | Причина |
 |---|---|---|---|---|---|
 | 2026-09-17T13:41Z | `06032bd` | — (расчёт не вёлся) | 90% (93% до cap) | baseline | Первый честный расчёт по 15 гейтам. Cap 90% из-за PENDING физического acceptance. Заодно исправлена опечатка SHA-256 rc1 в README/BACKLOG_POST_RC/PUBLISH (`…fab4956ea…` → фактический `…fab4950ea…`). |
+| 2026-09-17T13:55Z | `0643a33` | 90% (93% до cap) | 90% (94% до cap) | +0 эффективно, +1 до cap | Гейт 8 Android: 2/5 → 3/5 (создан release-signed кандидат run `35229481075`, APK SHA `3898a940…`, подпись release подтверждена). Гейт 13 Release: 3/5 → 4/5. Cap 90% остаётся: физический acceptance (`RC-PHYS-002`) — human blocker. |

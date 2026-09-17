@@ -5,7 +5,8 @@
 
 ## Текущее состояние `main`
 
-- HEAD: `06032bd32aa01e9ecc3a6ea36cc36b9930783543` (2026-09-16T22:26:58Z), working tree чист.
+- HEAD: `0643a336657e571ee7aed786fbb362b0da3fed98` (2026-09-17, docs/state batch); предыдущий инженерный HEAD `06032bd32aa01e9ecc3a6ea36cc36b9930783543`.
+- CI на `0643a33` — все контуры SUCCESS: APK #1204 (`35229457058`, debug), APK #1205 (`35229481075`, **release-signed кандидат**), Life Arc Gate #237 (`35229457159`), Sync play mirror #774 (`35229457088`), Pages (`35229455404`).
 - CI на HEAD — все четыре контура SUCCESS:
   - APK #1203 — run `35157731486`;
   - Life Arc Gate #236 — run `35157731498`;
@@ -35,9 +36,17 @@
 - Подпись **debug** (обычный push-build `main`). Страница скачивания: https://github.com/JoTalbot/game/actions/runs/35157731486
 - Этот бинарник подтверждает детерминированную сборку, но **не** является release-кандидатом и не годится для физического acceptance.
 
-### Release-signed кандидат актуального `main`
+### Release-signed кандидат актуального `main` — СОЗДАН 2026-09-17
 
-- **НЕ СОЗДАН.** Требуется `workflow_dispatch` workflow **APK** с `release_candidate=true` на `main`.
+- Source commit: `0643a336657e571ee7aed786fbb362b0da3fed98` (`main` HEAD на момент dispatch).
+- Запуск: `workflow_dispatch` APK **#1205**, run `35229481075` — SUCCESS.
+- Artifact: `igra-3.0.1` (ID `10500832061`), файл `igra-3.0.1.apk`.
+- **APK SHA-256: `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`** (сверено локально `sha256sum` после скачивания; совпадает с `igra-3.0.1.apk.sha256` из артефакта).
+- Подпись: **release**. Факт из лога run: `release signing key loaded`, `IGRA_SIGNING_MODE: release`, `zipalign + sign (release)`, `apksigner verify` → v2 `true`, v3 `true`, 1 signer.
+- Сертификат подписи (SHA-256 fingerprint): `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42`, `notBefore Aug 19 2026` — стабильный release keystore, а не debug-ключ сборки (debug-сертификат каждой сборки генерируется заново, `notBefore Sep 16 2026`, fingerprint `40:E0:75:3F:…`).
+- Страница артефакта: https://github.com/JoTalbot/game/actions/runs/35229481075
+- GitHub Release не публиковался (публикация tag-only), `v3.0.1-rc1` не тронут.
+- Это и есть объект физического Android acceptance (`RC-PHYS-002`).
 - Ранее зафиксированный кандидат `1ddc7e90780679c802470943aae3b953d40fe817` / SHA `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729` устарел: `main` ушёл на 13 коммитов вперёд, а сам артефакт был debug-signed.
   Важно: `1ddc7e9..06032bd` меняли только `docs/**`, `.github/workflows/life-arc.yml` и `tools/probe/*` — содержимое `web/` и `android/` идентично, то есть детерминированная часть игры не изменилась.
 
@@ -49,7 +58,7 @@
 - `physicalAndroid` — **FALSE**.
 - Итог: **BLOCKED**.
 
-Причина: физический Android acceptance не выполнен для актуального кандидата, а release-signed кандидат актуального `main` ещё не собран. `IGRA_PHYSICAL_ANDROID=1` искусственно не устанавливается.
+Причина: release-signed кандидат создан (`3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`), но физический Android acceptance на реальном устройстве не выполнен — это human blocker. `IGRA_PHYSICAL_ANDROID=1` искусственно не устанавливается, evidence не фабрикуется.
 
 ## Сверка противоречий документов (2026-09-17)
 
@@ -65,7 +74,7 @@
 
 ## Что осталось
 
-1. **REL-001:** собрать release-signed кандидат `main` через `workflow_dispatch` APK с `release_candidate=true`; зафиксировать run id, commit и APK SHA-256.
+1. ~~**REL-001:**~~ **ВЫПОЛНЕНО 2026-09-17:** release-signed кандидат создан (run `35229481075`, APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`).
 2. **REL-002:** подготовить пакет физического acceptance (журнал 16 сценариев + PENDING evidence JSON + команды валидации), привязанный к exact commit/SHA.
 3. **REL-003 (human blocker):** выполнить 16 сценариев на реальном Android-устройстве, валидировать evidence через `tools/probe/physical-android-evidence.js` и `tools/probe/validate-release-authorization.js`.
 4. Повторить RC2/release gate на exact кандидате.

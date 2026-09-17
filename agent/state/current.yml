@@ -1,26 +1,30 @@
 # Единая точка resume для автономной смены ИГРЫ.
 # Обновляется после каждого существенного batch. Формат — человекочитаемый YAML.
 schema: 1
-updated_utc: "2026-09-17T13:45:00Z"
+updated_utc: "2026-09-17T13:58:00Z"
 updated_by: "arena-agent (смена 2026-09-17)"
 
 # ─────────────────────────── кандидат ───────────────────────────
 candidate:
   version: "3.0.1"
   version_code: 601
-  main_head_commit: "06032bd32aa01e9ecc3a6ea36cc36b9930783543"
-  main_head_commit_date: "2026-09-16T22:26:58Z"
+  main_head_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
+  main_head_commit_date: "2026-09-17T13:48:00Z"
+  previous_engineering_head: "06032bd32aa01e9ecc3a6ea36cc36b9930783543"
   ci_on_head:
-    apk_run_id: 35157731486
-    apk_run_number: 1203
+    apk_run_id: 35229457058
+    apk_run_number: 1204
     apk_conclusion: success
-    life_arc_run_id: 35157731498
-    life_arc_run_number: 236
+    apk_release_candidate_run_id: 35229481075
+    apk_release_candidate_run_number: 1205
+    apk_release_candidate_conclusion: success
+    life_arc_run_id: 35229457159
+    life_arc_run_number: 237
     life_arc_conclusion: success
-    sync_play_run_id: 35157731495
-    sync_play_run_number: 773
+    sync_play_run_id: 35229457088
+    sync_play_run_number: 774
     sync_play_conclusion: success
-    pages_run_id: 35157730577
+    pages_run_id: 35229455404
     pages_conclusion: success
   debug_artifact:
     # Обычный push-build main. НЕ является release кандидатом: подпись debug.
@@ -31,13 +35,28 @@ candidate:
     signing: debug
     download_page: "https://github.com/JoTalbot/game/actions/runs/35157731486"
   release_signed_candidate:
-    status: NOT_CREATED
-    required_action: "workflow_dispatch APK workflow, ref=main, release_candidate=true"
-    apk_sha256: null
-    run_id: null
-    note: >
-      До создания release-signed кандидата физический acceptance проводить не на чем:
-      debug-подпись меняет SHA и запрещена для v* тегов.
+    status: CREATED
+    created_utc: "2026-09-17T13:51:00Z"
+    trigger: "workflow_dispatch APK workflow, ref=main, release_candidate=true"
+    source_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
+    run_id: 35229481075
+    run_number: 1205
+    run_conclusion: success
+    artifact_id: 10500832061
+    artifact_name: "igra-3.0.1"
+    apk_file: "igra-3.0.1.apk"
+    apk_sha256: "3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396"
+    apk_sha256_verified_by: "скачивание artifact + sha256sum, совпадает с igra-3.0.1.apk.sha256"
+    signing: release
+    signing_facts:
+      - "лог run: 'release signing key loaded', IGRA_SIGNING_MODE=release, 'zipalign + sign (release)'"
+      - "apksigner verify: v1 false, v2 true, v3 true, signers 1"
+      - "сертификат APK: subject C=UA,O=JoTalbot,CN=IGRA; notBefore Aug 19 2026 (стабильный keystore)"
+      - "fingerprint SHA-256: 31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42"
+      - "для сравнения debug-сборка того же commit имеет другой сертификат (notBefore Sep 16 2026, fingerprint 40:E0:75:3F:...)"
+    download_page: "https://github.com/JoTalbot/game/actions/runs/35229481075"
+    github_release_published: false
+    rc1_untouched: true
 
 immutable_rc:
   tag: "v3.0.1-rc1"
@@ -54,15 +73,17 @@ immutable_rc:
 # ─────────────────────────── готовность ───────────────────────────
 readiness:
   formula: "sum(gate_percent * weight)/100, округление вниз, затем cap"
-  computed_at_commit: "06032bd32aa01e9ecc3a6ea36cc36b9930783543"
-  computed_at_utc: "2026-09-17T13:41:00Z"
-  raw_percent: 93
+  computed_at_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
+  computed_at_utc: "2026-09-17T13:55:00Z"
+  raw_percent: 94
   cap_percent: 90
   cap_reason: "physical Android acceptance текущего кандидата PENDING"
   effective_percent: 90
-  previous_percent: null
-  delta: null
-  delta_reason: "baseline: расчёт готовности ранее не вёлся, docs/READINESS.md создан этой сменой"
+  previous_percent: 90
+  previous_raw_percent: 93
+  delta: 0
+  delta_raw: 1
+  delta_reason: "гейт 8: 2/5 -> 3/5 (release-signed кандидат создан), гейт 13: 3/5 -> 4/5; эффективно 0 из-за cap 90%"
   unknown_gates: []
   weights_normalized: false
   doc: "docs/READINESS.md"
@@ -76,15 +97,17 @@ readiness:
     - { id: 6,  name: "UX",             weight: 8,  closed: 4, total: 4, percent: 100, status: GREEN }
     - { id: 7,  name: "Persistence",    weight: 8,  closed: 3, total: 4, percent: 75,  status: YELLOW,
         open: ["old save -> upgrade APK на текущем кандидате (физически)"] }
-    - { id: 8,  name: "Android",        weight: 8,  closed: 2, total: 5, percent: 40,  status: BLOCKED,
-        open: ["release-signed кандидат main", "physical acceptance 16/16 (human blocker)", "слабое устройство/ротация/back-resume текущего кандидата"] }
+    - { id: 8,  name: "Android",        weight: 8,  closed: 3, total: 5, percent: 60,  status: BLOCKED,
+        closed_now: ["release-signed кандидат main (run 35229481075, SHA 3898a940...)"],
+        open: ["physical acceptance 16/16 на реальном устройстве (human blocker, RC-PHYS-002)", "слабое устройство/ротация/back-resume текущего кандидата"] }
     - { id: 9,  name: "Offline",        weight: 3,  closed: 3, total: 3, percent: 100, status: GREEN }
     - { id: 10, name: "Performance",    weight: 7,  closed: 4, total: 5, percent: 80,  status: YELLOW,
         open: ["V11-004 физический soak слабого Android текущего кандидата"] }
     - { id: 11, name: "Accessibility",  weight: 5,  closed: 4, total: 4, percent: 100, status: GREEN }
     - { id: 12, name: "Localization",   weight: 4,  closed: 3, total: 3, percent: 100, status: GREEN }
-    - { id: 13, name: "Release",        weight: 5,  closed: 3, total: 5, percent: 60,  status: YELLOW,
-        open: ["release-signed кандидат", "финальная сверка Store/Privacy с фактическим APK"] }
+    - { id: 13, name: "Release",        weight: 5,  closed: 4, total: 5, percent: 80,  status: YELLOW,
+        closed_now: ["release-signed кандидат создан"],
+        open: ["финальная сверка Store/Privacy с фактическим production APK"] }
     - { id: 14, name: "QA",             weight: 6,  closed: 3, total: 5, percent: 60,  status: YELLOW,
         open: ["длинный ручной прогон текущего кандидата", "чистая установка/обновление физически"] }
     - { id: 15, name: "Monetization",   weight: 4,  closed: 3, total: 3, percent: 100, status: GREEN,
@@ -173,14 +196,15 @@ task_graph:
   - id: REL-001
     title: "Создать release-signed кандидат: workflow_dispatch APK, release_candidate=true, ref=main"
     readiness_gate: [8, 13]
-    status: TODO
-    blocking: "требует secrets IGRA_KEYSTORE_B64 / IGRA_KEYSTORE_PASSWORD (заведены в CI)"
+    status: DONE
+    evidence: "run 35229481075 (APK #1205) SUCCESS; artifact 10500832061; APK SHA-256 3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396; подпись release подтверждена логом и сертификатом"
   - id: REL-002
     title: "Приготовить пакет физического acceptance: журнал 16 сценариев + PENDING evidence JSON + команды валидации, привязанные к exact commit/APK SHA"
     readiness_gate: [8, 14]
-    status: TODO
+    status: DONE
+    evidence: "docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md + docs/physical-android-evidence.template.json; отрицательный контроль: 5 вариантов незаполненного/подделанного evidence отклонены валидаторами (exit 1)"
   - id: REL-003
-    title: "Физический Android acceptance exact кандидата на реальном устройстве"
+    title: "Физический Android acceptance exact кандидата (APK 3898a940..., commit 0643a33) на реальном устройстве = RC-PHYS-002"
     readiness_gate: [8, 7, 10, 14, 3]
     status: HUMAN_BLOCKER
     note: "Держит cap 90%. Эмулятор/CI/браузер не принимаются. Фабрикация evidence запрещена."
@@ -219,11 +243,16 @@ last_batch:
   result: "состояние восстановлено, стартовый процент посчитан"
 
 next_step:
-  id: REL-001
-  action: "Собрать release-signed кандидат актуального main через workflow_dispatch(release_candidate=true), зафиксировать run id и APK SHA-256, затем REL-002 (пакет acceptance для человека)."
+  id: REL-003
+  action: "HUMAN BLOCKER: физический Android acceptance APK 3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396 (commit 0643a33, release-signed) по 16 сценариям; журнал docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md, шаблон evidence docs/physical-android-evidence.template.json. До этого cap 90%."
+  agent_can_do_meanwhile:
+    - "HYGIENE-001: удалить смерженные/устаревшие ветки"
+    - "UX/playtest backlog issue #4 и issue #12 (не release blocker)"
+    - "любые продуктовые IMP-* только после отдельного решения (действует запрет новых механик до завершения RC operational cycle)"
 
 resume_hint: >
-  Точка resume: main 06032bd, CI зелёный, готовность 90% (cap из-за REL-003).
+  Точка resume: main 0643a33, CI зелёный, release-signed кандидат 3898a940... создан (run 35229481075),
+  готовность 90% (94% до cap, cap из-за REL-003/RC-PHYS-002).
   Доступ к git: GIT_ASKPASS-хелпер вне рабочей области, токен в remote URL не писать.
   Перед пушем проверить `git remote -v`. Секреты CI не читать и не переназначать.
   v3.0.1-rc1 не двигать.

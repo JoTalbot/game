@@ -15,11 +15,17 @@
 - `v3.0.1-rc1` опубликован и **immutable**. Не двигать, не переписывать, не заменять.
   - commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc` (сверено скачиванием).
   - Pre-release флаг всё ещё `false` — переключение является решением человека.
-- `main` = `06032bd32aa01e9ecc3a6ea36cc36b9930783543`, working tree чист, CI полностью зелёный:
-  APK #1203 (`35157731486`), Life Arc Gate #236 (`35157731498`), Sync play mirror #773 (`35157731495`), Pages (`35157730577`).
+- `main` = `0643a336657e571ee7aed786fbb362b0da3fed98`, working tree чист, CI полностью зелёный:
+  APK #1204 (`35229457058`), Life Arc Gate #237 (`35229457159`), Sync play mirror #774 (`35229457088`), Pages (`35229455404`).
 - Debug-артефакт `main`: `igra-3.0.1.apk`, SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` — инженерная проверка сборки, **не** кандидат.
-- **Release-signed кандидат актуального `main` НЕ СОЗДАН.** Прежняя привязка к `1ddc7e9` / `7412b523…` устарела (main ушёл вперёд, артефакт был debug).
-  Содержимое `web/` и `android/` между `1ddc7e9` и `06032bd` не менялось: менялись только docs, `life-arc.yml` и `tools/probe/*`.
+- **Release-signed кандидат СОЗДАН 2026-09-17** (задача REL-001 закрыта):
+  - commit `0643a336657e571ee7aed786fbb362b0da3fed98`, APK run `35229481075` (#1205, `workflow_dispatch`, `release_candidate=true`) — SUCCESS;
+  - artifact `igra-3.0.1` ID `10500832061`, файл `igra-3.0.1.apk`;
+  - **APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`**;
+  - подпись release: `IGRA_SIGNING_MODE=release`, apksigner v2/v3 `true`, fingerprint сертификата `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42`;
+  - скачать: https://github.com/JoTalbot/game/actions/runs/35229481075 (artifact `igra-3.0.1`);
+  - GitHub Release не публиковался, `v3.0.1-rc1` не тронут.
+  Прежняя привязка к `1ddc7e9` / `7412b523…` устарела (main ушёл вперёд, тот артефакт был debug).
 - Детерминированная готовность подтверждена: `deterministicReady=true`, `missing=[]`, все blockers `false` (RC2 evidence artifact `10471972268`).
 - Физический Android acceptance текущего кандидата — **PENDING**. Production — **BLOCKED**.
 - Готовность: **90%** (93% до cap, cap 90% из-за PENDING физического acceptance). Детали — `docs/READINESS.md`.
@@ -35,10 +41,10 @@
 
 ## Что дальше (по порядку)
 
-1. **REL-001** — `workflow_dispatch` workflow **APK** на `main` с `release_candidate=true`; получить exact release-signed APK, зафиксировать run id + commit + SHA-256.
-2. **REL-002** — заполнить `docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md` точной provenance и подготовить PENDING evidence JSON + команды валидации.
-3. **REL-003 (human blocker)** — 16 сценариев на реальном устройстве; evidence валидируется `tools/probe/physical-android-evidence.js` при `IGRA_PHYSICAL_ANDROID=1` и `tools/probe/validate-release-authorization.js`.
-4. Повторить RC2/release gates на exact кандидате, сверить Store/Privacy, затем отдельное production decision.
+1. ~~REL-001~~ — выполнено: release-signed кандидат `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`.
+2. ~~REL-002~~ — выполнено: provenance внесена в `docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md`, шаблон evidence — `docs/physical-android-evidence.template.json`.
+3. **REL-003 / RC-PHYS-002 (human blocker, держит cap 90%)** — 16 сценариев на реальном устройстве именно этого APK; evidence валидируется `tools/probe/physical-android-evidence.js` при `IGRA_PHYSICAL_ANDROID=1` и `tools/probe/validate-release-authorization.js`.
+4. После PASS физического контура: повторить RC2/release gates на exact кандидате, сверить Store/Privacy, затем отдельное production decision (человек).
 5. Гигиена: удалить смерженные ветки (`chore/physical-android-acceptance`, `tmp-physical-android`, `v3-051-runtime-age-guard`, `v3-052-runtime-collection-guard`), не мержить устаревшую `v3-050-performance` (main уже содержит V3-050 + более новый V3-052 probe), не мержить `chore/physical-android-acceptance-2` (её шаблон перенесён в `docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md`).
 
 ## Жёсткие ограничения

@@ -4,29 +4,27 @@
 > Шаблон унаследован от ветки `chore/physical-android-acceptance-2` (commit `21ca54b`), provenance перепривязана к актуальному состоянию `main` от 2026-09-17.
 > Правила и полный контракт: `docs/PHYSICAL_ANDROID_ACCEPTANCE.md`. Процент готовности: `docs/READINESS.md` (гейт 8).
 
-## 1. Тестируемый артефакт
-
-Release-signed кандидат актуального `main` на момент заполнения **ещё не создан**. Перед тестом нужно:
-
-1. Открыть GitHub Actions → workflow **APK** → `Run workflow` → branch `main` → `release_candidate=true`.
-2. Дождаться SUCCESS, скачать artifact `igra-3.0.1` именно из этого run.
-3. Проверить SHA-256 скачанного `igra-3.0.1.apk` и вписать фактические значения ниже.
+## 1. Тестируемый артефакт (заполнено фактом 2026-09-17)
 
 | Поле | Значение |
 |---|---|
 | Версия | `3.0.1` |
 | versionCode | `601` |
-| Source commit | `________________________` (40 hex, из run) |
-| APK workflow run | `________________________` (run id / номер) |
-| Artifact | `igra-3.0.1` (id `____________`) |
-| APK SHA-256 | `________________________` (64 hex, `sha256sum igra-3.0.1.apk`) |
-| Подпись | release (не debug) |
-| Страница скачивания | `https://github.com/JoTalbot/game/actions/runs/<RUN_ID>` |
+| Source commit | `0643a336657e571ee7aed786fbb362b0da3fed98` |
+| APK workflow run | `35229481075` (APK #1205, `workflow_dispatch`, `release_candidate=true`) — SUCCESS |
+| Artifact | `igra-3.0.1` (ID `10500832061`) |
+| APK файл | `igra-3.0.1.apk` |
+| APK SHA-256 | `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` |
+| Подпись | release: `IGRA_SIGNING_MODE=release`, apksigner v2 `true` / v3 `true`, 1 signer |
+| Сертификат (SHA-256 fingerprint) | `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42` |
+| Страница скачивания | https://github.com/JoTalbot/game/actions/runs/35229481075 |
+
+Проверка агентом: APK скачан из artifact run `35229481075`, `sha256sum` = `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`, совпадает с `igra-3.0.1.apk.sha256` внутри артефакта.
 
 Справочно (не является объектом этого теста):
 
 - immutable RC `v3.0.1-rc1`: commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`;
-- debug-артефакт `main` `06032bd`: APK SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` — для acceptance не годится.
+- debug-артефакт `main`: APK SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` (run `35157731486`) — для acceptance не годится.
 
 ## 2. Устройство
 
@@ -79,17 +77,22 @@ Release-signed кандидат актуального `main` на момент 
 ## 5. Валидация evidence
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=<source commit кандидата>
-export IGRA_EXPECTED_APK_SHA256=<SHA-256 release-signed APK>
+export IGRA_EXPECTED_APK_COMMIT=0643a336657e571ee7aed786fbb362b0da3fed98
+export IGRA_EXPECTED_APK_SHA256=3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396
 export IGRA_PHYSICAL_ANDROID=1
+# шаблон: docs/physical-android-evidence.template.json (скопировать и заполнить)
 node tools/probe/physical-android-evidence.js physical-android-evidence.json
 ```
+
+Отрицательный контроль (проверен агентом 2026-09-17): незаполненный шаблон валидатором **отклоняется** —
+это подтверждает, что гейт не проходит «сам собой» без фактического физического прогона.
 
 Для release authorization gate тот же JSON передаётся как `IGRA_PHYSICAL_ANDROID_EVIDENCE_JSON` и валидируется `tools/probe/validate-release-authorization.js` против `GITHUB_SHA` и `IGRA_RELEASE_APPROVED_APK_SHA256`. Approval-секреты выставляет человек после успешного физического acceptance.
 
 ## 6. Итог
 
 - Physical Android acceptance: `PENDING`
+- Объект теста: APK `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` (release-signed, commit `0643a336657e571ee7aed786fbb362b0da3fed98`)
 - Physical evidence attached: `NO`
 - `IGRA_PHYSICAL_ANDROID=1`: `NOT SET`
 - Production gate: `BLOCKED`

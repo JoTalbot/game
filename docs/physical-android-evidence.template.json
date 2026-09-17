@@ -1,0 +1,47 @@
+{
+  "$comment": "ШАБЛОН, НЕ EVIDENCE. Скопировать в physical-android-evidence.json и заполнить на реальном физическом Android-устройстве. Незаполненный шаблон намеренно отклоняется валидатором. Правила: docs/PHYSICAL_ANDROID_ACCEPTANCE.md, журнал: docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md. Фабрикация evidence запрещена.",
+  "schema": 1,
+  "artifact": {
+    "version": "3.0.1",
+    "versionCode": 601,
+    "commit": "0643a336657e571ee7aed786fbb362b0da3fed98",
+    "apkSha256": "3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396"
+  },
+  "device": {
+    "manufacturer": "FILL_ME (например: Xiaomi)",
+    "model": "FILL_ME (например: Redmi Note 8)",
+    "androidVersion": "FILL_ME (например: 15)",
+    "resolution": "FILL_ME (например: 427x948)",
+    "density": "FILL_ME (например: 1.0)",
+    "ram": "FILL_ME (например: 3 GB)",
+    "profile": "weak-device"
+  },
+  "test": {
+    "startedAtUtc": "FILL_ME (YYYY-MM-DDTHH:MM:SSZ)",
+    "endedAtUtc": "FILL_ME (YYYY-MM-DDTHH:MM:SSZ)"
+  },
+  "results": [
+    { "name": "Clean install", "status": "PENDING", "description": "FILL_ME: установка чистого APK поверх удалённого приложения" },
+    { "name": "Boot / birth / gameplay", "status": "PENDING", "description": "FILL_ME: первый запуск, рождение, базовый игровой цикл" },
+    { "name": "Home → resume", "status": "PENDING", "description": "FILL_ME: уход в Home и возврат" },
+    { "name": "Save → restart → recovery", "status": "PENDING", "description": "FILL_ME: сейв, перезапуск, восстановление" },
+    { "name": "Force-stop → recovery", "status": "PENDING", "description": "FILL_ME: force-stop / process death и восстановление" },
+    { "name": "Old save → upgrade", "status": "PENDING", "description": "FILL_ME: обновление поверх поддерживаемого старого сейва" },
+    { "name": "Offline", "status": "PENDING", "description": "FILL_ME: полный цикл без сети / airplane mode" },
+    { "name": "Release / Become / NG+", "status": "PENDING", "description": "FILL_ME: финалы и следующая жизнь" },
+    { "name": "Vibration", "status": "PENDING", "description": "FILL_ME: haptic отклик" },
+    { "name": "Audio", "status": "PENDING", "description": "FILL_ME: звук и его fallback" },
+    { "name": "Fullscreen", "status": "PENDING", "description": "FILL_ME: полноэкранный WebView" },
+    { "name": "Crash", "status": "PENDING", "description": "FILL_ME: число crash за сессию (ожидание 0)" },
+    { "name": "ANR", "status": "PENDING", "description": "FILL_ME: число ANR за сессию (ожидание 0)" },
+    { "name": "Heavy-frame / performance blocker", "status": "PENDING", "description": "FILL_ME: FPS, тяжёлые кадры, blocker (ожидание 0)" },
+    { "name": "Critical visual blocker", "status": "PENDING", "description": "FILL_ME: критические визуальные дефекты (ожидание 0)" },
+    { "name": "Critical touch blocker", "status": "PENDING", "description": "FILL_ME: критические touch-дефекты (ожидание 0)" }
+  ],
+  "evidence": [
+    { "type": "screenshot", "path": "docs/evidence/FILL_ME-01.png" },
+    { "type": "log", "path": "docs/evidence/FILL_ME-logcat.txt" }
+  ],
+  "physicalAndroid": false,
+  "IGRA_PHYSICAL_ANDROID": false
+}
