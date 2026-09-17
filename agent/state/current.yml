@@ -2,7 +2,7 @@
 # Не хранит собственный HEAD: этот файл сам создаёт новый docs-коммит.
 schema: 1
 updated_by: "arena-agent"
-updated_utc: "2026-09-17T14:22:00Z"
+updated_utc: "2026-09-17T14:35:00Z"
 main_head: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
 
 candidate:
@@ -24,6 +24,12 @@ candidate:
       - "сертификат из APK: fingerprint 31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42, notBefore Aug 19 2026"
       - "debug-сборка того же commit имеет другой сертификат (notBefore Sep 16 2026) - подпись действительно release"
     apk_content_check: "assets/www/sw.js внутри APK содержит igra-shell-v31 (исправленная оболочка)"
+    payload_equivalence_note: "864140b и последующие docs-only коммиты не меняют web/ и android/, поэтому игровой payload кандидата 1c18e1c1... совпадает с актуальным main; пересобирать кандидата ради docs не нужно"
+    live_pages_verified:
+      url: "https://jotalbot.github.io/game/play/"
+      service_worker: "active, cache igra-shell-v31, 90 записей"
+      offline_reload: "PASS (игра поднимается при выключенной сети)"
+      console_errors: 0
     download_page: "https://github.com/JoTalbot/game/actions/runs/35232162470"
     source_commit: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
     github_release_published: false
@@ -60,6 +66,8 @@ readiness:
     - "final Store/Privacy verification"
 
 ci:
+  latest_main_commit: "864140bc7bbf8506d8e72e92b32ebb66c5bd44dd"
+  latest_main_runs: "APK #1211, Life Arc Gate #242, Sync play mirror #780, Pages #1342 - все SUCCESS"
   candidate_apk_run: 35232162470
   candidate_apk_status: success
   main_push_apk_run_number: 1209
@@ -109,6 +117,31 @@ incident_log:
   - date_utc: "2026-09-17T14:04:00Z"
     what: "Параллельный агент в main: коммиты 50a66bf, fc8aeeb, e4adbcc (автор JoTalbot) перезаписали docs/STATUS.md и agent/state/current.yml"
     action: "сделан rebase, чужая структура сохранена и дополнена фактами; перед каждым пушем обязателен git fetch + rebase"
+
+shift_summary:
+  started_at_utc: "2026-09-17T13:30:00Z"
+  readiness_start: "90% (baseline, расчёт ранее не вёлся; raw 93%)"
+  readiness_end: "90% (raw 94%)"
+  delta_effective: 0
+  delta_raw: 1
+  cap: 90
+  cap_reason: "RC-PHYS-002 physical Android acceptance PENDING (human blocker)"
+  done:
+    - "восстановлено фактическое состояние: git/CI/releases/ветки/issues/доступы"
+    - "созданы docs/READINESS.md и agent/state/current.yml (точки отсчёта процента и resume)"
+    - "исправлена опечатка SHA-256 rc1 в README/BACKLOG_POST_RC/PUBLISH (сверено скачиванием)"
+    - "разрешено противоречие BACKLOG_POST_RC vs STATUS: RC-PHYS-001 закрыт только для rc1, добавлен RC-PHYS-002"
+    - "актуализированы устаревшие статусы V6-005..008, V7, V8, P9, V11-001..006 по факту probes/CI"
+    - "REL-001: создан release-signed кандидат (run 35232162470, SHA 1c18e1c1...)"
+    - "REL-002: пакет acceptance (журнал + шаблон evidence + негативный контроль валидаторов)"
+    - "найдена и закрыта регрессия web/sw.js + два постоянных сторожа + tools/browser-smoke.js"
+    - "гигиена веток: удалено 6 смерженных/устаревших веток"
+    - "факт-комментарий в issue #12"
+  broken: []
+  next_batch:
+    - "RC-PHYS-002 (human blocker): 16 сценариев на реальном устройстве для APK 1c18e1c1..."
+    - "после PASS: повторить RC2/release gates, сверить Store/Privacy, production decision"
+    - "опционально без устройства: UX/playtest backlog issue #4 (не release blocker)"
 
 resume_hint: >
   Test only release-signed APK 1c18e1c1... from source commit 1f0a1b7 (run 35232162470).
