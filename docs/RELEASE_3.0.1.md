@@ -11,18 +11,15 @@
 
 These values are retained for historical traceability only.
 
-## Current 3.0.1 candidate
+## Current 3.0.1 engineering state (updated 2026-09-17)
 
-- Version: `3.0.1`
-- versionCode: `601`
-- Source commit: `1ddc7e90780679c802470943aae3b953d40fe817`
-- APK workflow: `35141797041` — SUCCESS
-- Actions artifact: `igra-3.0.1` (artifact ID `10465244020`)
-- APK SHA-256: `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`
-- Artifact ZIP SHA-256: `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`
-- Signing: debug, ordinary main-branch CI
+- `main` HEAD: `06032bd32aa01e9ecc3a6ea36cc36b9930783543`
+- CI on HEAD: APK #1203 run `35157731486` SUCCESS, Life Arc Gate #236 run `35157731498` SUCCESS, Sync play mirror #773 run `35157731495` SUCCESS, Pages run `35157730577` SUCCESS
+- Debug engineering artifact: `igra-3.0.1.apk`, artifact ID `10471054268`, SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` (ordinary main-branch CI, debug signing)
+- Release-signed candidate for current `main`: **NOT CREATED** — requires `workflow_dispatch` of the APK workflow with `release_candidate=true`
+- Superseded candidate: commit `1ddc7e90780679c802470943aae3b953d40fe817`, run `35141797041`, artifact `10465244020`, APK SHA-256 `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`, ZIP SHA-256 `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb` (debug signing; `main` has moved forward). Between `1ddc7e9` and `06032bd` only `docs/**`, `.github/workflows/life-arc.yml` and `tools/probe/*` changed — `web/` and `android/` content is identical.
 
-This binary is deterministic and CI-verified, but it is not the release-signed production candidate.
+The debug binary is deterministic and CI-verified, but it is not the release-signed production candidate and must not be used for physical acceptance or release approval.
 
 ## Release safety
 

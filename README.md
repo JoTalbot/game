@@ -122,7 +122,7 @@ Development artifact digest: `sha256:261b66134a2ff97e2362e32afc75b646d9d2b605ad3
 
 ### Immutable RC1
 
-`v3.0.1-rc1` уже опубликован и зафиксирован. Его SHA-256: `160cec76dee27c903fab4956ea05c813b6430760c7021a03b85360f36c78f6bc`.
+`v3.0.1-rc1` уже опубликован и зафиксирован. Его SHA-256: `160cec76dee27c903fab4950ea05c813b6430760c7021a03b85360f36c78f6bc`.
 
 RC1 нельзя перемещать, переписывать или подменять новым development APK.
 

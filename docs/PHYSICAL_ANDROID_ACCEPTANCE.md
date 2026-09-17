@@ -4,24 +4,23 @@
 
 Physical Android acceptance is required for the production gate. CI, Android emulators/simulators, and browser runs do not count as physical-device evidence.
 
-Current APK provenance:
+Current APK provenance (обновлено 2026-09-17, смена агента):
 
-- Version: `3.0.1`
-- versionCode: `601`
-- Commit: `1ddc7e90780679c802470943aae3b953d40fe817`
-- APK workflow run: `35141797041`
-- APK artifact: `igra-3.0.1` (artifact ID `10465244020`)
-- APK SHA-256: `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`
-- GitHub Actions artifact ZIP SHA-256: `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`
+- `main` HEAD: `06032bd32aa01e9ecc3a6ea36cc36b9930783543`, CI полностью зелёный (APK #1203 run `35157731486`, Life Arc Gate #236 run `35157731498`, Sync play mirror #773 run `35157731495`, Pages run `35157730577`).
+- Инженерный debug-артефакт `main`: `igra-3.0.1.apk`, SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` (artifact `10471054268`). **Не является кандидатом**: debug-подпись меняет SHA и запрещена для `v*` тегов.
+- **Release-signed кандидат актуального `main` НЕ СОЗДАН.** Он создаётся только через `workflow_dispatch` workflow `APK` с `release_candidate=true` на `main`. До его появления физический acceptance выполнять не на чем, а provenance ниже должна быть перезаполнена фактическими значениями из этого run.
+- Прежняя привязка к кандидату `1ddc7e90780679c802470943aae3b953d40fe817` / APK SHA `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729` / ZIP SHA `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb` **устарела**: `main` ушёл вперёд, а артефакт был debug-signed. Между `1ddc7e9` и `06032bd` менялись только `docs/**`, `.github/workflows/life-arc.yml` и `tools/probe/*`; содержимое `web/` и `android/` идентично.
+- Исторический immutable RC: `v3.0.1-rc1`, commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc` (сверено фактическим скачиванием 2026-09-17). Его физический smoke 14.09 закрыл `RC-PHYS-001` **только для rc1** и не переносится на новый кандидат.
 
-The Actions ZIP digest is not the APK digest. Physical installation and evidence provenance must use the APK SHA-256 above.
-
-Required provenance environment:
+Provenance-переменные заполняются после создания release-signed кандидата:
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=1ddc7e90780679c802470943aae3b953d40fe817
-export IGRA_EXPECTED_APK_SHA256=7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729
+# ЗАПОЛНИТЬ фактическими значениями release-signed run:
+export IGRA_EXPECTED_APK_COMMIT=<40-hex source commit кандидата>
+export IGRA_EXPECTED_APK_SHA256=<64-hex SHA-256 release-signed APK>
 ```
+
+Журнал для заполнения на устройстве: `docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md`.
 
 ## Acceptance rules
 
@@ -65,8 +64,9 @@ The collector requires `adb`, `sha256sum`, `node`, the APK file, and the provena
 After completing all 16 scenarios on the physical device, export the exact candidate provenance and physical flag, then run:
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=1ddc7e90780679c802470943aae3b953d40fe817
-export IGRA_EXPECTED_APK_SHA256=7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729
+# значения берутся из фактического release-signed run (см. раздел выше и docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md)
+export IGRA_EXPECTED_APK_COMMIT=<40-hex source commit кандидата>
+export IGRA_EXPECTED_APK_SHA256=<64-hex SHA-256 release-signed APK>
 export IGRA_PHYSICAL_ANDROID=1
 node tools/probe/physical-android-evidence.js physical-android-evidence.json
 ```

@@ -6,9 +6,16 @@
 
 ## 0. RC1 gate — ЗАКРЫТ
 
-### RC-PHYS-001 — физический acceptance актуального APK
+### RC-PHYS-001 — физический acceptance APK `v3.0.1-rc1`
 **Приоритет:** P0 / release blocker
-**Статус:** PASS / закрыт.
+**Статус:** PASS / закрыт **только для immutable артефакта `v3.0.1-rc1`**.
+
+Уточнение от 2026-09-17 (сверка с фактом): закрытие относится к release-артефакту rc1
+(SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`, ранее в этой строке
+была опечатка `…fab4956ea…`). Для актуального production-кандидата (текущий `main`) физический
+acceptance **PENDING**: release-signed сборка ещё не создана, evidence отсутствует. По правилу
+`docs/PHYSICAL_ANDROID_ACCEPTANCE.md` evidence старого билда на новый кандидат не переносится.
+Отдельная задача: `RC-PHYS-002`.
 
 Проверен именно release artifact `v3.0.1-rc1`:
 - clean install — PASS;
@@ -27,7 +34,16 @@
 - touch blocker — 0;
 - heavy frames — 0.
 
-Evidence: Android 15, экран 427×948 @1.0, weak-device profile, 10 минут; APK SHA-256 `160cec76dee27c903fab4956ea05c813b6430760c7021a03b85360f36c78f6bc`.
+Evidence: Android 15, экран 427×948 @1.0, weak-device profile, 10 минут; APK SHA-256 `160cec76dee27c903fab4950ea05c813b6430760c7021a03b85360f36c78f6bc`.
+
+### RC-PHYS-002 — физический acceptance актуального release-signed кандидата
+**Приоритет:** P0 / production blocker (держит cap 90% готовности)
+**Статус:** OPEN / human blocker.
+
+Порядок: `workflow_dispatch` APK с `release_candidate=true` на `main` → скачать artifact →
+зафиксировать commit/SHA-256 в `docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md` → выполнить 16 сценариев
+на реальном устройстве → валидировать evidence (`tools/probe/physical-android-evidence.js`,
+`tools/probe/validate-release-authorization.js`). См. `docs/READINESS.md`, гейт 8.
 
 ## 1. Release preparation — почти закрыто
 
@@ -110,31 +126,32 @@ Persistence schema поднята до `5`, старые schema 1–4 мигри
 
 ## 5. V11 — Final Polish
 
-**Статус:** следующий основной development milestone.
+**Статус (обновлён 2026-09-17 по факту):** инженерная часть V11-001 → V11-006 реализована и покрыта зелёными gates;
+незакрытой осталась только физическая часть (weak-device soak и физическое исполнение QA-матрицы) — она относится к `RC-PHYS-002`.
 
 ### V11-001 — first-session UX
 **Приоритет:** P0
-Новый игрок должен понять базовый жест через саму игру.
+**Статус:** IMPLEMENTED. `web/js/v11-first-session.js`, `docs/IMP_V11_001_FIRST_SESSION.md`, probe `tools/probe/v11-first-session.js` PASS (CI Life Arc #236).
 
 ### V11-002 — balance
 **Приоритет:** P1
-Энергия, рост, забывание, раны, редкость событий и финалы должны поддерживать разные стратегии.
+**Статус:** IMPLEMENTED (deterministic gate). Commit `6cbb8952d52012e53bd305da015e83cefffbf16c`, APK #1089 и Life Arc #123 SUCCESS; `tools/probe/balance.js` PASS локально 2026-09-17.
 
 ### V11-003 — visual/audio coherence
 **Приоритет:** P1
-Убрать повторяемые визуальные и звуковые паттерны, которые делают мир механическим.
+**Статус:** IMPLEMENTED (deterministic gate). Commit `9e5639c3e1b82cf81611986957b98a8ca36ce577`, APK #1090, Life Arc #124, Sync play mirror #616 SUCCESS; probes `v16-presentation.js`, `v17-adaptive-audio.js`, `noise.js` PASS.
 
 ### V11-004 — long-session performance
 **Приоритет:** P0
-Реальный engine soak + физический слабый Android soak; без неконтролируемого роста памяти/FPS degradation/save growth.
+**Статус:** PARTIAL. Автоматическая часть закрыта: детерминированный 10 000-step bounded soak, `tools/probe/long.js`, `rc-hardening.js` с `--expose-gc`, `v22-regression-gate.js`. Физический soak слабого Android для актуального кандидата = `RC-PHYS-002`.
 
 ### V11-005 — localization/accessibility final pass
 **Приоритет:** P0
-RU/EN parity, overflow, reduced motion, semantic names, audio/haptic fallbacks.
+**Статус:** IMPLEMENTED. `tools/probe/v11-accessibility.js`, `accessibility.js` PASS; RU/EN parity дополнительно сторожит `rc-hardening.js`.
 
 ### V11-006 — release QA matrix
 **Приоритет:** P0
-Clean install, upgrade, process death, offline, lifecycle, touch, lineage, финалы.
+**Статус:** PARTIAL. Структурный gate реализован: `tools/probe/v11-release-qa.js` (15 release-critical сценариев) PASS и явно не подменяет физическое evidence. Физическое исполнение матрицы = `RC-PHYS-002`.
 
 ## 6. Правила развития
 

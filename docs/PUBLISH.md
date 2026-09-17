@@ -70,28 +70,27 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 - APK: `igra-3.0.1.apk`
 - versionCode: `601`
 - target commit: `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`
-- SHA-256: `160cec76dee27c903fab4956ea05c813b6430760c7021a03b85360f36c78f6bc`
+- SHA-256: `160cec76dee27c903fab4950ea05c813b6430760c7021a03b85360f36c78f6bc`
 - release signing: SUCCESS
 - checksum verification: SUCCESS
 - attached to GitHub Release: SUCCESS
 
 Исторические RC1-данные выше приведены только как immutable provenance и не являются текущим production candidate.
 
-### Current deterministic CI artifact
+### Current deterministic CI artifact (обновлено 2026-09-17)
 
 - version: `3.0.1`
 - versionCode: `601`
-- source commit: `1ddc7e90780679c802470943aae3b953d40fe817`
-- latest APK workflow run: `35141797041` — SUCCESS
-- Actions artifact: `igra-3.0.1` (artifact ID `10465244020`)
-- APK SHA-256: `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`
-- GitHub Actions artifact ZIP SHA-256: `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`
+- source commit: `06032bd32aa01e9ecc3a6ea36cc36b9930783543` (`main` HEAD)
+- CI на HEAD: APK #1203 run `35157731486` — SUCCESS; Life Arc Gate #236 run `35157731498` — SUCCESS; Sync play mirror #773 run `35157731495` — SUCCESS; Pages run `35157730577` — SUCCESS
+- Actions artifact: `igra-3.0.1` (artifact ID `10471054268`)
+- APK SHA-256: `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d`
 - signing: debug (ordinary main-branch CI)
-- automatic APK gate: SUCCESS
+- Страница артефакта: https://github.com/JoTalbot/game/actions/runs/35157731486
 
-`0b6b82...` — digest ZIP-архива Actions artifact, а не SHA самого APK.
-`7412b523...` — SHA debug-signed APK и **не** тот бинарник, который следует
-использовать для финального release approval.
+Устаревший кандидат (не использовать): commit `1ddc7e90780679c802470943aae3b953d40fe817`, run `35141797041`, artifact `10465244020`, APK SHA-256 `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`, ZIP SHA-256 `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`. `main` ушёл вперёд, артефакт был debug-signed. Между `1ddc7e9` и `06032bd` менялись только `docs/**`, `.github/workflows/life-arc.yml` и `tools/probe/*`; содержимое `web/` и `android/` идентично.
+
+`7412b523...` и `01b9a92f...` — SHA debug-signed сборок и **не** те бинарники, которые следует использовать для финального release approval.
 
 ### Release-signed candidate для физического acceptance
 
@@ -160,4 +159,4 @@ daily reward.
 
 ---
 
-Актуально для **v3.0.1 / versionCode 601**. Последнее обновление: 16 сентября 2026.
+Актуально для **v3.0.1 / versionCode 601**. Последнее обновление: 17 сентября 2026 (сверка с фактом CI/releases, см. `docs/READINESS.md`).

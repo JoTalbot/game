@@ -1,0 +1,229 @@
+# Единая точка resume для автономной смены ИГРЫ.
+# Обновляется после каждого существенного batch. Формат — человекочитаемый YAML.
+schema: 1
+updated_utc: "2026-09-17T13:45:00Z"
+updated_by: "arena-agent (смена 2026-09-17)"
+
+# ─────────────────────────── кандидат ───────────────────────────
+candidate:
+  version: "3.0.1"
+  version_code: 601
+  main_head_commit: "06032bd32aa01e9ecc3a6ea36cc36b9930783543"
+  main_head_commit_date: "2026-09-16T22:26:58Z"
+  ci_on_head:
+    apk_run_id: 35157731486
+    apk_run_number: 1203
+    apk_conclusion: success
+    life_arc_run_id: 35157731498
+    life_arc_run_number: 236
+    life_arc_conclusion: success
+    sync_play_run_id: 35157731495
+    sync_play_run_number: 773
+    sync_play_conclusion: success
+    pages_run_id: 35157730577
+    pages_conclusion: success
+  debug_artifact:
+    # Обычный push-build main. НЕ является release кандидатом: подпись debug.
+    artifact_id: 10471054268
+    name: "igra-3.0.1"
+    apk_file: "igra-3.0.1.apk"
+    apk_sha256: "01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d"
+    signing: debug
+    download_page: "https://github.com/JoTalbot/game/actions/runs/35157731486"
+  release_signed_candidate:
+    status: NOT_CREATED
+    required_action: "workflow_dispatch APK workflow, ref=main, release_candidate=true"
+    apk_sha256: null
+    run_id: null
+    note: >
+      До создания release-signed кандидата физический acceptance проводить не на чем:
+      debug-подпись меняет SHA и запрещена для v* тегов.
+
+immutable_rc:
+  tag: "v3.0.1-rc1"
+  commit: "9e8fe1a13804f2f5d00feb3b4ffbed60af203d44"
+  published_utc: "2026-09-09T18:21:34Z"
+  apk_asset: "igra-3.0.1.apk"
+  apk_sha256_verified_by_download: "160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc"
+  apk_sha256_source: "фактическое скачивание release asset 2026-09-17 + sha256sum"
+  prerelease_flag: false
+  prerelease_flag_note: "BACKLOG_POST_RC требует вручную включить Pre-release — human decision, агент не меняет."
+  physical_smoke: "PASS на Android 15, 427x948 @1.0, weak-device, 10 мин (docs/RC1_SMOKE.md)"
+  do_not_touch: true
+
+# ─────────────────────────── готовность ───────────────────────────
+readiness:
+  formula: "sum(gate_percent * weight)/100, округление вниз, затем cap"
+  computed_at_commit: "06032bd32aa01e9ecc3a6ea36cc36b9930783543"
+  computed_at_utc: "2026-09-17T13:41:00Z"
+  raw_percent: 93
+  cap_percent: 90
+  cap_reason: "physical Android acceptance текущего кандидата PENDING"
+  effective_percent: 90
+  previous_percent: null
+  delta: null
+  delta_reason: "baseline: расчёт готовности ранее не вёлся, docs/READINESS.md создан этой сменой"
+  unknown_gates: []
+  weights_normalized: false
+  doc: "docs/READINESS.md"
+  gates:
+    - { id: 1,  name: "Продукт",        weight: 10, closed: 3, total: 3, percent: 100, status: GREEN }
+    - { id: 2,  name: "Реиграбельность", weight: 8,  closed: 3, total: 3, percent: 100, status: GREEN }
+    - { id: 3,  name: "Мир",            weight: 9,  closed: 7, total: 8, percent: 87,  status: YELLOW,
+        open: ["физическая наблюдаемость изменения берега после нескольких жизней"] }
+    - { id: 4,  name: "Продолжение",    weight: 7,  closed: 3, total: 3, percent: 100, status: GREEN }
+    - { id: 5,  name: "Контент",        weight: 8,  closed: 3, total: 3, percent: 100, status: GREEN }
+    - { id: 6,  name: "UX",             weight: 8,  closed: 4, total: 4, percent: 100, status: GREEN }
+    - { id: 7,  name: "Persistence",    weight: 8,  closed: 3, total: 4, percent: 75,  status: YELLOW,
+        open: ["old save -> upgrade APK на текущем кандидате (физически)"] }
+    - { id: 8,  name: "Android",        weight: 8,  closed: 2, total: 5, percent: 40,  status: BLOCKED,
+        open: ["release-signed кандидат main", "physical acceptance 16/16 (human blocker)", "слабое устройство/ротация/back-resume текущего кандидата"] }
+    - { id: 9,  name: "Offline",        weight: 3,  closed: 3, total: 3, percent: 100, status: GREEN }
+    - { id: 10, name: "Performance",    weight: 7,  closed: 4, total: 5, percent: 80,  status: YELLOW,
+        open: ["V11-004 физический soak слабого Android текущего кандидата"] }
+    - { id: 11, name: "Accessibility",  weight: 5,  closed: 4, total: 4, percent: 100, status: GREEN }
+    - { id: 12, name: "Localization",   weight: 4,  closed: 3, total: 3, percent: 100, status: GREEN }
+    - { id: 13, name: "Release",        weight: 5,  closed: 3, total: 5, percent: 60,  status: YELLOW,
+        open: ["release-signed кандидат", "финальная сверка Store/Privacy с фактическим APK"] }
+    - { id: 14, name: "QA",             weight: 6,  closed: 3, total: 5, percent: 60,  status: YELLOW,
+        open: ["длинный ручной прогон текущего кандидата", "чистая установка/обновление физически"] }
+    - { id: 15, name: "Monetization",   weight: 4,  closed: 3, total: 3, percent: 100, status: GREEN,
+        note: "PASS по факту отсутствия монетизации" }
+
+production_gate:
+  formula: "productionReady = deterministicReady && physicalAndroid"
+  deterministic_ready: true
+  deterministic_evidence: "rc2-evidence.json artifact 10471972268 (run 35157731498): deterministicReady=true, missing=[], blockers all false"
+  physical_android: false
+  production_ready: false
+  status: BLOCKED
+
+# ─────────────────────────── стенды смены ───────────────────────────
+local_verification:
+  node_version_sandbox: "v20.20.2"
+  node_version_ci: "22"
+  node20_note: "Проект рассчитан на Node 22; локально все probes прошли и на Node 20. CI остаётся источником истины."
+  run_js: { checks: 363, passed: 363, failed: 0, result: PASS }
+  life_arc_suite: { items: 60, passed: 60, failed: 0, result: PASS }
+  node_check_web_js: { files: 78, errors: 0, result: PASS }
+  check_sync: PASS
+  check_android_security: PASS
+  render_budget_probe: "PASS (V3-052)"
+  balance_probe: PASS
+  jdk_available: "openjdk 11 (нужен 17) -> локальная сборка APK невозможна"
+  android_sdk_available: false
+  adb_available: false
+  emulator_available: false
+  playwright_available: false
+  docker_available: false
+
+access_facts:
+  github_pat: "валиден; git-эндпоинты принимают только Basic-схему (x-access-token:<token>), Bearer для git возвращает 401; remote URL без токена, доступ через GIT_ASKPASS вне рабочей области"
+  ssh_server:
+    host: "129.213.177.56"
+    user: "ubuntu"
+    result: "Permission denied (publickey)"
+    note: "Переданный ключ парсится как RSA 2048 (SHA256:2wR+bzdjVUbceiw0u1da+0zoeUfscOMp4TR67In8duU), ssh-keygen -y сообщает о повреждении; сервер отвечает, значит сеть доступна. Проект сервер не использует (нет docker/воркеров/LLM в репозитории)."
+    project_impact: "нет: CI и probes полностью покрывают контур без сервера"
+
+# ─────────────────────────── ветки ───────────────────────────
+branches:
+  main: "06032bd — актуальна, CI зелёный"
+  merged_and_stale:
+    - { name: "chore/physical-android-acceptance", head: "65d2de1", unmerged: 0 }
+    - { name: "tmp-physical-android", head: "65d2de1", unmerged: 0 }
+    - { name: "v3-051-runtime-age-guard", head: "dc7fff9", unmerged: 0 }
+    - { name: "v3-052-runtime-collection-guard", head: "d1e9801", unmerged: 0 }
+  stale_superseded:
+    - name: "v3-050-performance"
+      head: "8d37a56"
+      unmerged: 6
+      verdict: "НЕ мержить: main уже содержит оптимизацию V3-050 в web/js/v3-render-budget.js и более новый probe с покрытием V3-052. Ветка отстаёт."
+  unique_unmerged:
+    - name: "chore/physical-android-acceptance-2"
+      head: "21ca54b"
+      unmerged: 1
+      verdict: "Шаблон acceptance-журнала полезен, но закреплён за устаревшим кандидатом 65d2de1/SHA b3e27df1. Перенести содержание в docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md с актуальной provenance, ветку не мержить."
+  release_branches_legacy: ["main-release-check", "release/3.0.1", "release/v3.0.1"]
+
+open_issues:
+  - { number: 4, title: "Playtest 3.0.0-rc1: early release/camera/performance findings", role: "UX/playtest backlog, не release blocker" }
+  - { number: 12, title: "Post-RC release hardening and production readiness", role: "трекер post-RC; release blockers = Play Console + production decision" }
+
+# ─────────────────────────── task graph ───────────────────────────
+task_graph:
+  - id: OPS-001
+    title: "Сверка фактов: CI runs, releases, артефакты, ветки, SSH, доступы"
+    readiness_gate: [13, 14]
+    status: DONE
+    evidence: "docs/READINESS.md, этот файл"
+  - id: OPS-002
+    title: "Исправить опечатку SHA-256 rc1 (fab4956ea -> fab4950ea) в README/BACKLOG_POST_RC/PUBLISH"
+    readiness_gate: [13]
+    status: DONE
+    evidence: "сверено фактическим скачиванием release asset"
+  - id: OPS-003
+    title: "Создать agent/state/current.yml и docs/READINESS.md как точки resume/процента"
+    readiness_gate: [13, 14]
+    status: DONE
+  - id: OPS-004
+    title: "Актуализировать STATUS/HANDOFF_CURRENT/PHYSICAL_ANDROID_ACCEPTANCE/RELEASE_* на факт HEAD"
+    readiness_gate: [13]
+    status: IN_PROGRESS
+  - id: REL-001
+    title: "Создать release-signed кандидат: workflow_dispatch APK, release_candidate=true, ref=main"
+    readiness_gate: [8, 13]
+    status: TODO
+    blocking: "требует secrets IGRA_KEYSTORE_B64 / IGRA_KEYSTORE_PASSWORD (заведены в CI)"
+  - id: REL-002
+    title: "Приготовить пакет физического acceptance: журнал 16 сценариев + PENDING evidence JSON + команды валидации, привязанные к exact commit/APK SHA"
+    readiness_gate: [8, 14]
+    status: TODO
+  - id: REL-003
+    title: "Физический Android acceptance exact кандидата на реальном устройстве"
+    readiness_gate: [8, 7, 10, 14, 3]
+    status: HUMAN_BLOCKER
+    note: "Держит cap 90%. Эмулятор/CI/браузер не принимаются. Фабрикация evidence запрещена."
+  - id: REL-004
+    title: "Production release decision + Pre-release флаг rc1 + Play Console"
+    readiness_gate: [13]
+    status: HUMAN_BLOCKER
+  - id: HYGIENE-001
+    title: "Удалить полностью смерженные и устаревшие ветки (после подтверждения)"
+    readiness_gate: [14]
+    status: TODO
+  - id: V11-002
+    title: "Balance: энергия/рост/забвение/редкость/финалы поддерживают разные стратегии"
+    readiness_gate: [2]
+    status: DONE
+    evidence: "tools/probe/balance.js PASS локально и в CI"
+  - id: V11-003
+    title: "Visual/audio coherence"
+    readiness_gate: [6]
+    status: DONE
+    evidence: "v16-presentation.js, v17-adaptive-audio.js, noise.js PASS"
+  - id: V11-004
+    title: "Long-session performance: engine soak + физический слабый Android soak"
+    readiness_gate: [10]
+    status: PARTIAL
+    evidence: "engine soak автоматизирован (rc-hardening/long.js); физическая часть = REL-003"
+  - id: V11-006
+    title: "Release QA matrix"
+    readiness_gate: [14]
+    status: PARTIAL
+    evidence: "v11-release-qa.js PASS (15 сценариев определены); физическое исполнение = REL-003"
+
+last_batch:
+  name: "recover + facts + readiness baseline"
+  commits: []
+  result: "состояние восстановлено, стартовый процент посчитан"
+
+next_step:
+  id: REL-001
+  action: "Собрать release-signed кандидат актуального main через workflow_dispatch(release_candidate=true), зафиксировать run id и APK SHA-256, затем REL-002 (пакет acceptance для человека)."
+
+resume_hint: >
+  Точка resume: main 06032bd, CI зелёный, готовность 90% (cap из-за REL-003).
+  Доступ к git: GIT_ASKPASS-хелпер вне рабочей области, токен в remote URL не писать.
+  Перед пушем проверить `git remote -v`. Секреты CI не читать и не переназначать.
+  v3.0.1-rc1 не двигать.

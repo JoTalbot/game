@@ -1,44 +1,88 @@
 # ИГРА — статус проекта
 
-## Текущий инженерный APK-кандидат
+> Обновлено: 2026-09-17 (смена агента). Источник фактов: `git log`, GitHub API (runs/releases/artifacts), локальные probes.
+> Процент готовности и арифметика по 15 гейтам: `docs/READINESS.md`. Точка resume: `agent/state/current.yml`.
 
-- Версия: `3.0.1`
-- versionCode: `601`
-- APK source commit: `1ddc7e90780679c802470943aae3b953d40fe817`
-- APK workflow run: `35141797041` — SUCCESS
-- APK artifact: `igra-3.0.1` (`10465244020`)
-- APK SHA-256: `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729`
-- Actions ZIP SHA-256: `0b6b826476e801905f2cd25975a43660b3a5671d7d0b708d56f8ac12bac01deb`
-- APK automatic gate: SUCCESS
-- Source provenance check: SUCCESS
-- Android backup policy: `android:allowBackup="false"`
+## Текущее состояние `main`
 
-## Последний CI-контроль
+- HEAD: `06032bd32aa01e9ecc3a6ea36cc36b9930783543` (2026-09-16T22:26:58Z), working tree чист.
+- CI на HEAD — все четыре контура SUCCESS:
+  - APK #1203 — run `35157731486`;
+  - Life Arc Gate #236 — run `35157731498`;
+  - Sync play mirror #773 — run `35157731495`;
+  - pages build and deployment — run `35157730577`.
+- RC2 evidence artifact `10471972268`: `deterministicReady=true`, `physicalAndroid=false`, `productionReady=false`, `missing=[]`, все blockers `false`.
+- Локальный прогон смены (Node 20 в песочнице агента, CI использует Node 22):
+  - `tools/probe/run.js` → **363/363 PASS**;
+  - полный набор Life Arc Gate (54 probes + `life-workflow` + `release-workflow-contract-test` + `rc-hardening` + 3 evidence-теста) → **60/60 PASS**;
+  - `find web/js -name '*.js' -print0 | xargs -0 -n1 node --check` → 78 файлов, 0 ошибок;
+  - `tools/check-sync.sh` → PASS; `tools/check-android-security.sh` → PASS;
+  - `tools/probe/render-budget.js` → PASS (V3-052); `tools/probe/balance.js` → PASS.
 
-Для текущего candidate commit `1ddc7e90780679c802470943aae3b953d40fe817` успешно завершилась APK-сборка `35141797041`.
+## Артефакты
 
-Актуальные docs/play материалы синхронизированы и опубликованы через GitHub Pages после commit `538c22c8416cb1311ddebc188542d35cdb990663`:
+### Immutable RC (не двигать)
 
-- Sync play mirror `35142942491` — SUCCESS
-- GitHub Pages build/deployment `35142940500` — SUCCESS
+- Тег: `v3.0.1-rc1`, commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, опубликован 2026-09-09T18:21:34Z.
+- APK asset `igra-3.0.1.apk`, SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`.
+  Значение **сверено фактическим скачиванием** release asset 2026-09-17. Ранее в `README.md`, `docs/BACKLOG_POST_RC.md` и `docs/PUBLISH.md` была опечатка (`…fab4956ea…`) — исправлена этой сменой.
+- Флаг Pre-release: `false`. Переключение флага — решение человека (см. `docs/BACKLOG_POST_RC.md`, раздел 2).
 
-Физический Android evidence в обычном `main`-build не подставляется: соответствующий gate выполняется только для release tag.
+### Инженерный debug-артефакт `main` (не кандидат)
 
-CI подтверждает корректность автоматических проверок и протокола. Он не считается физическим Android acceptance.
+- Run `35157731486`, artifact `10471054268` (`igra-3.0.1`), файл `igra-3.0.1.apk`.
+- APK SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d`.
+- Подпись **debug** (обычный push-build `main`). Страница скачивания: https://github.com/JoTalbot/game/actions/runs/35157731486
+- Этот бинарник подтверждает детерминированную сборку, но **не** является release-кандидатом и не годится для физического acceptance.
+
+### Release-signed кандидат актуального `main`
+
+- **НЕ СОЗДАН.** Требуется `workflow_dispatch` workflow **APK** с `release_candidate=true` на `main`.
+- Ранее зафиксированный кандидат `1ddc7e90780679c802470943aae3b953d40fe817` / SHA `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729` устарел: `main` ушёл на 13 коммитов вперёд, а сам артефакт был debug-signed.
+  Важно: `1ddc7e9..06032bd` меняли только `docs/**`, `.github/workflows/life-arc.yml` и `tools/probe/*` — содержимое `web/` и `android/` идентично, то есть детерминированная часть игры не изменилась.
 
 ## Production gate
 
 `productionReady = deterministicReady && physicalAndroid`
 
-Текущий статус: **BLOCKED**.
+- `deterministicReady` — **TRUE** (факт: RC2 evidence + зелёный CI на HEAD).
+- `physicalAndroid` — **FALSE**.
+- Итог: **BLOCKED**.
 
-Причина: физическое Android acceptance ещё не выполнено на реальном устройстве для текущего APK-кандидата. `IGRA_PHYSICAL_ANDROID=1` не должен устанавливаться искусственно.
+Причина: физический Android acceptance не выполнен для актуального кандидата, а release-signed кандидат актуального `main` ещё не собран. `IGRA_PHYSICAL_ANDROID=1` искусственно не устанавливается.
+
+## Сверка противоречий документов (2026-09-17)
+
+Зафиксировано расхождение: `docs/BACKLOG_POST_RC.md` (от 14.09) объявлял `RC-PHYS-001` закрытым, тогда как `docs/STATUS.md` и `docs/HANDOFF_CURRENT.md` (от 16.09) — PENDING.
+
+Проверка фактом:
+
+1. `RC-PHYS-001` действительно закрыт, но **для immutable артефакта `v3.0.1-rc1`** (SHA `160cec76…`, Android 15, 427×948 @1.0, weak-device, 10 минут, `docs/RC1_SMOKE.md`). Это исторический факт, и он верен.
+2. Для **текущего production-кандидата** (актуальный `main`) физический acceptance не выполнялся: нет ни release-signed сборки, ни evidence. Правило `docs/PHYSICAL_ANDROID_ACCEPTANCE.md` прямо запрещает переносить evidence старого билда на новый кандидат.
+3. Вывод: оба утверждения истинны в разных областях. Гейт 8 (Android) в `docs/READINESS.md` считается как «rc1 закрыт исторически, текущий кандидат PENDING», cap 90% действует.
+
+Второе расхождение: `docs/BACKLOG_V4.md` и `docs/BACKLOG_POST_RC.md` помечали V6-005..007, V7-*, V8-*, P9-*, V11-* как «следующий batch», хотя соответствующие слои реализованы и покрыты зелёными probes/CI. Статусы обновлены по факту; первоисточник процента — `docs/READINESS.md`.
 
 ## Что осталось
 
-1. Выполнить полный физический acceptance на реальном Android-устройстве для APK `3.0.1 / 601` с SHA `7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729` и source commit `1ddc7e90780679c802470943aae3b953d40fe817`.
-2. Сформировать структурированное evidence по всем обязательным сценариям с точной provenance APK.
-3. Валидировать evidence через `tools/probe/validate-release-authorization.js`, привязав его к commit `1ddc7e90780679c802470943aae3b953d40fe817` и указанному APK SHA-256.
-4. После PASS физического контура повторить RC2/release gate.
-5. Синхронизировать финальные store/privacy материалы.
-6. Принять production release decision и только затем переходить к публикации/rollout.
+1. **REL-001:** собрать release-signed кандидат `main` через `workflow_dispatch` APK с `release_candidate=true`; зафиксировать run id, commit и APK SHA-256.
+2. **REL-002:** подготовить пакет физического acceptance (журнал 16 сценариев + PENDING evidence JSON + команды валидации), привязанный к exact commit/SHA.
+3. **REL-003 (human blocker):** выполнить 16 сценариев на реальном Android-устройстве, валидировать evidence через `tools/probe/physical-android-evidence.js` и `tools/probe/validate-release-authorization.js`.
+4. Повторить RC2/release gate на exact кандидате.
+5. Финально сверить `docs/STORE.md` и `docs/PRIVACY.md` с фактическим APK.
+6. Принять отдельное production release decision (человек) и только затем публиковать/выставлять флаги.
+
+## Статус milestone V11 (восстановлено из истории `ec95ccf`, 15.09.2026)
+
+- V11-001 first-session UX — реализован (`web/js/v11-first-session.js`, probe PASS).
+- V11-002 balance — детерминированный коридор закрыт: commit `6cbb8952d52012e53bd305da015e83cefffbf16c`, APK #1089 и Life Arc #123 SUCCESS.
+- V11-003 visual/audio coherence — закрыт: commit `9e5639c3e1b82cf81611986957b98a8ca36ce577`, APK #1090, Life Arc #124, Sync play mirror #616 SUCCESS.
+- V11-004 long-session — автоматический soak закрыт (10 000-step bounded soak, `tools/probe/long.js`, `rc-hardening.js`); физический weak-device soak остаётся за `RC-PHYS-002`.
+- V11-005 localization/accessibility — реализован (`v11-accessibility.js`, `accessibility.js`).
+- V11-006 release QA matrix — структурный gate на 15 сценариев реализован (`v11-release-qa.js`); физическое исполнение остаётся отдельным evidence и не подменяется автоматическим тестом.
+
+## Контуры среды (факт смены 2026-09-17)
+
+- GitHub PAT валиден. Особенность: git-эндпоинты принимают токен только по **Basic**-схеме (`x-access-token:<token>`), `Authorization: Bearer` для `info/refs` возвращает `401 invalid credentials`. Remote URL оставлен чистым, доступ через `GIT_ASKPASS` вне рабочей области.
+- SSH `ubuntu@129.213.177.56` → `Permission denied (publickey)`; переданный ключ сервером не принимается. Проект сервер не использует: docker/воркеры/локальные LLM в репозитории не заявлены и фактом не подтверждены.
+- Локально в песочнице агента: Node 20 (CI — 22), JDK 11 (для сборки нужен 17), Android SDK/adb/эмулятор/Playwright/Docker отсутствуют. Локальная сборка APK невозможна; сборка выполняется CI.
