@@ -4,8 +4,8 @@
   "artifact": {
     "version": "3.0.1",
     "versionCode": 601,
-    "commit": "0643a336657e571ee7aed786fbb362b0da3fed98",
-    "apkSha256": "3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396"
+    "commit": "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e",
+    "apkSha256": "1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056"
   },
   "device": {
     "manufacturer": "FILL_ME (например: Xiaomi)",
