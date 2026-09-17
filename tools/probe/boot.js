@@ -48,4 +48,60 @@ ok(after > 0, "1800 кадров проходят без разрушения м
 const node = G.app.world.nodes[0];
 const result = G.app.world.crystallize(node, 0.8, G.app.dna);
 ok(!!result, "кристаллизация возвращает результат");
-console.log("BOOT PROBE PASS");
+// ——— оффлайн-оболочка: service worker обязан быть исполняемым и рабочим ———
+// Регрессия v3.0.1: sw.js ушёл в main с незакрытой скобкой. node --check по
+// web/js его не доставал (файл лежит в корне web/), а check-sync.sh сверял
+// только состав кэша. Браузер молча не регистрировал SW, оффлайн умирал.
+const swListeners = {};
+const swCached = {};
+const swCacheStub = {
+  addAll(assets) {
+    swCached.assets = assets;
+    for (const asset of assets) {
+      const rel = asset.replace(/^\.\//, "");
+      const abs = rel === "" ? path.join(root, "web", "index.html") : path.join(root, "web", rel);
+      if (!fs.existsSync(abs)) throw new Error("sw.js кэширует несуществующий ассет: " + asset);
+    }
+    return Promise.resolve();
+  }
+};
+const swContext = {
+  addEventListener(type, handler) { (swListeners[type] = swListeners[type] || []).push(handler); },
+  caches: {
+    open() { return Promise.resolve(swCacheStub); },
+    keys() { return Promise.resolve(["igra-shell-old"]); },
+    delete() { return Promise.resolve(true); },
+    match() { return Promise.resolve(undefined); }
+  },
+  fetch() { return Promise.reject(new Error("offline")); },
+  Promise, console
+};
+swContext.self = swContext;
+swContext.globalThis = swContext;
+const swSandbox = vm.createContext(swContext);
+vm.runInContext(fs.readFileSync(path.join(root, "web/sw.js"), "utf8"), swSandbox, { filename: "sw.js" });
+ok(!!swListeners.install && !!swListeners.activate && !!swListeners.fetch, "sw.js регистрирует install/activate/fetch");
+(async function () {
+  let installDone = null;
+  swListeners.install[0]({ waitUntil(p) { installDone = p; } });
+  await installDone;
+  ok(Array.isArray(swCached.assets) && swCached.assets.length > 70, "install кэширует полный набор ассетов", (swCached.assets || []).length + " шт.");
+  ok(swCached.assets.includes("./js/main.js"), "оболочка кэширует main.js");
+  let deleted = 0;
+  swContext.caches.delete = function () { deleted++; return Promise.resolve(true); };
+  let activateDone = null;
+  swListeners.activate[0]({ waitUntil(p) { activateDone = p; } });
+  await activateDone;
+  ok(deleted === 1, "activate вычищает устаревший кэш");
+  let responded = null;
+  swListeners.fetch[0]({ request: { method: "GET", url: "http://offline.local/js/main.js" }, respondWith(p) { responded = p; } });
+  const offlineResult = await responded;
+  ok(offlineResult === undefined, "fetch в оффлайне уходит в fallback без исключения");
+  let intercepted = true;
+  swListeners.fetch[0]({ request: { method: "POST", url: "http://offline.local/x" }, respondWith() { intercepted = false; } });
+  ok(intercepted, "не-GET запросы оболочка не перехватывает");
+  console.log("BOOT PROBE PASS");
+})().catch(function (error) {
+  console.error("SW OFFLINE PROBE FAIL: " + (error && error.message || error));
+  process.exit(1);
+});

@@ -81,6 +81,26 @@ else
   say_bad "на витрине отсутствует ru или en версия"
 fi
 
+echo "— оболочка синтаксически жива"
+# web/sw.js лежит в корне web/ и не попадает в find web/js. Сломанный SW —
+# это молчаливая потеря оффлайна: страница открывается, регистрация падает
+# в пустой catch, и никто не узнаёт, пока человек не уйдёт в airplane mode.
+if command -v node >/dev/null 2>&1; then
+  syntax_fail=0
+  while IFS= read -r -d '' f; do
+    if ! node --check "$f" >/dev/null 2>&1; then
+      say_bad "синтаксис сломан: ${f#$ROOT/}"
+      node --check "$f" 2>&1 | sed 's/^/      /' | head -4
+      syntax_fail=1
+    fi
+  done < <(find "$ROOT/web" -maxdepth 1 -name '*.js' -print0)
+  if [ "$syntax_fail" = 0 ]; then
+    say_ok "sw.js и корневые скрипты оболочки парсятся"
+  fi
+else
+  say_bad "node не найден — синтаксис оболочки не проверен"
+fi
+
 echo "— браузерный берег носит оффлайн"
 if [ -f "$ROOT/web/sw.js" ] && grep -q "igra-shell" "$ROOT/web/sw.js"; then
   say_ok "service worker есть"
