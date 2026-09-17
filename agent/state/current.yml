@@ -2,25 +2,40 @@
 # Не хранит собственный HEAD: этот файл сам создаёт новый docs-коммит.
 schema: 1
 updated_by: "arena-agent"
+updated_utc: "2026-09-17T14:22:00Z"
+main_head: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
 
 candidate:
   version: "3.0.1"
   version_code: 601
-  release_candidate_source_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
+  release_candidate_source_commit: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
   release_signed_candidate:
     status: CREATED
-    run_id: 35229481075
-    run_number: 1205
-    artifact_id: 10500832061
+    created_utc: "2026-09-17T14:15:00Z"
+    run_id: 35232162470
+    run_number: 1210
+    artifact_id: 10502001833
     apk_file: "igra-3.0.1.apk"
-    apk_sha256: "3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396"
+    apk_sha256: "1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056"
     signing: release
-    apksigner_v2: true
-    apksigner_v3: true
-    signers: 1
-    source_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
+    signing_evidence:
+      - "лог run: IGRA_SIGNING_MODE=release, zipalign + sign (release)"
+      - "apksigner verify: v2 true, v3 true, signers 1"
+      - "сертификат из APK: fingerprint 31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42, notBefore Aug 19 2026"
+      - "debug-сборка того же commit имеет другой сертификат (notBefore Sep 16 2026) - подпись действительно release"
+    apk_content_check: "assets/www/sw.js внутри APK содержит igra-shell-v31 (исправленная оболочка)"
+    download_page: "https://github.com/JoTalbot/game/actions/runs/35232162470"
+    source_commit: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
     github_release_published: false
     physical_acceptance: PENDING
+  superseded_candidates:
+    - source_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
+      run_id: 35229481075
+      apk_sha256: "3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396"
+      reason: "собран из main со сломанным web/sw.js (оффлайн-оболочка браузера не устанавливалась)"
+    - source_commit: "1ddc7e90780679c802470943aae3b953d40fe817"
+      apk_sha256: "7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729"
+      reason: "устарел: main ушёл вперёд, подпись debug"
 
 immutable_rc:
   tag: "v3.0.1-rc1"
@@ -45,19 +60,21 @@ readiness:
     - "final Store/Privacy verification"
 
 ci:
-  candidate_apk_run: 35229481075
+  candidate_apk_run: 35232162470
   candidate_apk_status: success
-  life_arc_run: 35229457159
+  main_push_apk_run_number: 1209
+  life_arc_run_number: 241
   life_arc_status: success
-  sync_play_run: 35229457088
+  sync_play_run_number: 779
   sync_play_status: success
-  pages_run: 35229455404
+  pages_run_number: 1341
   pages_status: success
 
 acceptance:
   id: RC-PHYS-002
-  artifact_sha256: "3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396"
-  source_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
+  artifact_sha256: "1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056"
+  source_commit: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
+  run_id: 35232162470
   required_scenarios: 16
   evidence_file: "docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md"
   evidence_template: "docs/physical-android-evidence.template.json"
@@ -77,7 +94,23 @@ agent_status:
     - "production approval / Play Console decision"
   new_product_mechanics: forbidden_until_rc_operational_cycle_complete
 
+incident_log:
+  - date_utc: "2026-09-17T14:05:00Z"
+    what: "Регрессия оффлайн-оболочки: web/sw.js в main с незакрытой скобкой fetch-обработчика"
+    impact: "Service Worker не проходил evaluation, регистрация падала в пустой catch, оффлайн-берег браузера не работал. На APK не влияло (WebView грузит ассеты локально)."
+    detection: "headless Chromium + Playwright: navigator.serviceWorker.register -> 'ServiceWorker script evaluation failed'"
+    why_ci_missed: "node --check в CI покрывает только web/js; check-sync.sh сверял лишь состав кэша"
+    fix_commit: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
+    guards_added:
+      - "tools/check-sync.sh: node --check по корневым скриптам web/"
+      - "tools/probe/boot.js: функциональный SW-probe (install/activate/fetch, существование каждого ассета)"
+      - "tools/browser-smoke.js: headless Chromium smoke, 22/22 PASS (не CI-гейт)"
+    negative_control: "сломанный sw.js отклоняется обоими сторожами"
+  - date_utc: "2026-09-17T14:04:00Z"
+    what: "Параллельный агент в main: коммиты 50a66bf, fc8aeeb, e4adbcc (автор JoTalbot) перезаписали docs/STATUS.md и agent/state/current.yml"
+    action: "сделан rebase, чужая структура сохранена и дополнена фактами; перед каждым пушем обязателен git fetch + rebase"
+
 resume_hint: >
-  Test only release-signed APK 3898a940... from source commit 0643a33.
+  Test only release-signed APK 1c18e1c1... from source commit 1f0a1b7 (run 35232162470).
   Do not move or rewrite v3.0.1-rc1. Do not fabricate physical evidence.
   Production authorization must remain bound to the exact candidate source commit and APK SHA.

@@ -94,26 +94,28 @@ Immutable RC release: **`v3.0.1-rc1`**. Его нельзя перемещать
 
 ### Release-signed candidate для физического acceptance — СОЗДАН
 
-`workflow_dispatch` workflow **APK** с `release_candidate=true` выполнен 2026-09-17 на `main`:
+Актуальный кандидат (перезакреплён 2026-09-17 14:15 UTC после исправления оффлайн-оболочки):
 
-- source commit: `0643a336657e571ee7aed786fbb362b0da3fed98`
-- run: `35229481075` (APK #1205) — SUCCESS
-- artifact: `igra-3.0.1` (ID `10500832061`), файл `igra-3.0.1.apk`
-- **APK SHA-256: `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`**
+- source commit: `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e`
+- run: `35232162470` (APK #1210, `workflow_dispatch` с `release_candidate=true`) — SUCCESS
+- artifact: `igra-3.0.1` (ID `10502001833`), файл `igra-3.0.1.apk`
+- **APK SHA-256: `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056`**
 - подпись: release (`IGRA_SIGNING_MODE=release`, apksigner v2/v3 `true`), fingerprint сертификата `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42`
-- скачивание: https://github.com/JoTalbot/game/actions/runs/35229481075 → artifact `igra-3.0.1`
+- скачивание: https://github.com/JoTalbot/game/actions/runs/35232162470 → artifact `igra-3.0.1`
 - GitHub Release не создавался (публикация tag-only), `v3.0.1-rc1` не изменён
 
-Порядок действий остаётся прежним: скачать artifact именно из этого run, проверить SHA, выполнить
-16 сценариев физического acceptance (`docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md`), и только после
-полного PASS формировать release approval secrets, привязанные к exact commit и exact APK SHA.
+Устаревший кандидат (не использовать): commit `0643a336657e571ee7aed786fbb362b0da3fed98`, run `35229481075`, APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` — собран из `main` с дефектным `web/sw.js`.
+
+Порядок действий: скачать artifact именно из run `35232162470`, проверить SHA, выполнить 16 сценариев
+физического acceptance (`docs/PHYSICAL_ANDROID_ACCEPTANCE_RECORD.md`), и только после полного PASS
+формировать release approval secrets, привязанные к exact commit и exact APK SHA.
 
 Ручной `release_candidate=true` **не публикует GitHub Release** и не создаёт production release.
 Публикация по-прежнему возможна только через `v*` tag после прохождения всех release gates.
 
 ## 4. Физический gate актуального кандидата
 
-Статус: **PENDING** (human blocker). Объект: release-signed APK `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`, commit `0643a336657e571ee7aed786fbb362b0da3fed98`.
+Статус: **PENDING** (human blocker). Объект: release-signed APK `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056`, commit `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e`, run `35232162470`.
 Старый физический RC1 smoke относится к immutable RC1 и не заменяет повторный
 физический acceptance текущего кандидата `3.0.1 / 601`.
 
@@ -155,4 +157,4 @@ daily reward.
 
 ---
 
-Актуально для **v3.0.1 / versionCode 601**. Последнее обновление: 17 сентября 2026 (release-signed кандидат `3898a9408d52a22f…` создан, см. `docs/READINESS.md`).
+Актуально для **v3.0.1 / versionCode 601**. Последнее обновление: 17 сентября 2026 (актуальный release-signed кандидат `1c18e1c1bdefc446…`, run `35232162470`, см. `docs/READINESS.md`).

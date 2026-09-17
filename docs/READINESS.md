@@ -5,14 +5,16 @@
 
 ## Параметры расчёта
 
-- **Дата расчёта:** 2026-09-17T13:55Z (UTC), пересчёт №2
-- **Commit расчёта:** `0643a336657e571ee7aed786fbb362b0da3fed98` (`main`)
+- **Дата расчёта:** 2026-09-17T14:20Z (UTC), пересчёт №3
+- **Commit расчёта:** `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e` (`main`)
 - **База CI:** Life Arc Gate #236 (run `35157731498`) SUCCESS, APK #1203 (run `35157731486`) SUCCESS, Sync play mirror #773 (run `35157731495`) SUCCESS, Pages `35157730577` SUCCESS — все на `06032bd`.
 - **Локальный прогон смены (Node 20, песочница агента):** `tools/probe/run.js` → 363/363 PASS; полный набор Life Arc Gate (54 probes + life-workflow + release-workflow-contract + rc-hardening + 3 evidence-теста) → 60/60 PASS; `node --check` по 78 файлам `web/js` → 0 ошибок; `tools/check-sync.sh` → PASS; `tools/check-android-security.sh` → PASS; `tools/probe/render-budget.js` → PASS (V3-052); `tools/probe/balance.js` → PASS.
 - **Immutable RC:** `v3.0.1-rc1` → commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK `igra-3.0.1.apk`, SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc` (сверено фактическим скачиванием артефакта 2026-09-17).
 - **Текущий инженерный артефакт `main`:** APK run `35157731486`, artifact `10471054268`, `igra-3.0.1.apk`, SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d`, подпись **debug** (обычный push-build). Для физического acceptance не годится.
-- **Release-signed кандидат актуального `main`: СОЗДАН 2026-09-17** — run `35229481075` (APK #1205, `workflow_dispatch`, `release_candidate=true`) SUCCESS, artifact `10500832061`, `igra-3.0.1.apk`, **APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`**, подпись release (apksigner v2/v3 `true`, fingerprint сертификата `31:80:D0:AE:…:D2:42`). Скачивание: https://github.com/JoTalbot/game/actions/runs/35229481075
-- **CI на `0643a33`:** APK #1204 (`35229457058`) SUCCESS, Life Arc Gate #237 (`35229457159`) SUCCESS, Sync play mirror #774 (`35229457088`) SUCCESS, Pages (`35229455404`) SUCCESS.
+- **Release-signed кандидат актуального `main`: СОЗДАН и ПЕРЕЗАКРЕПЛЁН 2026-09-17** — run `35232162470` (APK #1210, `workflow_dispatch`, `release_candidate=true`) SUCCESS, artifact `10502001833`, `igra-3.0.1.apk`, **APK SHA-256 `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056`**, подпись release (apksigner v2/v3 `true`, fingerprint сертификата `31:80:D0:AE:…:D2:42`, `notBefore Aug 19 2026`). Скачивание: https://github.com/JoTalbot/game/actions/runs/35232162470
+- Первый кандидат (`3898a9408d52a22f…`, commit `0643a33`, run `35229481075`) устарел: собран из `main` с дефектным `web/sw.js`.
+- **CI на `1f0a1b7`:** APK #1209 SUCCESS, Life Arc Gate #241 SUCCESS, Sync play mirror #779 SUCCESS, Pages #1341 SUCCESS.
+- **Браузерный smoke (headless Chromium + Playwright, `tools/browser-smoke.js`):** 22/22 PASS — SW регистрируется и активен, кэш `igra-shell-v31` = 90 записей, перезагрузка без сети поднимает игру, жест удержания даёт `taps/gazes/crystals`, 60 fps, `Report.errors` пуст, сейв жив после reload, сигила/язык/тишина работают.
 
 ## Таблица гейтов
 
@@ -31,11 +33,11 @@
 | 11 | Accessibility: читаемость, haptic/audio fallback | 5 | 4/4 | 100 | 5.00 | GREEN |
 | 12 | Localization: ru/en полностью, layout не ломается | 4 | 3/3 | 100 | 4.00 | GREEN |
 | 13 | Release: versioning, stable signing, privacy/store, материалы | 5 | 4/5 | 80 | 4.00 | YELLOW |
-| 14 | QA: probes + длинные ручные прогоны + чистая установка/обновление | 6 | 3/5 | 60 | 3.60 | YELLOW |
+| 14 | QA: probes + длинные ручные прогоны + чистая установка/обновление | 6 | 4/6 | 66 | 3.96 | YELLOW |
 | 15 | Monetization: базовая версия не зависит | 4 | 3/3 | 100 | 4.00 | GREEN |
 | | **Сумма весов** | **100** | | | **94.22** | |
 
-**Готовность проекта (до cap):** 94.22 → округление вниз = **94%**
+**Готовность проекта (до cap):** 10.00+8.00+7.87+7.00+8.00+8.00+6.00+4.80+3.00+5.60+5.00+4.00+4.00+3.96+4.00 = 94.23 → округление вниз = **94%**
 **Cap:** физический Android acceptance текущего кандидата (`RC-PHYS-002`, APK `3898a940…`) не пройден → **не выше 90%**
 **ИТОГО: [ГОТОВНОСТЬ] 90%**
 
@@ -98,6 +100,8 @@
 2. IMP-V4-009 полный offline shell — реализовано.
 3. Отсутствие обязательной сети — `rc2-evidence.json` (`blockers.networkRequired=false`), `rc-hardening.js` PASS.
 
+Факт 2026-09-17: оффлайн-контур браузера подтверждён в реальном headless Chromium — после исправления `web/sw.js` регистрация SW успешна, кэш наполнен (90 записей), полная перезагрузка при выключенной сети поднимает игру. До исправления гейт формально считался закрытым по статическим проверкам, тогда как фактически оболочка не работала; процент не снижался, потому что задача не была принята как закрытая по физическому факту. Вывод зафиксирован в `docs/STATUS.md` (инцидент смены).
+
 ### Гейт 10 — Performance (7) — 4/5
 1. V3-048 performance/touch — `v3-048-performance.js` PASS.
 2. Render budget без аллокаций на кадр (V3-050) + regression malformed коллекций (V3-052) — `render-budget.js` PASS.
@@ -123,12 +127,13 @@
 4. Release-signed кандидат текущего `main` — **ЗАКРЫТО 2026-09-17** (run `35229481075`).
 5. **ОТКРЫТО:** финальная ручная сверка Play listing / `docs/PRIVACY.md` / `docs/STORE.md` с фактическим APK, который поедет в production.
 
-### Гейт 14 — QA (6) — 3/5
+### Гейт 14 — QA (6) — 4/6
 1. `tools/probe/run.js` — 363/363 PASS локально; в CI — SUCCESS (APK #1203).
 2. Life Arc Gate — 60/60 локально; CI run `35157731498` SUCCESS.
 3. Sync play mirror + Pages — runs `35157731495`, `35157730577` SUCCESS.
-4. **ОТКРЫТО:** длинный ручной прогон текущего кандидата (V21 playtest evidence для актуального build).
-5. **ОТКРЫТО:** чистая установка/обновление поверх существующего сейва на текущем кандидате (физически).
+4. Синтаксис и функциональность оффлайн-оболочки под постоянным надзором — `node --check` корневых скриптов `web/` в `tools/check-sync.sh` + функциональный SW-probe в `tools/probe/boot.js` (install/activate/fetch, наличие каждого кэшируемого ассета на диске). Негативный контроль: сломанный `sw.js` обоими сторожами отклоняется. Добавлено после регрессии 2026-09-17.
+5. **ОТКРЫТО:** длинный ручной прогон текущего кандидата (V21 playtest evidence для актуального build).
+6. **ОТКРЫТО:** чистая установка/обновление поверх существующего сейва на текущем кандидате (физически).
 
 ### Гейт 15 — Monetization (4) — 3/3 (PASS по факту отсутствия)
 1. Монетизации в коде нет — подтверждено `check-android-security.sh`, `rc2-evidence.json`, `run.js`.
@@ -149,3 +154,4 @@
 |---|---|---|---|---|---|
 | 2026-09-17T13:41Z | `06032bd` | — (расчёт не вёлся) | 90% (93% до cap) | baseline | Первый честный расчёт по 15 гейтам. Cap 90% из-за PENDING физического acceptance. Заодно исправлена опечатка SHA-256 rc1 в README/BACKLOG_POST_RC/PUBLISH (`…fab4956ea…` → фактический `…fab4950ea…`). |
 | 2026-09-17T13:55Z | `0643a33` | 90% (93% до cap) | 90% (94% до cap) | +0 эффективно, +1 до cap | Гейт 8 Android: 2/5 → 3/5 (создан release-signed кандидат run `35229481075`, APK SHA `3898a940…`, подпись release подтверждена). Гейт 13 Release: 3/5 → 4/5. Cap 90% остаётся: физический acceptance (`RC-PHYS-002`) — human blocker. |
+| 2026-09-17T14:20Z | `1f0a1b7` | 90% (94% до cap) | 90% (94% до cap) | +0 | Найдена и закрыта регрессия `web/sw.js` (оффлайн-оболочка браузера не устанавливалась). Гейт 14 QA: 3/5 → 4/6 (добавлены два постоянных сторожа оболочки + браузерный smoke 22/22). Кандидат перезакреплён: run `35232162470`, APK SHA `1c18e1c1bdefc446…`; прежний `3898a940…` помечен устаревшим. Cap 90% без изменений: физический acceptance не пройден. |

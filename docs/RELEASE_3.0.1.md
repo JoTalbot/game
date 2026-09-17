@@ -21,16 +21,17 @@ These values are retained for historical traceability only.
 
 The debug binary is deterministic and CI-verified, but it is not the release-signed production candidate and must not be used for physical acceptance or release approval.
 
-## Release-signed candidate (created 2026-09-17)
+## Release-signed candidate (актуальный, создан 2026-09-17 14:15 UTC)
 
-- Source commit: `0643a336657e571ee7aed786fbb362b0da3fed98`
-- APK workflow: `35229481075` (APK #1205, `workflow_dispatch`, `release_candidate=true`) — SUCCESS
-- Actions artifact: `igra-3.0.1` (artifact ID `10500832061`)
+- Source commit: `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e`
+- APK workflow: `35232162470` (APK #1210, `workflow_dispatch`, `release_candidate=true`) — SUCCESS
+- Actions artifact: `igra-3.0.1` (artifact ID `10502001833`)
 - APK file: `igra-3.0.1.apk`
-- APK SHA-256: `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`
+- APK SHA-256: `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056`
 - Signing: release (`IGRA_SIGNING_MODE=release`, apksigner v2 `true`, v3 `true`, 1 signer)
 - Signing certificate SHA-256 fingerprint: `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42`
-- Download page: https://github.com/JoTalbot/game/actions/runs/35229481075
+- Download page: https://github.com/JoTalbot/game/actions/runs/35232162470
+- Superseded candidate: commit `0643a336657e571ee7aed786fbb362b0da3fed98`, run `35229481075`, APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` — built from `main` with a broken `web/sw.js` (offline shell regression, fixed in `1f0a1b7`). Do not use.
 - No GitHub Release was published (publication stays tag-only); `v3.0.1-rc1` untouched.
 
 This is the binary that physical Android acceptance must be performed against.

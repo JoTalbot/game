@@ -4,27 +4,29 @@
 > Шаблон унаследован от ветки `chore/physical-android-acceptance-2` (commit `21ca54b`), provenance перепривязана к актуальному состоянию `main` от 2026-09-17.
 > Правила и полный контракт: `docs/PHYSICAL_ANDROID_ACCEPTANCE.md`. Процент готовности: `docs/READINESS.md` (гейт 8).
 
-## 1. Тестируемый артефакт (заполнено фактом 2026-09-17)
+## 1. Тестируемый артефакт (заполнено фактом 2026-09-17, 14:15 UTC)
 
 | Поле | Значение |
 |---|---|
 | Версия | `3.0.1` |
 | versionCode | `601` |
-| Source commit | `0643a336657e571ee7aed786fbb362b0da3fed98` |
-| APK workflow run | `35229481075` (APK #1205, `workflow_dispatch`, `release_candidate=true`) — SUCCESS |
-| Artifact | `igra-3.0.1` (ID `10500832061`) |
+| Source commit | `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e` |
+| APK workflow run | `35232162470` (APK #1210, `workflow_dispatch`, `release_candidate=true`) — SUCCESS |
+| Artifact | `igra-3.0.1` (ID `10502001833`) |
 | APK файл | `igra-3.0.1.apk` |
-| APK SHA-256 | `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` |
+| APK SHA-256 | `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056` |
 | Подпись | release: `IGRA_SIGNING_MODE=release`, apksigner v2 `true` / v3 `true`, 1 signer |
 | Сертификат (SHA-256 fingerprint) | `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42` |
-| Страница скачивания | https://github.com/JoTalbot/game/actions/runs/35229481075 |
+| Страница скачивания | https://github.com/JoTalbot/game/actions/runs/35232162470 |
 
-Проверка агентом: APK скачан из artifact run `35229481075`, `sha256sum` = `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`, совпадает с `igra-3.0.1.apk.sha256` внутри артефакта.
+Проверка агентом: APK скачан из artifact run `35232162470`, `sha256sum` = `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056` (совпадает с `igra-3.0.1.apk.sha256` внутри артефакта); сертификат извлечён из APK и совпадает с release keystore; `assets/www/sw.js` внутри APK содержит исправленную оболочку `igra-shell-v31`.
 
-Справочно (не является объектом этого теста):
+Предыдущий кандидат (**не тестировать**): commit `0643a33`, run `35229481075`, APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` — собран из `main` с дефектным `web/sw.js`.
+
+Справочно:
 
 - immutable RC `v3.0.1-rc1`: commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`;
-- debug-артефакт `main`: APK SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` (run `35157731486`) — для acceptance не годится.
+- debug-артефакт `main`: run `35157731486`, APK SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` — для acceptance не годится.
 
 ## 2. Устройство
 
@@ -77,8 +79,8 @@
 ## 5. Валидация evidence
 
 ```bash
-export IGRA_EXPECTED_APK_COMMIT=0643a336657e571ee7aed786fbb362b0da3fed98
-export IGRA_EXPECTED_APK_SHA256=3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396
+export IGRA_EXPECTED_APK_COMMIT={NEW_COMMIT}
+export IGRA_EXPECTED_APK_SHA256={NEW_SHA}
 export IGRA_PHYSICAL_ANDROID=1
 # шаблон: docs/physical-android-evidence.template.json (скопировать и заполнить)
 node tools/probe/physical-android-evidence.js physical-android-evidence.json
@@ -92,7 +94,7 @@ node tools/probe/physical-android-evidence.js physical-android-evidence.json
 ## 6. Итог
 
 - Physical Android acceptance: `PENDING`
-- Объект теста: APK `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` (release-signed, commit `0643a336657e571ee7aed786fbb362b0da3fed98`)
+- Объект теста: APK `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056` (release-signed, commit `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e`, run `35232162470`)
 - Physical evidence attached: `NO`
 - `IGRA_PHYSICAL_ANDROID=1`: `NOT SET`
 - Production gate: `BLOCKED`
