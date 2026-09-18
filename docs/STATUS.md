@@ -1,33 +1,51 @@
 # ИГРА — текущий статус проекта
 
-> Обновлено: 2026-09-17 после проверки `main` и GitHub CI. Авторитетные точки: `docs/READINESS.md` и `agent/state/current.yml`.
+> Обновлено: 2026-09-18 после проверки `main`, GitHub CI и независимой проверки бинарника кандидата. Авторитетные точки: `docs/READINESS.md` и `agent/state/current.yml`.
 
 ## Состояние
 
-- `main` HEAD: `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e`.
-- Release-candidate source commit: `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e` (тот же commit; кандидат собран с него).
-- На `1f0a1b7`: APK #1209 debug SUCCESS, APK #1210 release-signed SUCCESS (run `35232162470`), Life Arc Gate #241 SUCCESS, Sync play mirror #779 SUCCESS, Pages #1341 SUCCESS.
+- `main` HEAD: `eca3018362156410172156d1bf8350668b6967c7` (docs/state-коммиты после `1f0a1b7`; игровой payload не менялся).
+- Release-candidate source commit: `1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e` (кандидат собран с него; `web/` и `android/` с тех пор не менялись).
+- CI: на `eca3018` — Sync play mirror #783 SUCCESS, Pages #1345 SUCCESS (commit docs-only → APK и Life Arc Gate не запускаются по `paths-ignore: docs/**`). Последний полный набор на `287e047` — APK #1212, Life Arc Gate #243, Sync play mirror #781, Pages #1343, все SUCCESS.
 - Release-signed candidate: run `35232162470` (APK #1210, `workflow_dispatch`, `release_candidate=true`), artifact `10502001833` (`igra-3.0.1`), файл `igra-3.0.1.apk`, **APK SHA-256 `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056`**.
-- Подпись release подтверждена фактом: лог run (`IGRA_SIGNING_MODE: release`, `zipalign + sign (release)`), apksigner v2 `true` / v3 `true` / 1 signer, fingerprint сертификата `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42` (тот же стабильный release keystore, `notBefore Aug 19 2026`).
-- Содержимое APK сверено: `assets/www/sw.js` несёт `igra-shell-v31` (исправленная оффлайн-оболочка).
 - Скачать: https://github.com/JoTalbot/game/actions/runs/35232162470 → artifact `igra-3.0.1`.
 
-### Устаревший кандидат (не тестировать)
+## Независимая проверка кандидата (2026-09-18)
 
-- Кандидат от 13:51 UTC: commit `0643a336657e571ee7aed786fbb362b0da3fed98`, run `35229481075` (APK #1205), artifact `10500832061`, APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396`.
-- Причина замены: в этом бинарнике `web/sw.js` синтаксически сломан (незакрытая скобка в fetch-обработчике) — Service Worker не устанавливался, оффлайн-оболочка браузерного берега не работала. На APK-поведение это не влияло (WebView грузит ассеты локально, регистрация SW для file:// не выполняется), но кандидат собран из дефектного `main`.
-- Дефект исправлен в `1f0a1b7`, закрыт двумя новыми сторожами (`node --check` корневых скриптов `web/` в `tools/check-sync.sh` и функциональный SW-probe в `tools/probe/boot.js`) и проверен в реальном headless Chromium: SW регистрируется, кэш `igra-shell-v31` = 90 записей, перезагрузка без сети поднимает игру.
-- Release signing подтверждён: apksigner v2/v3 true, 1 signer; сертификат fingerprint `31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42`.
-- Immutable `v3.0.1-rc1` не изменён: commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`.
+Полный отчёт: `docs/RELEASE_CANDIDATE_VERIFICATION.md`. Кратко, всё проверено фактом в песочнице агента (JDK 17 + build-tools 34.0.0):
+
+- artifact скачан, `sha256sum` = `1c18e1c1…` (совпал с `igra-3.0.1.apk.sha256` внутри артефакта);
+- `apksigner verify`: v2 `true`, v3 `true`, 1 signer; сертификат `CN=IGRA, O=JoTalbot, C=UA`, SHA-256 `3180d0ae…d242` — тот же, что у `v3.0.1-rc1`;
+- негативный контроль: debug-сборка того же commit даёт другой сертификат (`8f00f375…`) → кандидат действительно release-signed;
+- манифест: `world.igra.app`, versionCode `601`, versionName `3.0.1`, minSdk `26`, targetSdk `34`, разрешения только `VIBRATE`/`WAKE_LOCK`/`INTERNET`, `allowBackup=false`, `usesCleartextTraffic=false`, единственный exported-компонент — launcher-activity;
+- payload: `assets/www` внутри APK **байт-идентичен** `web/` в `main` (93 файла, `diff -r` чист); `sw.js` = `igra-shell-v31`;
+- воспроизводимость: локальная сборка `tools/build-apk.sh` из `main` дала идентичные `classes.dex`, `resources.arsc`, `AndroidManifest.xml`, `res/`, `assets/www` и тот же размер (3 060 325 байт) — отличается только блок подписи.
+
+## Глубокий браузерный прогон (не физический)
+
+`tools/browser-deep-run.js` → **32/32 PASS** на payload `e1d3a8a0…` (commit `eca3018`), evidence `docs/evidence/browser-deep-run-2026-09-18.json` + скриншоты.
+
+Покрыто: первые секунды без туториала; SW `igra-shell-v31` (90 записей) и оффлайн-перезагрузка с возвратом в мир; touch-жесты (tap/hold); поворот портрет↔ландшафт (канвас-буфер перестроен, overflow 0); background→foreground (состояние и мир сохранены); сейв → перезапуск → «вернуться» (мир восстановлен); ru/en (словарь `IGRA.UI_STR` 55/55, 0 overflow в двух ориентациях); тишина/звук; CPU-throttle ×6 (60.3 → 14.4 fps, рендер продолжается, ошибок нет); 4-мин soak (heap +630 KB, DOM-узлы не растут, 0 новых JS-обработчиков, 0 pageerror, 0 проваленных запросов); reduced-motion; сигила.
+
+Это **не** физический acceptance: touch/haptic/lifecycle/слабое железо на реальном устройстве остаются за `RC-PHYS-002`.
+
+### Наблюдение смены: пики `JSEventListeners` — артефакт эмуляции ввода, не утечка
+
+При синтетических mouse-hold жестах CDP-метрика `JSEventListeners` уходит в тысячи (51 → 3692, пики до 12 949) и возвращается к базовой линии (~58–73) после GC; при tap-жестах стабильна. Инструментированный `addEventListener` в самой странице за 3 минуты жестов показал **0** вызовов из кода игры; heap стабилен. Вывод: это особенность учёта синтетического ввода в headless Chromium, **не** утечка игры. Проверка в `tools/browser-deep-run.js` переписана на честный критерий (число JS-подписок и DOM-узлы), метрика оставлена информационно. Физический soak (`V11-004`, гейт 10) остаётся открытым.
+
+## Устаревшие кандидаты (не тестировать)
+
+- commit `0643a33`, run `35229481075`, APK SHA-256 `3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396` — собран из `main` со сломанным `web/sw.js` (SW не устанавливался, оффлайн-оболочка браузера не работала).
+- commit `1ddc7e9`, APK SHA-256 `7412b523…` — debug-подпись, main ушёл вперёд.
+- Immutable `v3.0.1-rc1` не изменён: commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc` (перепроверено скачиванием 2026-09-18).
 
 ## Готовность
 
-- Deterministic readiness: **PASS**.
-- Raw readiness: **94%**.
-- Effective readiness: **90%** из-за cap physical Android acceptance.
+- Deterministic readiness: **PASS** (`rc2-evidence.js`: `deterministicReady:true`, `missing:[]`, все blockers false).
+- Raw readiness: **94%** (пересчёт №4, 2026-09-18).
+- Effective readiness: **90%** из-за cap физического acceptance.
 - Production gate: **BLOCKED**.
-
-Автоматические probes/CI зелёные. Основные оставшиеся факты относятся к физическому Android/QA/performance/persistence и финальной release/store сверке.
+- Числители гейтов за смену 2026-09-18 не менялись: все открытые пункты упираются в физическое устройство или production-решение.
 
 ## RC-PHYS-002 — главный blocker
 
@@ -46,11 +64,17 @@ CI, эмулятор, браузер и synthetic evidence не считаютс
 - Tagged APK workflow проверяет physical approval, exact approved commit и exact approved APK SHA.
 - Физически тестируемый кандидат точно привязан к `1f0a1b7` и SHA `1c18e1c1bdefc446...`. Production authorization должен использовать именно эту provenance.
 - Финальное production decision и Play Console действия остаются за человеком.
+- Замечание для store/privacy-сверки: в манифесте остаётся `INTERNET` при оффлайн-игре — нужна корректная декларация в Data safety; удаление разрешения изменит payload и потребует нового кандидата.
 
 ## Ограничения среды агента
 
-Android SDK/adb/эмулятор/Docker в песочнице отсутствуют; JDK 11 вместо требуемого 17 — локальная сборка APK невозможна, сборка выполняется CI. Playwright + headless Chromium установлены агентом во время смены и использованы для браузерного smoke (`tools/browser-smoke.js`, 22/22 PASS). Физический acceptance здесь выполнить нельзя, evidence не фабрикуется.
+- Песочница 2026-09-18: `/dev/kvm` отсутствует → аппаратный эмулятор Android невозможен; Docker отсутствует; Node 20 (CI — Node 22).
+- Установлено агентом в контуре смены (вне репозитория): JDK 17 Temurin, Android cmdline-tools + `platforms;android-34` + `build-tools;34.0.0` + `platform-tools`, Playwright 1.55 + Chromium 140. Это позволило впервые собрать APK **локально** и независимо проверить кандидата.
+- Физический acceptance здесь выполнить нельзя, evidence не фабрикуется.
 
-## Инцидент смены: регрессия оффлайн-оболочки
+## Инциденты и находки
 
-`web/sw.js` находился в `main` с незакрытой скобкой: Service Worker не проходил evaluation, регистрация молча падала в пустой `catch`, оффлайн-берег браузера не работал. Автоматические стенды этого не видели: `node --check` в CI покрывает только `web/js`, а `tools/check-sync.sh` сверял лишь состав кэша. Найдено реальным браузерным прогоном 2026-09-17, исправлено, закрыто двумя постоянными сторожами и негативным контролем (сломанный файл обоими сторожами отклоняется).
+- 2026-09-17: регрессия оффлайн-оболочки (`web/sw.js` с незакрытой скобкой) — исправлено в `1f0a1b7`, закрыто двумя постоянными сторожами и негативным контролем.
+- 2026-09-17: параллельный агент работал в `main`; перед каждым пушем обязателен `git fetch` + `rebase`.
+- 2026-09-18: коммит `eca3018` (docs) случайно удалил из `docs/READINESS.md` расшифровку гейтов 10–15 — восстановлено и актуализировано этой сменой.
+- 2026-09-18: пики `JSEventListeners` под синтетическим вводом — артефакт эмуляции, не утечка (см. раздел выше).

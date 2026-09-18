@@ -28,6 +28,17 @@
 - immutable RC `v3.0.1-rc1`: commit `9e8fe1a13804f2f5d00feb3b4ffbed60af203d44`, APK SHA-256 `160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc`;
 - debug-артефакт `main`: run `35157731486`, APK SHA-256 `01b9a92ff46f953431ddea73cfa8193ea54e90967fd2ab23f9b3f263e8d6382d` — для acceptance не годится.
 
+### Независимая перепроверка кандидата (2026-09-18)
+
+Проверка повторена в чистом контуре агентом (JDK 17 Temurin + Android build-tools 34.0.0) — см. `docs/RELEASE_CANDIDATE_VERIFICATION.md`:
+
+- artifact `10502001833` скачан заново, `sha256sum` = `1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056`;
+- `apksigner verify`: v2 `true`, v3 `true`, 1 signer, сертификат `31:80:D0:AE:…:D2:42` (совпадает с релизным keystore и с `v3.0.1-rc1`); debug-сборка того же commit даёт другой сертификат → подпись действительно release;
+- манифест: `world.igra.app`, versionCode `601`, versionName `3.0.1`, minSdk `26`, targetSdk `34`, `allowBackup=false`, `usesCleartextTraffic=false`, разрешения `VIBRATE`/`WAKE_LOCK`/`INTERNET`, единственный exported-компонент — launcher-activity; `screenOrientation=user_portrait`, `configChanges=0xda0` (activity не пересоздаётся при повороте);
+- `assets/www` внутри APK байт-идентичен `web/` в `main` (93 файла) — сборка воспроизводима из исходников, отличается только блок подписи.
+
+Это подтверждает, что физическому тестированию подлежит именно тот бинарник, за который себя выдаёт APK. Физический acceptance по-прежнему не выполнен.
+
 ## 2. Устройство
 
 | Поле | Значение |

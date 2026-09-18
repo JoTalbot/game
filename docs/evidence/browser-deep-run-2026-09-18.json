@@ -1,0 +1,624 @@
+{
+  "schema": 1,
+  "kind": "browser-deep-run",
+  "physicalAndroid": false,
+  "note": "Не является физическим Android acceptance. Прогон против web/ (тот же payload, что в APK).",
+  "utc": "2026-09-18T05:12:42.704Z",
+  "startedAtUtc": "2026-09-18T05:07:22.992Z",
+  "payload": {
+    "commit": "eca3018362156410172156d1bf8350668b6967c7",
+    "sha256": "e1d3a8a03afef2bfb3a08bad60cd825a5e72d80fc996d29309b9e81936aaaab8",
+    "files": 93
+  },
+  "candidate": {
+    "apkSha256": "1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056",
+    "sourceCommit": "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
+  },
+  "browser": {
+    "name": "chromium",
+    "version": "140.0.7339.16",
+    "viewport": "427x948 @2x (mobile, touch)"
+  },
+  "config": {
+    "soakMinutes": 4,
+    "cpuThrottle": 6
+  },
+  "soak": {
+    "samples": [
+      {
+        "t": 9,
+        "jsHeap": 4008612,
+        "nodes": 219,
+        "listeners": 49,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 15,
+        "jsHeap": 4506080,
+        "nodes": 239,
+        "listeners": 54,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 21,
+        "jsHeap": 4567676,
+        "nodes": 244,
+        "listeners": 56,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 27,
+        "jsHeap": 4559640,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 33,
+        "jsHeap": 4939276,
+        "nodes": 208,
+        "listeners": 46,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 42,
+        "jsHeap": 3479576,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 48,
+        "jsHeap": 4036620,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 54,
+        "jsHeap": 4216484,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 60,
+        "jsHeap": 4241972,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 68,
+        "jsHeap": 5014412,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 75,
+        "jsHeap": 4831700,
+        "nodes": 216,
+        "listeners": 48,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 81,
+        "jsHeap": 3860748,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 87,
+        "jsHeap": 4111980,
+        "nodes": 231,
+        "listeners": 52,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 93,
+        "jsHeap": 4270416,
+        "nodes": 247,
+        "listeners": 80,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 102,
+        "jsHeap": 5077312,
+        "nodes": 238,
+        "listeners": 54,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 108,
+        "jsHeap": 4109324,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 114,
+        "jsHeap": 4477140,
+        "nodes": 206,
+        "listeners": 45,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 120,
+        "jsHeap": 3783880,
+        "nodes": 231,
+        "listeners": 54,
+        "worldNodes": 3,
+        "beings": 0
+      },
+      {
+        "t": 126,
+        "jsHeap": 3778552,
+        "nodes": 214,
+        "listeners": 48,
+        "worldNodes": 3,
+        "beings": 0
+      },
+      {
+        "t": 135,
+        "jsHeap": 3955244,
+        "nodes": 208,
+        "listeners": 46,
+        "worldNodes": 3,
+        "beings": 0
+      },
+      {
+        "t": 141,
+        "jsHeap": 3731676,
+        "nodes": 218,
+        "listeners": 48,
+        "worldNodes": 3,
+        "beings": 0
+      },
+      {
+        "t": 147,
+        "jsHeap": 4842040,
+        "nodes": 205,
+        "listeners": 1865,
+        "worldNodes": 6,
+        "beings": 0
+      },
+      {
+        "t": 153,
+        "jsHeap": 4090512,
+        "nodes": 205,
+        "listeners": 549,
+        "worldNodes": 14,
+        "beings": 0
+      },
+      {
+        "t": 159,
+        "jsHeap": 4117656,
+        "nodes": 205,
+        "listeners": 639,
+        "worldNodes": 14,
+        "beings": 0
+      },
+      {
+        "t": 168,
+        "jsHeap": 4621184,
+        "nodes": 205,
+        "listeners": 1953,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 175,
+        "jsHeap": 4691400,
+        "nodes": 205,
+        "listeners": 1125,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 181,
+        "jsHeap": 4086084,
+        "nodes": 205,
+        "listeners": 351,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 187,
+        "jsHeap": 4952364,
+        "nodes": 205,
+        "listeners": 1539,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 196,
+        "jsHeap": 5132668,
+        "nodes": 205,
+        "listeners": 2385,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 202,
+        "jsHeap": 4546308,
+        "nodes": 205,
+        "listeners": 1373,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 208,
+        "jsHeap": 4129368,
+        "nodes": 205,
+        "listeners": 1036,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 214,
+        "jsHeap": 5060292,
+        "nodes": 205,
+        "listeners": 1462,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 220,
+        "jsHeap": 4307204,
+        "nodes": 205,
+        "listeners": 634,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 229,
+        "jsHeap": 5777948,
+        "nodes": 205,
+        "listeners": 1899,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 235,
+        "jsHeap": 4318232,
+        "nodes": 205,
+        "listeners": 549,
+        "worldNodes": 18,
+        "beings": 0
+      },
+      {
+        "t": 242,
+        "jsHeap": 5876020,
+        "nodes": 206,
+        "listeners": 3612,
+        "worldNodes": 18,
+        "beings": 0
+      }
+    ],
+    "marks": [
+      {
+        "minute": 0.5442166666666667,
+        "worldNodes": 18,
+        "beings": 0,
+        "acts": {
+          "taps": 3,
+          "gazes": 3,
+          "crystals": 0,
+          "returns": 0,
+          "anchors": 1,
+          "pulses": 0,
+          "calls": 0,
+          "laws": 0,
+          "sky": 0,
+          "sigil": 0,
+          "lang": 4,
+          "rescued": 0,
+          "blooms": 0
+        }
+      },
+      {
+        "minute": 1.14005,
+        "worldNodes": 18,
+        "beings": 0,
+        "acts": {
+          "taps": 7,
+          "gazes": 7,
+          "crystals": 0,
+          "returns": 0,
+          "anchors": 1,
+          "pulses": 0,
+          "calls": 0,
+          "laws": 0,
+          "sky": 0,
+          "sigil": 0,
+          "lang": 4,
+          "rescued": 0,
+          "blooms": 0
+        }
+      },
+      {
+        "minute": 1.6928666666666667,
+        "worldNodes": 18,
+        "beings": 0,
+        "acts": {
+          "taps": 10,
+          "gazes": 10,
+          "crystals": 0,
+          "returns": 1,
+          "anchors": 1,
+          "pulses": 0,
+          "calls": 0,
+          "laws": 0,
+          "sky": 0,
+          "sigil": 0,
+          "lang": 4,
+          "rescued": 0,
+          "blooms": 0
+        }
+      },
+      {
+        "minute": 2.24615,
+        "worldNodes": 3,
+        "beings": 0,
+        "acts": {
+          "taps": 13,
+          "gazes": 13,
+          "crystals": 1,
+          "returns": 1,
+          "anchors": 1,
+          "pulses": 0,
+          "calls": 0,
+          "laws": 0,
+          "sky": 0,
+          "sigil": 0,
+          "lang": 4,
+          "rescued": 0,
+          "blooms": 0
+        }
+      },
+      {
+        "minute": 2.800883333333333,
+        "worldNodes": 18,
+        "beings": 0,
+        "acts": {
+          "taps": 16,
+          "gazes": 16,
+          "crystals": 1,
+          "returns": 1,
+          "anchors": 2,
+          "pulses": 0,
+          "calls": 0,
+          "laws": 0,
+          "sky": 0,
+          "sigil": 0,
+          "lang": 4,
+          "rescued": 0,
+          "blooms": 0
+        }
+      },
+      {
+        "minute": 3.359166666666667,
+        "worldNodes": 18,
+        "beings": 0,
+        "acts": {
+          "taps": 19,
+          "gazes": 19,
+          "crystals": 1,
+          "returns": 1,
+          "anchors": 2,
+          "pulses": 0,
+          "calls": 0,
+          "laws": 0,
+          "sky": 0,
+          "sigil": 0,
+          "lang": 4,
+          "rescued": 0,
+          "blooms": 0
+        }
+      },
+      {
+        "minute": 3.9175666666666666,
+        "worldNodes": 18,
+        "beings": 0,
+        "acts": {
+          "taps": 23,
+          "gazes": 23,
+          "crystals": 1,
+          "returns": 1,
+          "anchors": 2,
+          "pulses": 0,
+          "calls": 0,
+          "laws": 0,
+          "sky": 0,
+          "sigil": 0,
+          "lang": 4,
+          "rescued": 0,
+          "blooms": 0
+        }
+      }
+    ]
+  },
+  "checks": [
+    {
+      "name": "1.1 IGRA поднят, состояние title",
+      "pass": true,
+      "detail": "{\"state\":\"title\",\"titleMode\":true}"
+    },
+    {
+      "name": "1.2 первые секунды без туториала (только титул и шёпот)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "1.3 нет pageerror на старте",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "1.4 нет console.error на старте",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "2.1 service worker зарегистрирован и активен",
+      "pass": true,
+      "detail": "{\"cached\":90,\"keys\":[\"igra-shell-v31\"]}"
+    },
+    {
+      "name": "2.2 кэш оболочки наполнен (>=80 записей)",
+      "pass": true,
+      "detail": "entries=90"
+    },
+    {
+      "name": "3.1 после рождения мир жив, HUD интерактивен",
+      "pass": true,
+      "detail": "{\"nodes\":3,\"beings\":0}"
+    },
+    {
+      "name": "4.1 touch-жесты принимаются (tap/hold)",
+      "pass": true,
+      "detail": "{\"before\":{\"taps\":0,\"gazes\":0,\"crystals\":0,\"returns\":0,\"anchors\":0,\"pulses\":0,\"calls\":0,\"laws\":0,\"sky\":0,\"sigil\":0,\"lang\":0,\"rescued\":0,\"blooms\":0},\"after\":{\"taps\":2,\"gazes\":2,\"crystals\":1,\"returns\":0,\"anchors\":0,\"pulses\":0,\"calls\":0,\"laws\":0,\"sky\":0,\"sigil\":0,\"lang\":0,\"rescued\":0,\"blooms\":0}}"
+    },
+    {
+      "name": "5.1 поворот в ландшафт: канвас перестроен, HUD жив",
+      "pass": true,
+      "detail": "{\"canvasCSS\":{\"w\":948,\"h\":427},\"buffer\":{\"w\":948,\"h\":427},\"overflow\":0,\"hud\":true}"
+    },
+    {
+      "name": "5.2 возврат в портрет: мир продолжается, кадры идут",
+      "pass": true,
+      "detail": "{\"frames\":601,\"before\":230}"
+    },
+    {
+      "name": "5.3 после ротации нет новых ошибок",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "6.1 background → foreground: состояние и мир сохранены",
+      "pass": true,
+      "detail": "{\"hidden\":\"play\",\"visible\":\"play\",\"nodes\":5}"
+    },
+    {
+      "name": "6.2 после возврата кадры идут",
+      "pass": true,
+      "detail": "{\"hidden\":842,\"visible\":1052}"
+    },
+    {
+      "name": "7.1 сейв пережил перезапуск, предлагается «вернуться»",
+      "pass": true,
+      "detail": "{\"before\":5764,\"after\":5764}"
+    },
+    {
+      "name": "7.2 «вернуться» восстанавливает мир",
+      "pass": true,
+      "detail": "{\"nodes\":16,\"state\":\"play\"}"
+    },
+    {
+      "name": "8.1 полная перезагрузка без сети поднимает игру (SW-кэш)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "8.2 после оффлайн-перезагрузки можно вернуться в мир",
+      "pass": true,
+      "detail": "{\"nodes\":18}"
+    },
+    {
+      "name": "9.1 ru/en переключаются, HUD жив в обоих",
+      "pass": true,
+      "detail": "{\"portrait\":{\"ru\":{\"lang\":\"ru\",\"htmlLang\":\"ru\",\"overflow\":0,\"hud\":true},\"en\":{\"lang\":\"en\",\"htmlLang\":\"en\",\"overflow\":0,\"hud\":true}},\"landscape\":{\"ru\":{\"lang\":\"ru\",\"htmlLang\":\"ru\",\"overflow\":0,\"hud\":true},\"en\":{\"lang\":\"en\",\"htmlLang\":\"en\",\"overflow\":0,\"hud\":true}}}"
+    },
+    {
+      "name": "9.3 словарь ru/en покрыт полностью (нет пустых ключей)",
+      "pass": true,
+      "detail": "{\"ruKeys\":55,\"enKeys\":55,\"missingEn\":[],\"missingRu\":[]}"
+    },
+    {
+      "name": "9.2 раскладка не выезжает за экран в обоих языках и ориентациях",
+      "pass": true,
+      "detail": "{\"portrait\":[0,0],\"landscape\":[0,0]}"
+    },
+    {
+      "name": "10.1 «тишина» переключает аудио и возвращается назад",
+      "pass": true,
+      "detail": "{\"before\":false,\"after\":true,\"restored\":true}"
+    },
+    {
+      "name": "11.1 под x6-тормозом CPU игра продолжает рисовать кадры",
+      "pass": true,
+      "detail": "{\"normal\":60.3,\"weak\":14.8}"
+    },
+    {
+      "name": "11.2 телеметрия игры не видит ошибок рендера",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "12.1 длинная сессия: игра живёт в мире, ошибок рендера нет",
+      "pass": true,
+      "detail": "{\"frames\":14788,\"nodes\":18,\"aliveGestures\":23,\"renderErrors\":0,\"acts\":{\"taps\":23,\"gazes\":23,\"crystals\":1,\"returns\":1,\"anchors\":2,\"pulses\":0,\"calls\":0,\"laws\":0,\"sky\":0,\"sigil\":0,\"lang\":4,\"rescued\":0,\"blooms\":0}}"
+    },
+    {
+      "name": "12.2 за сессию игра не навешивает новых обработчиков и не растит DOM",
+      "pass": true,
+      "detail": "{\"jsListeners\":0,\"nodesFirst\":219,\"nodesLast\":206}"
+    },
+    {
+      "name": "12.3 heap не растёт бесконтрольно за 4 мин",
+      "pass": true,
+      "detail": "{\"startKB\":3915,\"endKB\":5738,\"deltaKB\":1824}"
+    },
+    {
+      "name": "12.4 мир не разрастается без границ (узлы в лимите)",
+      "pass": true,
+      "detail": "{\"worldNodes\":18,\"beings\":0}"
+    },
+    {
+      "name": "12.5 за сессию ни одного pageerror/console.error",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "12.6 ни одного проваленного запроса (полная автономность ресурсов)",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "13.1 prefers-reduced-motion: игра поднимается без ошибок",
+      "pass": true,
+      "detail": "{\"nodes\":3,\"errs\":[]}"
+    },
+    {
+      "name": "13.2 текст HUD читаем (>=12px)",
+      "pass": true,
+      "detail": "{\"hintPx\":12,\"lawPx\":17}"
+    },
+    {
+      "name": "14.1 сигила открывается/закрывается и учитывается как поступок",
+      "pass": true,
+      "detail": "{\"on\":true,\"name\":\"Ошибка, которая живёт\",\"closed\":true,\"acts\":1}"
+    }
+  ],
+  "failed": 0,
+  "passed": 32
+}
