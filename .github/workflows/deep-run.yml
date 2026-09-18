@@ -1,0 +1,55 @@
+name: Deep Run (non-physical)
+
+# Глубокий браузерный прогон по кнопке: ротация, жизненный цикл, оффлайн, слабый CPU, память,
+# ru/en, reduced-motion. Это НЕ физический Android acceptance и НЕ обязательный CI-гейт:
+# touch/haptic/lifecycle реального устройства остаются за RC-PHYS-002.
+# Запуск: вручную (Actions → Deep Run → Run workflow) на нужной ветке/commit.
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: "Длительность soak-сессии, минут"
+        required: false
+        default: "2"
+      throttle:
+        description: "Множитель замедления CPU (слабое устройство)"
+        required: false
+        default: "6"
+
+permissions:
+  contents: read
+
+jobs:
+  deep-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - name: Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Source provenance
+        run: |
+          set -euo pipefail
+          echo "payload commit: $(git rev-parse HEAD)"
+      - name: Playwright + Chromium
+        run: |
+          set -euo pipefail
+          npm init -y >/dev/null 2>&1
+          npm i playwright@1.55.0 --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Deep run
+        env:
+          IGRA_DEEP_MINUTES: ${{ inputs.minutes }}
+          IGRA_DEEP_CPU_THROTTLE: ${{ inputs.throttle }}
+          IGRA_DEEP_OUT: ${{ github.workspace }}/deep-run
+        run: node tools/browser-deep-run.js
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: igra-deep-run
+          path: deep-run
+          if-no-files-found: ignore
+          retention-days: 14
