@@ -2,8 +2,8 @@
 # Не хранит собственный HEAD: этот файл сам создаёт новый docs-коммит.
 schema: 1
 updated_by: "arena-agent"
-updated_utc: "2026-09-18T05:25:00Z"
-main_head: "eca3018362156410172156d1bf8350668b6967c7"
+updated_utc: "2026-09-18T05:55:00Z"
+main_head: "b004ef94e9ee65918ce9730a94ef5609eab7513a"
 payload_sha256: "e1d3a8a03afef2bfb3a08bad60cd825a5e72d80fc996d29309b9e81936aaaab8"
 payload_note: "web/ и android/ не менялись с 1f0a1b7; payload подтверждён байтовым сравнением с assets/www внутри APK кандидата"
 
@@ -83,10 +83,10 @@ readiness:
   gate_docs: "docs/READINESS.md"
 
 ci:
-  main_head: "eca3018362156410172156d1bf8350668b6967c7"
-  runs_on_main_head: "Sync play mirror #783 SUCCESS, Pages #1345 SUCCESS (docs-only commit: APK и Life Arc не запускались по paths-ignore)"
-  last_full_run_set_on: "287e047d7f"
-  last_full_runs: "APK #1212 SUCCESS, Life Arc Gate #243 SUCCESS, Sync play mirror #781 SUCCESS, Pages #1343 SUCCESS"
+  main_head: "b004ef94e9ee65918ce9730a94ef5609eab7513a"
+  runs_on_main_head: "APK #1213 SUCCESS, Life Arc Gate #244 SUCCESS, Sync play mirror #784 SUCCESS, Pages #1346 SUCCESS (push верификационной смены, 4/4 зелёные по факту)"
+  previous_main_head: "eca3018362156410172156d1bf8350668b6967c7"
+  previous_runs: "Sync play mirror #783 SUCCESS, Pages #1345 SUCCESS (docs-only commit: APK и Life Arc не запускались по paths-ignore)"
   candidate_apk_run: 35232162470
 
 local_stands_2026_09_18:
@@ -161,6 +161,7 @@ shift_summary:
     - "разобран ложный след утечки listener'ов, проверка заменена честной"
     - "восстановлена расшифровка гейтов 10–15 в READINESS после случайного удаления"
     - "добавлен workflow Deep Run (workflow_dispatch) для повторяемости без устройства"
+    - "запушено в main (3 коммита) и CI на новом коммите зелёный: APK #1213, Life Arc Gate #244, Sync play mirror #784, Pages #1346"
   broken: []
   next_batch:
     - "RC-PHYS-002 (human blocker): 16 сценариев на реальном устройстве для APK 1c18e1c1…"
