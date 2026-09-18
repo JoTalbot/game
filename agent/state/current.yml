@@ -2,8 +2,10 @@
 # Не хранит собственный HEAD: этот файл сам создаёт новый docs-коммит.
 schema: 1
 updated_by: "arena-agent"
-updated_utc: "2026-09-17T14:35:00Z"
-main_head: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
+updated_utc: "2026-09-18T05:25:00Z"
+main_head: "eca3018362156410172156d1bf8350668b6967c7"
+payload_sha256: "e1d3a8a03afef2bfb3a08bad60cd825a5e72d80fc996d29309b9e81936aaaab8"
+payload_note: "web/ и android/ не менялись с 1f0a1b7; payload подтверждён байтовым сравнением с assets/www внутри APK кандидата"
 
 candidate:
   version: "3.0.1"
@@ -18,65 +20,94 @@ candidate:
     apk_file: "igra-3.0.1.apk"
     apk_sha256: "1c18e1c1bdefc44636b5bff62296a6cf5847d185b28df0bcffa454c0254d9056"
     signing: release
-    signing_evidence:
-      - "лог run: IGRA_SIGNING_MODE=release, zipalign + sign (release)"
-      - "apksigner verify: v2 true, v3 true, signers 1"
-      - "сертификат из APK: fingerprint 31:80:D0:AE:D6:E9:8D:7E:2B:06:CA:EE:FA:10:B8:7A:40:18:47:1F:41:92:34:4A:03:4E:95:AD:B7:44:D2:42, notBefore Aug 19 2026"
-      - "debug-сборка того же commit имеет другой сертификат (notBefore Sep 16 2026) - подпись действительно release"
-    apk_content_check: "assets/www/sw.js внутри APK содержит igra-shell-v31 (исправленная оболочка)"
-    payload_equivalence_note: "864140b и последующие docs-only коммиты не меняют web/ и android/, поэтому игровой payload кандидата 1c18e1c1... совпадает с актуальным main; пересобирать кандидата ради docs не нужно"
-    live_pages_verified:
-      url: "https://jotalbot.github.io/game/play/"
-      service_worker: "active, cache igra-shell-v31, 90 записей"
-      offline_reload: "PASS (игра поднимается при выключенной сети)"
-      console_errors: 0
+    independently_verified_2026_09_18:
+      - "artifact скачан по API, sha256sum совпал с igra-3.0.1.apk.sha256 внутри артефакта"
+      - "apksigner (build-tools 34.0.0): v2 true, v3 true, v1 false, 1 signer"
+      - "сертификат CN=IGRA, O=JoTalbot, C=UA, SHA-256 3180d0aed6e98d7e2b06caeefa10b87a4018471f4192344a034e95adb744d242 (тот же, что у v3.0.1-rc1)"
+      - "негативный контроль: debug-сборка того же commit даёт другой сертификат 8f00f37512a09d67a7b41758dc1d063b7abf3e49f7eddad320124c80c356e04d"
+      - "манифест: world.igra.app, versionCode 601, versionName 3.0.1, minSdk 26, targetSdk 34, allowBackup=false, usesCleartextTraffic=false, exported только launcher, разрешения VIBRATE/WAKE_LOCK/INTERNET, screenOrientation=user_portrait, configChanges=0xda0"
+      - "assets/www внутри APK байт-идентичен web/ в main (93 файла, diff -r чист), sw.js = igra-shell-v31"
+      - "воспроизводимость: локальная сборка tools/build-apk.sh из main даёт идентичные classes.dex/resources.arsc/AndroidManifest.xml/res/assets/www и тот же размер 3060325; отличается только блок подписи"
+    report: "docs/RELEASE_CANDIDATE_VERIFICATION.md"
     download_page: "https://github.com/JoTalbot/game/actions/runs/35232162470"
-    source_commit: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
     github_release_published: false
     physical_acceptance: PENDING
-  superseded_candidates:
-    - source_commit: "0643a336657e571ee7aed786fbb362b0da3fed98"
-      run_id: 35229481075
-      apk_sha256: "3898a9408d52a22fd1f8237bc1650bebf6aa3da936125991d9de4f096c816396"
-      reason: "собран из main со сломанным web/sw.js (оффлайн-оболочка браузера не устанавливалась)"
-    - source_commit: "1ddc7e90780679c802470943aae3b953d40fe817"
-      apk_sha256: "7412b523baedac084d559359856fb4ea5ac9eb623dc2692b7b61f739e259e729"
-      reason: "устарел: main ушёл вперёд, подпись debug"
+  store_privacy_note: >
+    В манифесте остаётся android.permission.INTERNET при оффлайн-игре: нужна корректная декларация
+    в Google Play Data safety при ревью витрины. Удалять сейчас нельзя — изменит payload кандидата
+    и потребует новой сборки + повторного физического acceptance.
 
 immutable_rc:
   tag: "v3.0.1-rc1"
   commit: "9e8fe1a13804f2f5d00feb3b4ffbed60af203d44"
   apk_sha256: "160cec76dee27c903fab49506ea5c813b6430760c7021a03b85360f36c78f6bc"
+  re_verified_2026_09_18: true
   do_not_touch: true
 
 readiness:
+  recalc: 4
+  recalc_utc: "2026-09-18T05:20:00Z"
   raw_percent: 94
   cap_percent: 90
   effective_percent: 90
+  delta_effective_since_shift_start: 0
+  delta_raw_since_shift_start: 0
   deterministic_ready: true
   physical_android: false
   production_ready: false
   status: BLOCKED
   cap_reason: "RC-PHYS-002 physical Android acceptance pending"
+  gates_snapshot:
+    "1 Продукт": "GREEN 3/3"
+    "2 Реиграбельность": "GREEN 3/3"
+    "3 Мир": "YELLOW 7/8 (открыт физический факт наблюдаемости мира)"
+    "4 Продолжение": "GREEN 3/3"
+    "5 Контент": "GREEN 3/3"
+    "6 UX": "GREEN 4/4"
+    "7 Persistence": "YELLOW 3/4 (открыт физический old-save → upgrade)"
+    "8 Android": "BLOCKED 3/5 (открыты физический acceptance 16/16 и слабое устройство/ротация/back-resume)"
+    "9 Offline": "GREEN 3/3"
+    "10 Performance": "YELLOW 4/5 (открыт физический soak на слабом Android)"
+    "11 Accessibility": "GREEN 4/4"
+    "12 Localization": "GREEN 3/3"
+    "13 Release": "YELLOW 4/5 (открыта финальная сверка витрины с production-APK)"
+    "14 QA": "YELLOW 4/6 (открыты ручной длинный прогон и физическая чистая установка/обновление)"
+    "15 Monetization": "GREEN 3/3"
   gates_open:
-    - "physical acceptance 16/16 on exact release-signed APK"
-    - "weak-device / rotation / back-resume on current candidate"
-    - "physical old-save -> upgrade"
-    - "physical long-session soak"
-    - "final Store/Privacy verification"
+    - "RC-PHYS-002: физический acceptance 16/16 на exact release-signed APK"
+    - "физическое слабое устройство / ротация / back-resume на текущем кандидате"
+    - "физический old-save → обновление APK"
+    - "физический длинный soak (V11-004)"
+    - "ручной playtest-прогон текущего кандидата (гейт 14)"
+    - "финальная Store/Privacy сверка с production-артефактом (гейт 13)"
+  gate_docs: "docs/READINESS.md"
 
 ci:
-  latest_main_commit: "864140bc7bbf8506d8e72e92b32ebb66c5bd44dd"
-  latest_main_runs: "APK #1211, Life Arc Gate #242, Sync play mirror #780, Pages #1342 - все SUCCESS"
+  main_head: "eca3018362156410172156d1bf8350668b6967c7"
+  runs_on_main_head: "Sync play mirror #783 SUCCESS, Pages #1345 SUCCESS (docs-only commit: APK и Life Arc не запускались по paths-ignore)"
+  last_full_run_set_on: "287e047d7f"
+  last_full_runs: "APK #1212 SUCCESS, Life Arc Gate #243 SUCCESS, Sync play mirror #781 SUCCESS, Pages #1343 SUCCESS"
   candidate_apk_run: 35232162470
-  candidate_apk_status: success
-  main_push_apk_run_number: 1209
-  life_arc_run_number: 241
-  life_arc_status: success
-  sync_play_run_number: 779
-  sync_play_status: success
-  pages_run_number: 1341
-  pages_status: success
+
+local_stands_2026_09_18:
+  run_js: "363/363 PASS"
+  life_arc_set: "60/60 PASS (54 probes + life-workflow + release-workflow-contract + rc-hardening + 3 evidence-теста)"
+  node_check: "78 файлов web/js, 0 ошибок"
+  check_sync: "PASS"
+  check_android_security: "PASS"
+  rc2_evidence: "deterministicReady=true, missing=[], blockers все false"
+  browser_deep_run: "tools/browser-deep-run.js 32/32 PASS (payload e1d3a8a0…, commit eca3018), evidence docs/evidence/browser-deep-run-2026-09-18.json + 3 скриншота"
+  local_apk_build: "JDK 17 Temurin + build-tools 34.0.0: сборка из main даёт APK, идентичный кандидату по всему содержимому (только блок подписи различается)"
+
+environment_2026_09_18:
+  kvm: "нет /dev/kvm → аппаратный AVD/эмулятор невозможен"
+  docker: "отсутствует"
+  node: "20 (CI — 22)"
+  installed_outside_repo:
+    - "JDK 17 Temurin (bin/javac/apksigner/kotlinc не требуется)"
+    - "Android cmdline-tools + platforms;android-34 + build-tools;34.0.0 + platform-tools (adb)"
+    - "Playwright 1.55.0 + Chromium 140 (headless shell)"
+  server: "SSH 129.213.177.56 проектом не используется (ранее Permission denied publickey)"
 
 acceptance:
   id: RC-PHYS-002
@@ -91,59 +122,53 @@ acceptance:
     - "tools/probe/validate-release-authorization.js"
   synthetic_evidence_forbidden: true
 
-agent_status:
-  can_continue_without_device:
-    - "documentation consistency"
-    - "CI/workflow contract checks"
-    - "automatic probes"
-    - "non-invasive release hardening"
-  cannot_complete:
-    - "physical Android acceptance"
-    - "production approval / Play Console decision"
-  new_product_mechanics: forbidden_until_rc_operational_cycle_complete
+findings:
+  - id: FIND-2026-09-18-A
+    what: "Пики CDP-метрики JSEventListeners (51 → 3692, максимум 12949) при синтетических mouse-hold жестах"
+    verdict: "артефакт учёта эмуляции ввода в headless Chromium, НЕ утечка игры"
+    evidence: "инструментированный addEventListener: 0 вызовов из кода игры за 3 минуты жестов; heap стабилен; метрика возвращается к базовой линии 58–73; при tap-жестах стабильна"
+    action: "проверка 12.2 в tools/browser-deep-run.js переписана на честный критерий (JS-подписки + DOM-узлы); метрика оставлена информационно"
+  - id: FIND-2026-09-18-B
+    what: "Коммит eca3018 (docs) случайно удалил из docs/READINESS.md расшифровку гейтов 10–15"
+    action: "восстановлено и актуализировано этой сменой"
+  - id: FIND-2026-09-18-C
+    what: "android.permission.INTERNET остаётся в манифесте при оффлайн-игре"
+    action: "зафиксировано для Data safety ревью; удаление разрешения = новый кандидат и повторный acceptance"
+  - id: FIND-2026-09-18-D
+    what: "Отсутствие эмуляции локально и в песочнице (/dev/kvm нет); проект Docker/LLM/воркеры не заявляет"
+    action: "лестница приёмки упирается в физическое устройство; автоматизируемая часть закрыта глубоким браузерным прогоном"
 
-incident_log:
-  - date_utc: "2026-09-17T14:05:00Z"
-    what: "Регрессия оффлайн-оболочки: web/sw.js в main с незакрытой скобкой fetch-обработчика"
-    impact: "Service Worker не проходил evaluation, регистрация падала в пустой catch, оффлайн-берег браузера не работал. На APK не влияло (WebView грузит ассеты локально)."
-    detection: "headless Chromium + Playwright: navigator.serviceWorker.register -> 'ServiceWorker script evaluation failed'"
-    why_ci_missed: "node --check в CI покрывает только web/js; check-sync.sh сверял лишь состав кэша"
-    fix_commit: "1f0a1b7ee1af88807ddc7b8c95d3e20a8868965e"
-    guards_added:
-      - "tools/check-sync.sh: node --check по корневым скриптам web/"
-      - "tools/probe/boot.js: функциональный SW-probe (install/activate/fetch, существование каждого ассета)"
-      - "tools/browser-smoke.js: headless Chromium smoke, 22/22 PASS (не CI-гейт)"
-    negative_control: "сломанный sw.js отклоняется обоими сторожами"
-  - date_utc: "2026-09-17T14:04:00Z"
-    what: "Параллельный агент в main: коммиты 50a66bf, fc8aeeb, e4adbcc (автор JoTalbot) перезаписали docs/STATUS.md и agent/state/current.yml"
-    action: "сделан rebase, чужая структура сохранена и дополнена фактами; перед каждым пушем обязателен git fetch + rebase"
+artifacts_2026_09_18:
+  - "tools/browser-deep-run.js (новый глубокий прогон, не CI-гейт)"
+  - ".github/workflows/deep-run.yml (workflow_dispatch, artifact igra-deep-run)"
+  - "docs/RELEASE_CANDIDATE_VERIFICATION.md"
+  - "docs/evidence/browser-deep-run-2026-09-18.json + deep-run-01-title.png, deep-run-05-offline.png, deep-run-07-soak-4min.png"
+  - "docs/READINESS.md (пересчёт №4, восстановлены гейты 10–15)"
 
 shift_summary:
-  started_at_utc: "2026-09-17T13:30:00Z"
-  readiness_start: "90% (baseline, расчёт ранее не вёлся; raw 93%)"
+  started_at_utc: "2026-09-18T04:28:00Z"
+  readiness_start: "90% (raw 94%)"
   readiness_end: "90% (raw 94%)"
   delta_effective: 0
-  delta_raw: 1
+  delta_raw: 0
   cap: 90
   cap_reason: "RC-PHYS-002 physical Android acceptance PENDING (human blocker)"
   done:
-    - "восстановлено фактическое состояние: git/CI/releases/ветки/issues/доступы"
-    - "созданы docs/READINESS.md и agent/state/current.yml (точки отсчёта процента и resume)"
-    - "исправлена опечатка SHA-256 rc1 в README/BACKLOG_POST_RC/PUBLISH (сверено скачиванием)"
-    - "разрешено противоречие BACKLOG_POST_RC vs STATUS: RC-PHYS-001 закрыт только для rc1, добавлен RC-PHYS-002"
-    - "актуализированы устаревшие статусы V6-005..008, V7, V8, P9, V11-001..006 по факту probes/CI"
-    - "REL-001: создан release-signed кандидат (run 35232162470, SHA 1c18e1c1...)"
-    - "REL-002: пакет acceptance (журнал + шаблон evidence + негативный контроль валидаторов)"
-    - "найдена и закрыта регрессия web/sw.js + два постоянных сторожа + tools/browser-smoke.js"
-    - "гигиена веток: удалено 6 смерженных/устаревших веток"
-    - "факт-комментарий в issue #12"
+    - "восстановлено фактическое состояние: git/CI/releases/ветки/issues, сверка с пропущенными 3 docs-коммитами"
+    - "поднят локальный Android-контур (JDK 17 + build-tools 34) и Playwright/Chromium"
+    - "независимо проверен бинарник кандидата: SHA, подпись, сертификат, манифест, payload, воспроизводимость сборки"
+    - "написан и прогнан глубокий браузерный прогон: 32/32 PASS, evidence в репозитории"
+    - "разобран ложный след утечки listener'ов, проверка заменена честной"
+    - "восстановлена расшифровка гейтов 10–15 в READINESS после случайного удаления"
+    - "добавлен workflow Deep Run (workflow_dispatch) для повторяемости без устройства"
   broken: []
   next_batch:
-    - "RC-PHYS-002 (human blocker): 16 сценариев на реальном устройстве для APK 1c18e1c1..."
-    - "после PASS: повторить RC2/release gates, сверить Store/Privacy, production decision"
-    - "опционально без устройства: UX/playtest backlog issue #4 (не release blocker)"
+    - "RC-PHYS-002 (human blocker): 16 сценариев на реальном устройстве для APK 1c18e1c1…"
+    - "после PASS: пересчёт готовности, Store/Privacy сверка с production-артефактом, production decision"
+    - "без устройства: не менять payload; допустимы probes/документация/QA-обвязка"
 
 resume_hint: >
-  Test only release-signed APK 1c18e1c1... from source commit 1f0a1b7 (run 35232162470).
-  Do not move or rewrite v3.0.1-rc1. Do not fabricate physical evidence.
-  Production authorization must remain bound to the exact candidate source commit and APK SHA.
+  Test only release-signed APK 1c18e1c1bdefc446... from source commit 1f0a1b7 (run 35232162470).
+  Do not move or rewrite v3.0.1-rc1. Do not change web/ or android/ while acceptance is pending:
+  any payload change invalidates the candidate provenance. Do not fabricate physical evidence.
+  Local stands are green; the only thing missing is the physical device session.
